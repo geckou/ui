@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
 import { onBeforeUnmount, ref, reactive, watch } from 'vue'
+import {
+  MESSAGES,
+  composeDateValue as composeDate,
+  formatDateValue,
+  splitDate,
+  validateDateObject,
+} from '@geckou/ui-core'
 import { FormValidationManager } from '@/scripts/form-validation-manager'
 import InputBox from '@/components/InputBox.vue'
 import CalendarIcon from '@/components/Icon/CalendarIcon.vue'
@@ -41,7 +48,7 @@ const setValid = (isValid: boolean): void => {
 }
 
 const validateInput = (value: string) => {
-  if (!value && props.isRequired) return { isValid: false, message: '必須項目です' }
+  if (!value && props.isRequired) return { isValid: false, message: MESSAGES.required }
   return { isValid: true, message: '' }
 }
 
@@ -49,32 +56,13 @@ const validateObject = (object: {
   year: string
   month: string
   day?: string
-}) => {
-  const { year, month } = object
-  // 月選択のときは日を検証対象から外す（引数のオブジェクトは書き換えない）
-  const day = props.type === 'month' ? '' : object.day ?? ''
-  const requiredCheck = (value: string | undefined) => props.isRequired && !value
-  const isNumeric = (value: string) => /^\d+$/.test(value)
-  const required = props.type === 'month' ? [year, month] : [year, month, day]
-
-  if (required.every(value => !value) && !props.isRequired) return { isValid: true, message: '' }
-  if (required.some(requiredCheck)) return { isValid: false, message: '必須項目です' }
-  if (year.length !== 4 || !isNumeric(year)) return { isValid: false, message: '年は4桁の数字で入力してください' }
-  if (month.length !== 2 || !isNumeric(month)) return { isValid: false, message: '月は2桁の数字で入力してください' }
-  if (day && (day.length !== 2 || !isNumeric(day))) return { isValid: false, message: '日は2桁の数字で入力してください' }
-
-  const monthNum = parseInt(month, 10)
-  if (monthNum < 1 || monthNum > 12) return { isValid: false, message: '月は01から12の間で入力してください' }
-
-  const daysInMonth = (year: number, month: number) => new Date(year, month, 0).getDate()
-  const dayNum = day ? parseInt(day, 10) : null
-  if (dayNum && (dayNum < 1 || dayNum > daysInMonth(parseInt(year, 10), monthNum))) return { isValid: false, message: `日は01から${daysInMonth(parseInt(year, 10), monthNum)}の間で入力してください` }
-
-  return { isValid: true, message: '' }
-}
+}) => validateDateObject(
+  { year: object.year, month: object.month, day: object.day ?? '' },
+  { type: props.type, isRequired: props.isRequired },
+)
 
 const setDateObject = (value: string): void => {
-  const [year = '', month = '', day = ''] = value.split('-')
+  const { year, month, day } = splitDate(value)
   dateObject.year = year
   dateObject.month = month
   // 値に日が含まれない場合は前の入力を残さない
@@ -82,11 +70,7 @@ const setDateObject = (value: string): void => {
 }
 
 /** 年月日から入力欄の値（YYYY-MM-DD / YYYY-MM）を組み立てる */
-const composeDateValue = (): string => {
-  const { year, month, day } = dateObject
-  const parts = props.type === 'month' ? [year, month] : [year, month, day]
-  return parts.every(Boolean) ? parts.join('-') : ''
-}
+const composeDateValue = (): string => composeDate({ ...dateObject }, props.type)
 
 watch(() => dateValue.value, newValue => {
   setDateObject(newValue)
@@ -103,31 +87,6 @@ watch(() => dateObject, newValue => {
   if (isValid) dateValue.value = composeDateValue()
 }, { deep: true })
 
-/**
- * modelValue を入力欄の値に反映する。
- * new Date().toISOString() はタイムゾーン分ずれるため、
- * 日付部分を取り出せる文字列はそのまま使い、それ以外はローカル日付として整形する
- */
-const formatDateValue = (value: string): string => {
-  const matched = value.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/)
-  const pad = (numberValue: number) => String(numberValue).padStart(2, '0')
-
-  if (matched) {
-    const [, year, month, day] = matched
-    if (props.type === 'month') return `${year}-${month}`
-    return day ? `${year}-${month}-${day}` : ''
-  }
-
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return ''
-
-  const year = parsed.getFullYear()
-  const month = pad(parsed.getMonth() + 1)
-  const day = pad(parsed.getDate())
-
-  return props.type === 'month' ? `${year}-${month}` : `${year}-${month}-${day}`
-}
-
 const applyModelValue = (value: string): void => {
   if (!value) {
     dateValue.value = ''
@@ -137,7 +96,7 @@ const applyModelValue = (value: string): void => {
     return
   }
 
-  const formatted = formatDateValue(value)
+  const formatted = formatDateValue(value, props.type)
   if (!formatted || formatted === dateValue.value) return
 
   dateValue.value = formatted

@@ -1,10 +1,2 @@
-export const COLOR = {
-  white    : '#fff',
-  black    : '#333',
-  darkGray : '#999',
-  gray     : '#ccc',
-  lightGray: '#f9f9f9',
-  red      : '#aa0000',
-  green    : '#28a745',
-  blue     : '#1c4ac9',
-}
+// 配色は @geckou/ui-core が正。Vue / React で共通のため再エクスポートのみ行う
+export { COLOR, BORDER, MESSAGES, INPUT_BOX_DEFAULT_STYLES } from '@geckou/ui-core'

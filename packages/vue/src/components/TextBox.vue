@@ -8,6 +8,11 @@ import {
   computed,
   watch,
 } from 'vue'
+import {
+  convertFullWidthToHalfWidth,
+  isEmptyValue,
+  validateInputValue,
+} from '@geckou/ui-core'
 import InputBox from '@/components/InputBox.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 
@@ -49,24 +54,19 @@ const inputValue = computed<InputValue>({
   },
 })
 
-const convertFullWidthToHalfWidth = (str: string): string => {
-  const fullWidthRegEx = /[Ａ-Ｚａ-ｚ０-９]/g
-  return str.replace(fullWidthRegEx, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
-}
-
 const validateValue = () => {
-  errorMessages.value = []
-  const value = inputValue.value
-  
-  if (!value && props.isRequired) errorMessages.value.push('必須項目です')
-  else if (value && props.validates.length) {
-    props.validates.forEach(validate => {
-      if (!validate.regex.test(String(value))) errorMessages.value.push(validate.message)
-    })
-  }
+  errorMessages.value = validateInputValue(inputValue.value, {
+    isRequired: props.isRequired,
+    validates : props.validates,
+  })
 }
 
-watch(inputValue, () => validateValue(), { immediate: !!props.modelValue, flush: 'post' })
+// 初期値があるときはマウント時にも検証する。
+// 数値 0 も初期値として扱うため truthy 判定は使わない
+watch(inputValue, () => validateValue(), {
+  immediate: !isEmptyValue(props.modelValue),
+  flush    : 'post',
+})
 </script>
 
 <template>

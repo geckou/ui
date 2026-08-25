@@ -31,9 +31,10 @@ export function formatDateValue(value: string, type: DateType = 'date'): string 
     const [, year, month, day] = matched
     const yearMonth = `${year}-${pad(Number(month))}`
 
-    if (type === 'month' || !day) return yearMonth
+    if (type === 'month') return yearMonth
 
-    return `${yearMonth}-${pad(Number(day))}`
+    // type='date' は完全な日付を要求する。日が欠けていれば入力欄には反映しない
+    return day ? `${yearMonth}-${pad(Number(day))}` : ''
   }
 
   const parsed = new Date(value)

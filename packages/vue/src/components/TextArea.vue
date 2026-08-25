@@ -10,6 +10,7 @@ import {
   nextTick,
   onMounted,
 } from 'vue'
+import { isEmptyValue, validateInputValue } from '@geckou/ui-core'
 import InputBox from '@/components/InputBox.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 
@@ -50,15 +51,10 @@ const errorMessages = ref<string[]>([])
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 
 const validateValue = () => {
-  errorMessages.value = []
-  const value = inputValue.value
-
-  if (!value && props.isRequired) errorMessages.value.push('必須項目です')
-  else if (value && props.validates.length) {
-    props.validates.forEach(validate => {
-      if (!validate.regex.test(String(value))) errorMessages.value.push(validate.message)
-    })
-  }
+  errorMessages.value = validateInputValue(inputValue.value, {
+    isRequired: props.isRequired,
+    validates : props.validates,
+  })
 }
 
 const adjustTextareaHeight = () => {
@@ -78,7 +74,8 @@ watch(inputValue, () => {
   validateValue()
   adjustTextareaHeight()
 },
-{ immediate: !!props.modelValue, flush: 'post' })
+// 数値 0 も初期値として扱うため truthy 判定は使わない
+{ immediate: !isEmptyValue(props.modelValue), flush: 'post' })
 </script>
 
 <template>

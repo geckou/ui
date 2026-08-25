@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
 import { ref, computed, onBeforeUnmount, watch, watchEffect } from 'vue'
+import { daysInMonth, splitDate } from '@geckou/ui-core'
 import { FormValidationManager } from '@/scripts/form-validation-manager'
 import InputBox from '@/components/InputBox.vue'
 import KeyboardArrowDownIcon from '@/components/Icon/KeyboardArrowDownIcon.vue'
@@ -54,7 +55,7 @@ const daysInSelectedMonth = computed(() => {
 
   // 年が未選択のときは閏年を含む最大日数になるよう 2000 年を使う
   const year = Number(birthday.value?.year) || 2000
-  return new Date(year, month, 0).getDate()
+  return daysInMonth(year, month)
 })
 
 const dayOptions = computed(() => {
@@ -94,8 +95,7 @@ watch(daysInSelectedMonth, days => {
 
 watchEffect(() => {
   if (props.modelValue) {
-    const [year, month, day] = props.modelValue.split('-')
-    birthday.value = { year, month, day }
+    birthday.value = splitDate(props.modelValue)
   }
 })
 

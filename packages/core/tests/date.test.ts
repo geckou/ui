@@ -31,8 +31,12 @@ describe('formatDateValue', () => {
     expect(formatDateValue('')).toBe('')
   })
 
-  it('日を持たない入力では YYYY-MM を返す', () => {
-    expect(formatDateValue('2026-08')).toBe('2026-08')
+  it("type='date' で日が欠けていれば空文字を返す", () => {
+    expect(formatDateValue('2026-08')).toBe('')
+  })
+
+  it("type='month' なら日が無くても YYYY-MM を返す", () => {
+    expect(formatDateValue('2026-08', 'month')).toBe('2026-08')
   })
 })
 
