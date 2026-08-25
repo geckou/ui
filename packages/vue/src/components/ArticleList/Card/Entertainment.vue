@@ -92,7 +92,7 @@ defineProps<{
           delimiter="/"
         />
         <AuthorInfo
-          v-if="postConfig.author"
+          v-if="postConfig.author && returnAuthor(article)"
           :avatarUrls="returnAuthor(article)?.avatar_urls"
           :class="$style.author"
           :thumbnail="{

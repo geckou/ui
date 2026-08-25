@@ -78,7 +78,7 @@ defineProps<{
       style="grid-area: excerpt;"
     />
     <AuthorInfo
-      v-if="postConfig.author"
+      v-if="postConfig.author && returnAuthor(article)"
       :avatarUrls="returnAuthor(article)?.avatar_urls"
       :thumbnail="{
         size : 'large',

@@ -42,7 +42,7 @@ defineProps<{
       style="grid-area: date;"
     />
     <AuthorInfo
-      v-if="postConfig.author"
+      v-if="postConfig.author && returnAuthor(article)"
       :avatarUrls="returnAuthor(article)?.avatar_urls"
       :thumbnail="{
         shape: 'circle',

@@ -46,7 +46,7 @@ defineProps<{
       style="grid-area: heading;"
     />
     <AuthorInfo
-      v-if="postConfig.author"
+      v-if="postConfig.author && returnAuthor(article)"
       :name="returnAuthor(article)?.name"
       :class="$style.author"
       :text="{

@@ -17,7 +17,7 @@ export const generateQueryObject = (url: string): Record<string, string> => {
  * 各カードで直接辿らずここを通す
  */
 export const returnAuthor = (articleObject: Article): WpAuthor | undefined =>
-  articleObject?.['_embedded']?.['author']?.[0]
+  articleObject?._embedded?.author?.[0]
 
 export const returnTagList = (articleObject: Article): string[] => {
   const terms = articleObject?.['_embedded']?.['wp:term']?.[1] ?? []

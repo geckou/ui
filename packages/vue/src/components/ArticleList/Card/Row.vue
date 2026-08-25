@@ -79,7 +79,7 @@ defineProps<{
       style="grid-area: tag;"
     />
     <AuthorInfo
-      v-if="postConfig.author"
+      v-if="postConfig.author && returnAuthor(article)"
       :avatarUrls="returnAuthor(article)?.avatar_urls"
       :name="returnAuthor(article)?.name"
       :class="$style.author"
