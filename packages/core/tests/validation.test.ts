@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { isEmptyValue, runValidates, validateInputValue } from '../src/validation'
-import { MESSAGES } from '../src/constants'
+import { isEmptyValue, runValidates, validateInputValue } from '../src/validation.js'
+import { MESSAGES } from '../src/constants.js'
 
 describe('isEmptyValue', () => {
   // 回帰: Vue 側の `!value` 判定では 0 が必須エラーになっていた

@@ -1,6 +1,6 @@
 {
   "name": "@geckou/ui-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Framework-agnostic logic shared by @geckou/ui-vue and @geckou/ui-react",
   "type": "module",
   "main": "dist/index.js",
@@ -13,7 +13,11 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/geckou/ui.git",
@@ -21,7 +25,9 @@
   },
   "author": "geckou-shogo <shogo.nojima@geckou.net>",
   "license": "MIT",
-  "engines": { "node": ">=20.0.0" },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"

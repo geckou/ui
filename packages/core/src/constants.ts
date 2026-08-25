@@ -1,7 +1,7 @@
 import type {
   InputBoxStyleForEachStatus,
   BorderStyle,
-} from './types'
+} from './types.js'
 
 export const COLOR = {
   white    : '#fff',

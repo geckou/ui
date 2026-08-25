@@ -1,5 +1,5 @@
-import type { DateObject, DateType, ValidationResult } from './types'
-import { MESSAGES } from './constants'
+import type { DateObject, DateType, ValidationResult } from './types.js'
+import { MESSAGES } from './constants.js'
 
 function pad(value: number): string {
   return String(value).padStart(2, '0')

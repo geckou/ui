@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { convertFullWidthToHalfWidth } from '../src/text'
+import { convertFullWidthToHalfWidth } from '../src/text.js'
 
 describe('convertFullWidthToHalfWidth', () => {
   it('全角の英数字を半角へ変換する', () => {

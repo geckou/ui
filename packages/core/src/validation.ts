@@ -1,5 +1,5 @@
-import type { InputValue, Validates } from './types'
-import { MESSAGES } from './constants'
+import type { InputValue, Validates } from './types.js'
+import { MESSAGES } from './constants.js'
 
 /**
  * 入力が空かどうか。

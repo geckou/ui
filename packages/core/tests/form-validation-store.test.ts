@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createFormValidationStore } from '../src/form-validation-store'
+import { createFormValidationStore } from '../src/form-validation-store.js'
 
 describe('createFormValidationStore', () => {
   it('未登録の入力は有効として扱う', () => {

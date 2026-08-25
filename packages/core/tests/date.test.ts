@@ -5,8 +5,8 @@ import {
   formatDateValue,
   splitDate,
   validateDateObject,
-} from '../src/date'
-import { MESSAGES } from '../src/constants'
+} from '../src/date.js'
+import { MESSAGES } from '../src/constants.js'
 
 describe('formatDateValue', () => {
   // 回帰: React 側は new Date(v).toISOString() を使っており、
