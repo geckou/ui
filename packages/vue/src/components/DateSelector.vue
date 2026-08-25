@@ -93,10 +93,13 @@ watch(daysInSelectedMonth, days => {
   if (day && day > days) birthday.value = { ...birthday.value, day: String(days).padStart(2, '0') }
 })
 
+const EMPTY_BIRTHDAY = { year: '', month: '', day: '' }
+
+// value が空に戻されたときもリセットする（以前は前の選択が残っていた）
 watchEffect(() => {
-  if (props.modelValue) {
-    birthday.value = splitDate(props.modelValue)
-  }
+  birthday.value = props.modelValue
+    ? splitDate(props.modelValue)
+    : { ...EMPTY_BIRTHDAY }
 })
 
 const setValid = (isValid: boolean): void => {

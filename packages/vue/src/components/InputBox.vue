@@ -11,7 +11,7 @@ import {
   onUnmounted,
   watch,
 } from 'vue'
-import { COLOR } from '@/const'
+import { INPUT_BOX_DEFAULT_STYLES } from '@/const'
 
 const props = defineProps<{
   cssStyle?: InputBoxStyleForEachStatus
@@ -19,75 +19,12 @@ const props = defineProps<{
   isDisabled?: boolean
 }>()
 
-const {
-  black    : TEXT_COLOR,
-  darkGray : PLACEHOLDER_COLOR,
-  gray     : BORDER_COLOR,
-  lightGray: DISABLED_COLOR,
-  red      : CAUTION_COLOR,
-  green    : VALID_COLOR,
-  blue     : FOCUS_COLOR,
-} = COLOR
-
-const BORDER = {
-  color : BORDER_COLOR,
-  size  : '1px',
-  radius: '.25rem',
-}
-
 const inputBox = ref<HTMLElement | null>(null)
 
-const cssStylesUsed = computed<InputBoxStyleForEachStatus>(() => {
-  return {
-    ...{
-      default: {
-        textColor       : TEXT_COLOR,
-        placeholderColor: PLACEHOLDER_COLOR,
-        backgroundColor : 'inherit',
-        border          : BORDER,
-        boxShadow       : '0 0 0 0 rgba(0, 0, 0, 0)',
-      },
-      disabled: {
-        textColor       : PLACEHOLDER_COLOR,
-        placeholderColor: PLACEHOLDER_COLOR,
-        backgroundColor : DISABLED_COLOR,
-        border          : BORDER,
-        boxShadow       : '0 0 0 0 rgba(0, 0, 0, 0)',
-      },
-      focus: {
-        textColor       : TEXT_COLOR,
-        placeholderColor: PLACEHOLDER_COLOR,
-        backgroundColor : 'inherit',
-        border          : {
-          ...BORDER,
-          color: FOCUS_COLOR,
-        },
-        boxShadow: `0 0 .1rem .1rem ${FOCUS_COLOR}55`,
-      },
-      error: {
-        textColor       : TEXT_COLOR,
-        placeholderColor: PLACEHOLDER_COLOR,
-        backgroundColor : `${CAUTION_COLOR}11`,
-        border          : {
-          ...BORDER,
-          color: CAUTION_COLOR,
-        },
-        boxShadow: `0 0 .1rem .1rem ${CAUTION_COLOR}55`,
-      },
-      valid: {
-        textColor       : TEXT_COLOR,
-        placeholderColor: PLACEHOLDER_COLOR,
-        backgroundColor : `${VALID_COLOR}11`,
-        border          : {
-          ...BORDER,
-          color: VALID_COLOR,
-        },
-        boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
-      },
-    },
-    ...props.cssStyle,
-  }
-})
+const cssStylesUsed = computed<InputBoxStyleForEachStatus>(() => ({
+  ...INPUT_BOX_DEFAULT_STYLES,
+  ...(props.cssStyle ?? {}),
+}))
 
 const currentCssStyle = computed<InputBoxStyle>(() => cssStylesUsed.value[currentState.value as StateVariation] ?? cssStylesUsed.value.default)
 const currentState = ref<StateVariation>('default')
@@ -122,6 +59,13 @@ onUnmounted(() => {
 })
 
 watch(() => props.isDisabled, () => currentState.value = props.isDisabled ? 'disabled' : 'default', { immediate: true })
+
+// isErrored の変化は focus / blur を伴わないため、明示的に再判定する
+// （以前は次に focus か blur が起きるまでエラー配色にならなかった）
+watch(() => props.isErrored, () => {
+  if (props.isDisabled) return
+  updateState()
+})
 </script>
 
 <template>

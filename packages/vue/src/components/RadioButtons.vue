@@ -1,3 +1,9 @@
+<script lang="ts">
+// name を省略したときの既定値に使う連番。
+// <script setup> の中はインスタンスごとに実行されるため、モジュールスコープはこちらに置く
+let groupSequence = 0
+</script>
+
 <script setup lang="ts">
 import type {
   Option,
@@ -17,13 +23,19 @@ const emit = defineEmits<{(e: 'update:modelValue', newValue: SelectValue): void}
 const props = withDefaults(defineProps<{
   modelValue: SelectValue
   options: Array<Option>
+  name?: string
   isDisabled? : boolean
   isRequired?: boolean
   cssStyle?: RadioButtonStyleForEachStatus
   isDisableAnimation?: boolean
 }>(), {
+  name    : undefined,
   cssStyle: undefined,
 })
+
+// name を省略したときの一意な既定値。
+// vue 3.5 の useId は peerDependencies（^3.0.0）を満たさないため使わない
+const groupName = props.name ?? `radio_group_${++groupSequence}`
 
 const errorMessages = ref<Array<string>>([])
 
@@ -72,7 +84,7 @@ watch(() => selectedValue.value, () => validateValue(), { immediate: !!props.mod
       <input
         v-model="selectedValue"
         type="radio"
-        :name="option.value"
+        :name="groupName"
         :value="option.value"
         :disabled="isDisabled"
         :required="isRequired"

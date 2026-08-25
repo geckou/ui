@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import {
-  ref,
-  onMounted,
-  onUnmounted,
-} from 'vue'
+import { ref } from 'vue'
 import { COLOR } from '@/const'
 
 const props = withDefaults(defineProps<{
@@ -35,24 +31,32 @@ const props = withDefaults(defineProps<{
 })
 
 const activeTab = ref(props.tabs[props.initialIndex].key)
-const tabFocus = ref(0)
+const tabRefs = ref<HTMLButtonElement[]>([])
 const changeTabs = (key: string) => activeTab.value = key
 
-const handleKeydown = (event: KeyboardEvent) => {
-  const key = event.key
-  const lastIndex = props.tabs.length - 1
-
-  if (key === 'ArrowLeft') {
-    tabFocus.value = tabFocus.value > 0 ? tabFocus.value - 1 : lastIndex
-  } else if (key === 'ArrowRight') {
-    tabFocus.value = tabFocus.value < lastIndex ? tabFocus.value + 1 : 0
-  }
-
-  activeTab.value = props.tabs[tabFocus.value].key
+const activateTab = (index: number) => {
+  activeTab.value = props.tabs[index].key
+  tabRefs.value[index]?.focus()
 }
 
-onMounted(() => window.addEventListener('keydown', handleKeydown))
-onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
+// 以前は window 全体に keydown を張っていたため、フォーカス位置と無関係にタブが
+// 切り替わり、1 画面に複数設置すると互いに競合した。
+// タブリストにフォーカスがあるときだけ矢印キーで移動する（WAI-ARIA Tabs パターン）
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+
+  const currentIndex = props.tabs.findIndex(tab => tab.key === activeTab.value)
+  if (currentIndex === -1) return
+
+  event.preventDefault()
+  const lastIndex = props.tabs.length - 1
+
+  if (event.key === 'ArrowLeft') {
+    activateTab(currentIndex > 0 ? currentIndex - 1 : lastIndex)
+  } else {
+    activateTab(currentIndex < lastIndex ? currentIndex + 1 : 0)
+  }
+}
 </script>
 
 <template>
@@ -64,11 +68,13 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
         '--background-color': color?.background || 'transparent',
       }"
       role="tablist"
+      @keydown="handleKeydown"
     >
       <button
         v-for="(tab, index) in tabs"
         :id="tab.key"
         :key="tab.key"
+        :ref="el => { if (el) tabRefs[index] = el as HTMLButtonElement }"
         role="tab"
         :aria-controls="`${tab.key}_${index}`"
         :aria-selected="activeTab === tab.key"
