@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {
   Option,
+  SelectValue,
   CheckBoxStyleForEachStatus,
 } from '@/types'
 import {
@@ -12,12 +13,12 @@ import LabeledCheckbox from '@/components/LabeledCheckbox.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import { COLOR } from '@/const'
 
-const emit = defineEmits<{ (e: 'update:modelValue', newValue: string[]): void }>()
+const emit = defineEmits<{ (e: 'update:modelValue', newValue: SelectValue[]): void }>()
 
 const props = withDefaults(defineProps<{
   name : string
   options: Array<Option>
-  modelValue?: string[]
+  modelValue?: SelectValue[]
   isDisabled? : boolean
   isRequired?: boolean
   cssStyle?: CheckBoxStyleForEachStatus
@@ -32,12 +33,12 @@ const checkBoxes = ref(props.options.map(option => ({
   checked: props.modelValue?.includes(option.value) || false,
 })))
 
-const checkedValues = computed<string[]>(() => checkBoxes.value.filter(checkBox => checkBox.checked).map(checkBox => checkBox.value))
+const checkedValues = computed<SelectValue[]>(() => checkBoxes.value.filter(checkBox => checkBox.checked).map(checkBox => checkBox.value))
 const errorMessage = ref('')
 const validateInput = () => errorMessage.value = props.isRequired && checkedValues.value.length === 0 ? '必須項目です' : ''
 
 watch(checkedValues, (newValue, oldValue) => {
-  const isArraysEqual = (a: string[], b: string[]): boolean => a.length === b.length && a.every((val, index) => val === b[index])
+  const isArraysEqual = (a: SelectValue[], b: SelectValue[]): boolean => a.length === b.length && a.every((val, index) => val === b[index])
   if (oldValue && isArraysEqual(newValue, oldValue)) return
   validateInput()
   emit('update:modelValue', newValue)

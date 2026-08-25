@@ -1,4 +1,4 @@
-import type { Article, PostConfig, WpTerm } from '@/types'
+import type { Article, PostConfig, WpAuthor, WpTerm } from '@/types'
 
 export const generateQueryObject = (url: string): Record<string, string> => {
   const regex = /[?&]([^=#]+)=([^&#]*)/g
@@ -11,12 +11,20 @@ export const generateQueryObject = (url: string): Record<string, string> => {
   return queryObject
 }
 
+/**
+ * 投稿の著者を取り出す。
+ * _embedded は ?_embed を付けていないレスポンスでは存在しないため、
+ * 各カードで直接辿らずここを通す
+ */
+export const returnAuthor = (articleObject: Article): WpAuthor | undefined =>
+  articleObject?.['_embedded']?.['author']?.[0]
+
 export const returnTagList = (articleObject: Article): string[] => {
   const terms = articleObject?.['_embedded']?.['wp:term']?.[1] ?? []
   return terms.map((tag: WpTerm) => tag.name)
 }
 
-export const returnArticlePath = (postConfig: PostConfig, domain: string, articleId: string) => {
+export const returnArticlePath = (postConfig: PostConfig, domain: string, articleId: string | number) => {
   // ドメイン末尾とパス先頭のスラッシュが重ならないようにする
   const base = String(domain).replace(/\/+$/, '')
   const path = String(postConfig.article_page_path ?? '').replace(/^\/+/, '')

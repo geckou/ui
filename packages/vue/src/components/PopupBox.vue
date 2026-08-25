@@ -30,8 +30,8 @@ defineExpose({
     <div
       :class="[
         $style.popup,
-        $style[`x-${props.position.x}`],
-        $style[`y-${props.position.y}`],
+        $style[`x-${position.x}`],
+        $style[`y-${position.y}`],
         { [$style.show]: isShown },
       ]"
     >

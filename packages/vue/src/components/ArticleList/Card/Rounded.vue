@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { returnAuthor } from '@/scripts/utils'
 import type {
   Article,
   Category,
@@ -42,7 +43,7 @@ defineProps<{
     />
     <AuthorInfo
       v-if="postConfig.author"
-      :avatarUrls="article._embedded.author[0].avatar_urls"
+      :avatarUrls="returnAuthor(article)?.avatar_urls"
       :thumbnail="{
         shape: 'circle',
       }"

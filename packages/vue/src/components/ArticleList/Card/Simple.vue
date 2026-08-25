@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { returnAuthor } from '@/scripts/utils'
 import type {
   Article,
   Category,
@@ -46,7 +47,7 @@ defineProps<{
     />
     <AuthorInfo
       v-if="postConfig.author"
-      :name="article._embedded.author[0].name"
+      :name="returnAuthor(article)?.name"
       :class="$style.author"
       :text="{
         color : 'var(--gray)',

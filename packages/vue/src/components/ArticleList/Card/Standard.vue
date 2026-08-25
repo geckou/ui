@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { returnAuthor } from '@/scripts/utils'
 import type {
   Article,
   Category,
@@ -67,8 +68,8 @@ defineProps<{
     />
     <AuthorInfo
       v-if="postConfig.author"
-      :avatarUrls="article._embedded.author[0].avatar_urls"
-      :name="article._embedded.author[0].name"
+      :avatarUrls="returnAuthor(article)?.avatar_urls"
+      :name="returnAuthor(article)?.name"
       :class="$style.author"
       style="grid-area: author;"
     />
