@@ -74,7 +74,7 @@ export function InputBox({
     }
   }, [updateState])
 
-  // 元実装（vue-ui）はマウント時に状態判定せず、初回の focus / blur まで default を維持する
+  // Vue 版（@geckou/ui-vue）はマウント時に状態判定せず、初回の focus / blur まで default を維持する
   const isFirstRender = useRef(true)
   const prevDisabled = useRef(isDisabled)
 

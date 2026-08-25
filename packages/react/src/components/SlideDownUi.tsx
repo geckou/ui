@@ -5,7 +5,7 @@ import { useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { KeyboardArrowDownIcon } from './icons/KeyboardArrowDownIcon'
 import { COLOR } from '../constants'
 
-// 元実装（vue-ui）の defineExpose({ isOpenedContents }) 相当
+// Vue 版（@geckou/ui-vue）の defineExpose({ isOpenedContents }) 相当
 export type SlideDownUiHandle = {
   isOpenedContents: () => boolean
   close: () => void

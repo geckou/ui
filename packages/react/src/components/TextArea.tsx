@@ -45,7 +45,7 @@ export function TextArea({
     setErrorMessages(validateInputValue(inputValue, { isRequired, validates }))
   }
 
-  // 元実装（vue-ui）の watch(immediate: !!modelValue) と等価:
+  // Vue 版（@geckou/ui-vue）の watch(immediate: !!modelValue) と等価:
   // 初期値ありならマウント時にも検証、以後は値が変化したときのみ検証
   const initialValue = useRef(inputValue)
   const hasChanged = useRef(false)
@@ -66,7 +66,7 @@ export function TextArea({
     }
 
     validateValue()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 元実装（vue-ui）同様、値の変化時のみ検証・高さ調整する
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Vue 版（@geckou/ui-vue）同様、値の変化時のみ検証・高さ調整する
   }, [inputValue])
 
   return (

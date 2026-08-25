@@ -1,11 +1,56 @@
-# Geckou Vue UI Components
+# Geckou UI
 
-[![npm](https://img.shields.io/npm/v/@geckou/vue-ui?color=1c4ac9)](https://www.npmjs.com/package/@geckou/vue-ui)
-[![license](https://img.shields.io/npm/l/@geckou/vue-ui?color=1c4ac9)](LICENSE)
+Geckou が自社の制作案件で使う UI コンポーネント集。
+**ロジックをフレームワーク非依存の core に集約し、Vue と React が同じ core を使う**構成になっている。
 
-Vue 3 用の再利用可能な UI コンポーネント集。入力フォーム系のコンポーネントと、WordPress REST API の記事データをそのまま渡せる記事一覧コンポーネント（10 レイアウト）を収録しています。
+**デモサイト（Vue）: https://ui.geckou.net/**
 
-**デモサイト: https://ui.geckou.net/** ／ **npm: https://www.npmjs.com/package/@geckou/vue-ui**
+## パッケージ
+
+| パッケージ | 内容 | npm |
+|---|---|---|
+| [`@geckou/ui-core`](packages/core) | フレームワーク非依存のロジック（バリデーション・日付処理・状態管理・型・配色） | [![npm](https://img.shields.io/npm/v/@geckou/ui-core?color=1c4ac9)](https://www.npmjs.com/package/@geckou/ui-core) |
+| [`@geckou/ui-vue`](packages/vue) | Vue 3 用コンポーネント。フォーム系 + 記事一覧（10 レイアウト） | [![npm](https://img.shields.io/npm/v/@geckou/ui-vue?color=1c4ac9)](https://www.npmjs.com/package/@geckou/ui-vue) |
+| [`@geckou/ui-react`](packages/react) | React 19 / Next.js 用コンポーネント。フォーム系 | [![npm](https://img.shields.io/npm/v/@geckou/ui-react?color=1c4ac9)](https://www.npmjs.com/package/@geckou/ui-react) |
+
+記事一覧（ArticleList）は Vue のみに収録している。
+
+## なぜ core を分けているか
+
+Vue 版と React 版で同じコンポーネントを別々に実装していた時期に、
+**同じバグが両方に存在し、片方だけ直って、もう片方に残る**という事故が起きた。
+
+- 数値 `0` が必須エラーになる（`!value` 判定）
+- `g` / `y` フラグ付き RegExp で `lastIndex` が変異し判定が不安定になる
+- 日付が `toISOString()` でタイムゾーン分ずれる
+
+いずれもフレームワークに依存しない純粋なロジックだったため、
+`@geckou/ui-core` に集約してテストを付けた。以後、この種の修正は一度で両方に効く。
+
+## インストール
+
+### Vue
+
+```bash
+yarn add @geckou/ui-vue
+```
+
+### React（Next.js）
+
+```bash
+yarn add @geckou/ui-react
+```
+
+ソースをそのまま配布しているため、`next.config.ts` の `transpilePackages` に
+`'@geckou/ui-react'` を追加する。詳細は [パッケージの README](packages/react)。
+
+### core を単体で使う
+
+コンポーネントを使わず、バリデーションや日付処理だけ使いたい場合。
+
+```bash
+yarn add @geckou/ui-core
+```
 
 ## このパッケージについて
 
@@ -15,122 +60,6 @@ Geckou が自社の制作案件で使うために開発しているコンポー�
 - 自社案件の都合で API や見た目が変わることがあります。バージョンは当面 `0.x` のままです
 - Pull Request は歓迎しますが、方針に合わない場合はマージしないことがあります。手早く直したいときは fork してお使いください
 - MIT License（"AS IS"）で提供しています
-
-## Installation
-
-```bash
-yarn add @geckou/vue-ui
-# もしくは
-npm install @geckou/vue-ui
-```
-
-Vue 本体は同梱していません。プロジェクト側の Vue 3.0 以上を使います（`peerDependencies`）。
-
-## Usage
-
-```ts
-import { createApp } from 'vue'
-import GeckouVueUi from '@geckou/vue-ui'
-import App from './App.vue'
-
-createApp(App).use(GeckouVueUi).mount('#app')
-```
-
-```ts
-// 個別インポート
-import { TextBox, StandardList } from '@geckou/vue-ui'
-```
-
-## Components
-
-### Form
-
-`TextBox` / `TextArea` / `SelectBox` / `CheckBox` / `CheckBoxes` / `CheckButton` /
-`LabeledCheckbox` / `LabeledFieldset` / `RadioButtons` / `ToggleButton` / `BasicButton` /
-`TextButton` / `InputBox` / `InputGroup` / `TabUI` / `SlideDownUi` / `DropdownUi` /
-`ModalBox` / `PopupBox` / `LoadingSpinner` / `ErrorMessage`
-
-### Date
-
-`DatePicker` / `DateRangePicker` / `DateSelector`
-
-`FormValidationManager` を渡すと、フォーム内の各入力の検証結果をまとめて追跡できます。
-
-```vue
-<script setup lang="ts">
-import { ref } from 'vue'
-import { DatePicker, DateRangePicker, FormValidationManager } from '@geckou/vue-ui'
-
-const manager = new FormValidationManager()
-const startedOn = ref('')
-const period = ref({ start: '', end: '' })
-// manager.isAllValid.value / manager.invalidNames.value で状態を参照する
-</script>
-
-<template>
-  <DatePicker
-    v-model="startedOn"
-    name="startedOn"
-    :formValidationManager="manager"
-    isRequired
-  />
-  <DateRangePicker
-    v-model="period"
-    name="period"
-  />
-  <button :disabled="!manager.isAllValid.value">送信</button>
-</template>
-```
-
-| Component | modelValue | 主な props |
-|-----------|-----------|-----------|
-| `DatePicker` | `string`（`YYYY-MM-DD` / `type="month"` なら `YYYY-MM`） | `name` / `isRequired` / `isDisabled` / `minDate` / `maxDate` / `size` / `type` / `formValidationManager` |
-| `DateRangePicker` | `{ start: string; end: string }` | `DatePicker` と同じ（開始日と終了日の min / max が自動連動） |
-| `DateSelector` | `string`（`YYYY-MM-DD`） | `name` / `isRequired` / `type` / `formValidationManager` |
-
-### Article List
-
-`StandardList` / `RoundedList` / `ArtisticList` / `TileList` / `SimpleList` /
-`RowList` / `NewsList` / `EntertainmentList` / `GalleryList` / `GridList`
-
-WordPress REST API（`?_embed` 付き）のレスポンス配列をそのまま渡せます。
-
-```vue
-<script setup lang="ts">
-import type { Category, ListSettings } from '@geckou/vue-ui'
-import { StandardList } from '@geckou/vue-ui'
-
-const settings: ListSettings = {
-  domainToUse: 'example.com',
-  postConfig : {
-    article_page_path: '/article/',
-    query_key_name   : 'article',
-    useAuthor        : true,
-    useCategory      : true,
-    useTag           : true,
-  },
-  isEnabledPickUp: true,
-}
-
-const categories: Category[] = [{ id: '1', name: 'デザイン' }]
-const articles = ref<any[]>([])
-</script>
-
-<template>
-  <StandardList
-    :articles="articles"
-    :categories="categories"
-    :settings="settings"
-  />
-</template>
-```
-
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `articles` | `any[]` | ✅ | WordPress REST API のレスポンス配列 |
-| `categories` | `Category[]` | ✅ | カテゴリ ID と表示名の対応 |
-| `settings` | `ListSettings` | ✅ | 記事リンクの組み立て設定と表示オプション |
-| `columnNumber` | `number` | `GridList` のみ ✅ | グリッドのカラム数 |
 
 ## Design tokens
 
@@ -198,8 +127,11 @@ const articles = ref<any[]>([])
 
 ```bash
 yarn install
-yarn dev          # デモサイトを起動（http://localhost:5555/）
-yarn build        # 配布用 dist を生成
+yarn dev          # Vue のデモサイトを起動（http://localhost:5555/）
+yarn test         # 全パッケージのテスト
+yarn type-check   # 全パッケージの型チェック
+yarn lint         # ESLint（.ts / .tsx / .vue）
+yarn build        # 各パッケージの配布物を生成
 yarn build:demo   # デモサイトを demo-dist に出力
 ```
 
@@ -207,147 +139,25 @@ yarn build:demo   # デモサイトを demo-dist に出力
 
 ### Release
 
-`v*` のタグを push すると npm に publish されます（`.github/workflows/publish.yml`）。
-バージョン更新からタグ push までは release スクリプトにまとめてあります。
+パッケージ単位でリリースします。タグは `<ディレクトリ名>@<バージョン>` 形式です。
 
 ```bash
-yarn release          # パッチ更新（0.2.2 -> 0.2.3）
+yarn release core          # @geckou/ui-core をパッチ更新
 ```
 
 ```bash
-yarn release:minor    # マイナー更新（0.2.3 -> 0.3.0）
+yarn release vue minor     # @geckou/ui-vue をマイナー更新
 ```
 
 ```bash
-yarn release 0.4.0    # バージョンを直接指定
+yarn release react 1.0.0   # バージョンを直接指定
 ```
 
-未コミットの変更がある場合と main 以外のブランチでは中断します。
+バージョンを上げてコミットし、タグを push すると `.github/workflows/publish.yml` が
+タグから対象パッケージを判別して npm に publish します。
+
+未コミットの変更がある場合と `main` 以外のブランチでは中断します。
 タグは 1 本ずつ push します（4 本以上をまとめて push すると GitHub がワークフローを起動しないため）。
-
-
-## Types
-
-### `BorderStyle`
-
-| Prop Name           | Type            | Required | Description                                                |
-|---------------------|-----------------|----------|------------------------------------------------------------|
-| `color`             | `string`        | ✅       | ボーダーの色                                               |
-| `size`              | `string`        | ✅       | ボーダーの太さ                                             |
-| `radius`            | `string`        | ✅       | 角丸の大きさ                                               |
-
-### `InputBoxStyle`
-
-| Prop Name           | Type            | Required | Description                                                |
-|---------------------|-----------------|----------|------------------------------------------------------------|
-| `textColor`         | `string`        | ❌       | テキストの色                                               |
-| `placeholderColor`  | `string`        | ❌       | プレスホルダーの色                                         |
-| `border`            | `BorderStyle`   | ❌       | ボーダーのスタイル                                         |
-| `backgroundColor`   | `string`        | ❌       | 背景色                                                     |
-| `boxShadow`         | `string`        | ❌       | 影のスタイル                                               |
-
-### `InputBoxStyleForEachStatus`
-
-| Prop Name | Type                   | Required | Description                                                |
-|-----------|------------------------|----------|------------------------------------------------------------|
-| `default` | `InputBoxStyle`        | ✅       | デフォルトのスタイル                                        |
-| `error`   | `InputBoxStyle`        | ❌       | エラー時のスタイル                                         |
-| `disabled`| `InputBoxStyle`        | ❌       | 非活性時のスタイル                                         |
-| `valid`   | `InputBoxStyle`        | ❌       | 入力した値が有効な時のスタイル                             |
-| `focus`   | `InputBoxStyle`        | ❌       | フォーカス時のスタイル                                     |
-
-### `ButtonStyle`
-
-| Prop Name          | Type            | Required | Description                                                |
-|--------------------|-----------------|----------|------------------------------------------------------------|
-| `textColor`        | `string`        | ❌       | Specifies the button text color.                          |
-| `border`           | `BorderStyle`   | ❌       | Defines the border style for the button.                  |
-| `backgroundColor`  | `string`        | ❌       | Specifies the button's background color.                  |
-| `backgroundImage`  | `string`        | ❌       | Specifies the background image or gradient.               |
-| `boxShadow`        | `string`        | ❌       | Specifies the box shadow for the button.                  |
-
-### `ButtonStyleForEachStatus`
-
-| Prop Name | Type            | Required | Description                                                |
-|-----------|-----------------|----------|------------------------------------------------------------|
-| `default` | `ButtonStyle`   | ✅      | The style applied in the default state.                   |
-| `hover`   | `ButtonStyle`   | ❌       | The style applied when the button is hovered.             |
-| `disabled`| `ButtonStyle`   | ❌       | The style applied when the button is disabled.            |
-
-### `CheckBoxStyle`
-
-| Prop Name          | Type            | Required | Description                                                |
-|--------------------|-----------------|----------|------------------------------------------------------------|
-| `border`           | `BorderStyle`   | ❌       | Defines the border style for the checkbox.                |
-| `backgroundColor`  | `string`        | ❌       | Specifies the background color for the checkbox.          |
-
-### `CheckBoxStyleForEachStatus`
-
-| Prop Name | Type             | Required | Description                                                |
-|-----------|------------------|----------|------------------------------------------------------------|
-| `default` | `CheckBoxStyle`  | ✅      | The style applied in the default state.                   |
-| `disabled`| `CheckBoxStyle`  | ❌       | The style applied when the checkbox is disabled.          |
-
-### `RadioButtonStyle`
-
-| Prop Name          | Type                           | Required | Description                                                |
-|--------------------|--------------------------------|----------|------------------------------------------------------------|
-| `border`           | `Omit<BorderStyle, 'radius'>` | ❌       | Defines the border style without a border radius.         |
-| `backgroundColor`  | `string`                      | ❌       | Specifies the background color for the radio button.      |
-
-### `RadioButtonStyleForEachStatus`
-
-| Prop Name | Type                 | Required | Description                                                |
-|-----------|----------------------|----------|------------------------------------------------------------|
-| `default` | `RadioButtonStyle`   | ✅      | The style applied in the default state.                   |
-| `disabled`| `RadioButtonStyle`   | ❌       | The style applied when the radio button is disabled.      |
-
-### `Validates`
-
-| Prop Name  | Type       | Required | Description                                                |
-|------------|------------|----------|------------------------------------------------------------|
-| `regex`    | `RegExp`   | ✅      | The regular expression used for validation.               |
-| `message`  | `string`   | ✅      | The error message displayed when validation fails.        |
-
-### `Category`
-
-| Prop Name | Type     | Required | Description                    |
-|-----------|----------|----------|--------------------------------|
-| `id`      | `string` | ✅       | WordPress のカテゴリ ID        |
-| `name`    | `string` | ✅       | 表示するカテゴリ名             |
-
-### `PostConfig`
-
-| Prop Name           | Type      | Required | Description                                          |
-|---------------------|-----------|----------|------------------------------------------------------|
-| `article_page_path` | `string`  | ✅       | 記事詳細ページのパス                                 |
-| `query_key_name`    | `string`  | ✅       | 記事 ID を渡すクエリキー                             |
-| `useAuthor`         | `boolean` | ❌       | 著者を表示するか                                     |
-| `useCategory`       | `boolean` | ❌       | カテゴリを表示するか                                 |
-| `useTag`            | `boolean` | ❌       | タグを表示するか                                     |
-
-### `ListSettings`
-
-| Prop Name         | Type         | Required | Description                                |
-|-------------------|--------------|----------|--------------------------------------------|
-| `domainToUse`     | `string`     | ✅       | 記事リンクに使うドメイン                   |
-| `postConfig`      | `PostConfig` | ✅       | 記事詳細ページの組み立て設定               |
-| `isEnabledPickUp` | `boolean`    | ✅       | 先頭の記事を大きく表示するか               |
-
-## Component Props (Form)
-### `TextBox`
-
-| Prop Name          | Type                        | Required | Default            | Description                                    |
-|--------------------|-----------------------------|----------|--------------------|------------------------------------------------|
-| `modelValue`       | `string \| number`          | ✅       | -                  | テキストボックスの値                           |
-| `name`             | `string`                    | ✅       | -                  | `name`属性                                     |
-| `cssStyle`         | `InputBoxStyleForEachStatus`| ❌       | -                  | テキストボックスのスタイル                     |
-| `type`             | `string`                    | ❌       | `text`             | テキストボックスのタイプ                       |
-| `isDisabled`       | `boolean`                   | ❌       | `false`            | テキストボックスの活性/非活性                  |
-| `isRequired`       | `boolean`                   | ❌       | `false`            | 必須項目かどうか                               |
-| `maxLength`        | `number`                    | ❌       | `30`               | 最大入力文字数                                 |
-| `autocomplete`     | `string`                    | ❌       | `off`              | `autocomplete`属性                             |
-| `validates`        | `Validates[]`               | ❌       | `[]`               | バリデーションの設定                           |
 
 ## License
 

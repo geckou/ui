@@ -3,20 +3,20 @@
 import CodeBlock from '~demo/components/CodeBlock.vue'
 import { NPM_URL, REPOSITORY_URL } from '~demo/data/repository'
 
-const INSTALL = `yarn add @geckou/vue-ui
+const INSTALL = `yarn add @geckou/ui-vue
 # もしくは
-npm install @geckou/vue-ui`
+npm install @geckou/ui-vue`
 
 const PLUGIN_USAGE = `import { createApp } from 'vue'
-import GeckouVueUi from '@geckou/vue-ui'
+import GeckouUi from '@geckou/ui-vue'
 import App from './App.vue'
 
 createApp(App)
-  .use(GeckouVueUi) // TextBox / StandardList などがグローバル登録される
+  .use(GeckouUi) // TextBox / StandardList などがグローバル登録される
   .mount('#app')`
 
 const NAMED_USAGE = `<script setup lang="ts">
-import { TextBox, StandardList } from '@geckou/vue-ui'
+import { TextBox, StandardList } from '@geckou/ui-vue'
 <\/script>`
 
 const CSS_VARS = `:root {
@@ -48,7 +48,7 @@ const CSS_VARS = `:root {
   <div :class="$style.page">
     <section :class="$style.hero">
       <p :class="$style.eyebrow">
-        @geckou/vue-ui
+        @geckou/ui-vue
       </p>
       <h2 :class="$style.title">
         フォーム UI と記事一覧 UI を、ひとつのパッケージで
@@ -63,7 +63,7 @@ const CSS_VARS = `:root {
           target="_blank"
           rel="noopener"
         >
-          github.com/geckou/vue-ui
+          github.com/geckou/ui
         </a>
         <a
           :class="$style.heroLink"
@@ -71,7 +71,7 @@ const CSS_VARS = `:root {
           target="_blank"
           rel="noopener"
         >
-          npm: @geckou/vue-ui
+          npm: @geckou/ui-vue
         </a>
       </div>
     </section>
@@ -85,7 +85,7 @@ const CSS_VARS = `:root {
           :href="NPM_URL"
           target="_blank"
           rel="noopener"
-        >@geckou/vue-ui</a>）。Vue 3 のプロジェクトに追加してください。Vue 本体は同梱していないので、プロジェクト側の Vue（3.0 以上）がそのまま使われます。
+        >@geckou/ui-vue</a>）。Vue 3 のプロジェクトに追加してください。Vue 本体は同梱していないので、プロジェクト側の Vue（3.0 以上）がそのまま使われます。
       </p>
       <CodeBlock
         :code="INSTALL"

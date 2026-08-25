@@ -1,5 +1,5 @@
-export const REPOSITORY_URL = 'https://github.com/geckou/vue-ui'
-export const NPM_URL = 'https://www.npmjs.com/package/@geckou/vue-ui'
+export const REPOSITORY_URL = 'https://github.com/geckou/ui'
+export const NPM_URL = 'https://www.npmjs.com/package/@geckou/ui-vue'
 
 /** リポジトリ内のファイルへのリンクを作る */
 export const sourceUrl = (path: string) => `${REPOSITORY_URL}/blob/main/${path}`

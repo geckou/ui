@@ -48,7 +48,6 @@ export function DatePicker({
   )
   const [errorMessage, setErrorMessage] = useState('')
 
-  // 元実装（vue-ui）はマウント時にしか value を読まず、親からの更新に追従しなかった。
   // prop が実際に変わったときだけ同期する（内部編集を上書きしないため）
   const lastValueProp = useRef(value)
 

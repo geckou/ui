@@ -4,7 +4,7 @@ import { resolve } from 'path'
 
 // デモサイト（GitHub Pages）用の設定
 // 独自ドメイン（https://ui.geckou.net/）のルート公開なので base は / 。
-// リポジトリ配下（geckou.github.io/vue-ui/）へ出す場合は BASE_PATH=/vue-ui/ を指定
+// リポジトリ配下（geckou.github.io/ui/）へ出す場合は BASE_PATH=/ui/ を指定
 const base = process.env.BASE_PATH ?? '/'
 
 export default defineConfig({

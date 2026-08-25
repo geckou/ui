@@ -31,7 +31,7 @@ export function RadioButtons({
   isDisableAnimation,
 }: Props) {
   const selectedValue = value ?? ''
-  // 元実装（vue-ui）は option ごとに別の name を振っていたため、
+  // Vue 版（@geckou/ui-vue）は option ごとに別の name を振っていたため、
   // ラジオグループとして機能しなかった（フォーム送信・キーボード操作）
   const generatedName = useId()
   const groupName = name ?? generatedName

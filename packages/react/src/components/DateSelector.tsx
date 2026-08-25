@@ -25,7 +25,7 @@ const EMPTY_BIRTHDAY: Birthday = { year: '', month: '', day: '' }
 export function DateSelector({ name, value, onChange, isRequired }: Props) {
   const [birthday, setBirthday] = useState<Birthday>(EMPTY_BIRTHDAY)
 
-  // 元実装（vue-ui）は value が空に戻されたときリセットされなかった
+  // Vue 版（@geckou/ui-vue）は value が空に戻されたときリセットされなかった
   useEffect(() => {
     if (value) {
       setBirthday(splitDate(value))
@@ -47,7 +47,7 @@ export function DateSelector({ name, value, onChange, isRequired }: Props) {
     return { label: month, value: month.padStart(2, '0') }
   })
 
-  // 元実装（vue-ui）は基準年固定でうるう年が考慮されず、年選択で2月の日数が変わらなかった
+  // 年が未選択のときは閏年を含む最大日数になるよう 2000 年を使う
   const getDaysInMonth = (year: string, month: string) =>
     daysInMonth(Number(year) || 2000, Number(month))
 
@@ -67,7 +67,7 @@ export function DateSelector({ name, value, onChange, isRequired }: Props) {
   const selectItem = (key: keyof Birthday, newValue: string) => {
     const next = { ...birthday, [key]: newValue }
 
-    // 元実装（vue-ui）は月・年の変更で選択済みの日が範囲外のまま残った（例: 3/31 → 2月）
+    // 月・年を変えて日が存在しなくなった場合は、その月の末日に丸める
     if (key !== 'day' && next.day && next.month) {
       const maxDay = getDaysInMonth(next.year, next.month)
       if (Number(next.day) > maxDay) next.day = String(maxDay).padStart(2, '0')

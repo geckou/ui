@@ -42,7 +42,7 @@ export function CheckBoxes({
     }
 
     if (value) setCheckedValues(value)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 元実装（vue-ui）同様、外部からの値変更時のみ同期する
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Vue 版（@geckou/ui-vue）同様、外部からの値変更時のみ同期する
   }, [value])
 
   const toggleValue = (optionValue: string, checked: boolean) => {

@@ -19,6 +19,8 @@ yarn add @geckou/ui-react
 2. `tailwind.config.ts` の `content` に `'./node_modules/@geckou/ui-react/src/**/*.{ts,tsx}'` を追加
 3. グローバル CSS に `@import '@geckou/ui-react/styles/tokens.css';` を追加（デザイントークン）
 
+`tokens.css` は既定値です。上書きする変数の一覧はリポジトリの [README](../../README.md#design-tokens) を参照してください。
+
 ## 使い方
 
 ```tsx
@@ -54,3 +56,7 @@ return (
 ```bash
 yarn workspace @geckou/ui-react test
 ```
+
+## License
+
+[MIT](../../LICENSE)

@@ -113,14 +113,14 @@ onUnmounted(() => window.removeEventListener('hashchange', applyHash))
       >
         <GeckouLogo :class="$style.brandMark" />
         <span>
-          <strong :class="$style.brandName">Geckou Vue UI</strong>
-          <span :class="$style.brandSub">@geckou/vue-ui コンポーネントカタログ</span>
+          <strong :class="$style.brandName">Geckou UI</strong>
+          <span :class="$style.brandSub">@geckou/ui-vue コンポーネントカタログ</span>
         </span>
       </a>
       <nav :class="$style.headerNav">
         <a
           :class="$style.githubLink"
-          href="https://github.com/geckou/vue-ui"
+          href="https://github.com/geckou/ui"
           target="_blank"
           rel="noopener"
         >

@@ -45,7 +45,7 @@ export function TabUI({
     tabRefs.current[index]?.focus()
   }
 
-  // 元実装（vue-ui）は window 全体に keydown を張っていたため、フォーカス位置と
+  // Vue 版（@geckou/ui-vue）は window 全体に keydown を張っていたため、フォーカス位置と
   // 無関係にタブが切り替わり複数設置時に競合した。タブリストにフォーカスが
   // あるときだけ矢印キーで移動する（WAI-ARIA Tabs パターン）
   const handleKeydown = (event: KeyboardEvent<HTMLDivElement>) => {
