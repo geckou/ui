@@ -1,31 +1,30 @@
 {
-  "name": "@geckou/vue-ui",
-  "version": "0.2.3",
-  "description": "A set of reusable Vue UI components (forms & article lists) by Geckou",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "name": "@geckou/ui-workspace",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
+  "description": "Geckou UI — framework-agnostic core with Vue and React implementations",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/geckou/vue-ui.git"
+    "url": "git+https://github.com/geckou/ui.git"
   },
   "author": "geckou-shogo <shogo.nojima@geckou.net>",
   "license": "MIT",
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
+  "workspaces": [
+    "packages/*"
   ],
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
+  "engines": {
+    "node": ">=20.0.0"
   },
-  "peerDependencies": {
-    "vue": "^3.0.0"
+  "scripts": {
+    "dev": "vite",
+    "build": "yarn workspaces run build",
+    "build:demo": "vite build",
+    "preview:demo": "vite preview",
+    "test": "yarn workspace @geckou/ui-core test",
+    "type-check": "yarn workspaces run type-check",
+    "lint": "eslint packages/*/src demo --ext .ts,.vue",
+    "release": "bash scripts/release.sh"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
@@ -38,35 +37,8 @@
     "typescript": "^5.5.3",
     "vite": "^5.3.3",
     "vite-plugin-dts": "^4.4.0",
-    "vue": "^3.5.13"
-  },
-  "scripts": {
-    "dev": "vite",
-    "clean": "rm -rf dist",
-    "convert-alias": "node scripts/convert-alias-to-relative.js",
-    "build": "yarn clean && rsync -av --exclude 'main.ts' --exclude 'App.vue' --exclude '.DS_Store' src/ dist/ && yarn convert-alias",
-    "build:demo": "vite build",
-    "preview:demo": "vite preview",
-    "lint": "eslint src demo --ext .ts,.vue",
-    "prepublishOnly": "yarn build",
-    "release": "bash scripts/release.sh",
-    "release:minor": "bash scripts/release.sh minor",
-    "release:major": "bash scripts/release.sh major"
-  },
-  "dependencies": {
-    "date-fns": "^4.4.0"
-  },
-  "homepage": "https://ui.geckou.net/",
-  "keywords": [
-    "vue",
-    "vue3",
-    "ui",
-    "components",
-    "form",
-    "article-list",
-    "wordpress"
-  ],
-  "bugs": {
-    "url": "https://github.com/geckou/vue-ui/issues"
+    "vitest": "^2.1.9",
+    "vue": "^3.5.13",
+    "vue-tsc": "^2.1.0"
   }
 }

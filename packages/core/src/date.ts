@@ -57,12 +57,12 @@ export function splitDate(value: string): DateObject {
 /** 年・月・日から日付文字列を組み立てる。要素が欠けていれば空文字 */
 export function composeDateValue(
   dateObject: DateObject,
-  type: DateType = 'date'
+  type: DateType = 'date',
 ): string {
   const { year, month, day } = dateObject
   const parts = type === 'month' ? [year, month] : [year, month, day]
 
-  if (parts.some((part) => !part)) return ''
+  if (parts.some(part => !part)) return ''
 
   return parts.join('-')
 }
@@ -73,7 +73,7 @@ export function composeDateValue(
  */
 export function validateDateObject(
   dateObject: DateObject,
-  options: { type?: DateType; isRequired?: boolean } = {}
+  options: { type?: DateType; isRequired?: boolean } = {},
 ): ValidationResult {
   const { type = 'date', isRequired = false } = options
   const { year, month } = dateObject
@@ -81,11 +81,11 @@ export function validateDateObject(
   const valid = { isValid: true, message: '' }
 
   // 全部空で必須でなければ未入力として通す
-  if ([year, month, day].every((value) => !value) && !isRequired) return valid
+  if ([year, month, day].every(value => !value) && !isRequired) return valid
 
   const requiredValues = type === 'month' ? [year, month] : [year, month, day]
 
-  if (requiredValues.some((value) => isRequired && !value)) {
+  if (requiredValues.some(value => isRequired && !value)) {
     return { isValid: false, message: MESSAGES.required }
   }
 

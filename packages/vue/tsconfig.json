@@ -2,17 +2,18 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["packages/vue/src/*"],
-      "~demo/*": ["demo/*"]
+      "@/*": ["src/*"]
     },
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "declaration": true,
+    "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["demo/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "src/main.ts", "src/App.vue"]
 }

@@ -65,7 +65,7 @@ export function createFormValidationStore(): FormValidationStore {
     if (isSame) return
 
     snapshot = next
-    listeners.forEach((listener) => listener())
+    listeners.forEach(listener => listener())
   }
 
   return {

@@ -1,0 +1,42 @@
+{
+  "name": "@geckou/ui-vue",
+  "version": "0.3.0",
+  "description": "A set of reusable Vue UI components (forms & article lists) by Geckou",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geckou/ui.git",
+    "directory": "packages/vue"
+  },
+  "author": "geckou-shogo <shogo.nojima@geckou.net>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "dependencies": {
+    "@geckou/ui-core": "^0.1.0",
+    "date-fns": "^4.4.0"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "convert-alias": "node scripts/convert-alias-to-relative.js",
+    "build": "yarn clean && rsync -av --exclude 'main.ts' --exclude 'App.vue' --exclude '.DS_Store' src/ dist/ && yarn convert-alias",
+    "type-check": "vue-tsc --noEmit",
+    "prepublishOnly": "yarn build"
+  }
+}
