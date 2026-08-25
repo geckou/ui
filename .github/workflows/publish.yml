@@ -2,8 +2,13 @@ name: Publish package
 
 on:
   push:
-    tags: ['v*']
+    # <パッケージのディレクトリ名>@<バージョン>（例: vue@0.3.0）
+    tags: ['*@*']
   workflow_dispatch:
+    inputs:
+      package:
+        description: 公開するパッケージのディレクトリ名（core / vue / react）
+        required: true
 
 permissions:
   contents: read
@@ -14,16 +19,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Resolve target package
+        id: target
+        run: |
+          if [ -n "${{ github.event.inputs.package }}" ]; then
+            PACKAGE="${{ github.event.inputs.package }}"
+          else
+            PACKAGE="${GITHUB_REF_NAME%@*}"
+          fi
+
+          if [ ! -f "packages/$PACKAGE/package.json" ]; then
+            echo "packages/$PACKAGE が存在しません（tag: $GITHUB_REF_NAME）" >&2
+            exit 1
+          fi
+
+          echo "package=$PACKAGE" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: yarn
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      # 依存パッケージ（core など）が先にビルドされている必要がある
+      - name: Build all packages
+        run: yarn build
+
       - name: Publish to npm
         run: npm publish --access public
+        working-directory: packages/${{ steps.target.outputs.package }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

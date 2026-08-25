@@ -1,23 +1,79 @@
 <script setup lang="ts">
 /* eslint-disable no-useless-escape -- テンプレートリテラル内の閉じスクリプトタグを打ち消すためのエスケープ */
 import CodeBlock from '~demo/components/CodeBlock.vue'
-import { NPM_URL, REPOSITORY_URL } from '~demo/data/repository'
+import {
+  NPM_CORE_URL,
+  NPM_REACT_URL,
+  NPM_URL,
+  REPOSITORY_URL,
+} from '~demo/data/repository'
 
-const INSTALL = `yarn add @geckou/vue-ui
-# もしくは
-npm install @geckou/vue-ui`
+const PACKAGES = [
+  {
+    name       : '@geckou/ui-core',
+    url        : NPM_CORE_URL,
+    role       : '共通ロジック',
+    description: 'バリデーション・日付処理・全角変換・フォーム全体の検証状態。フレームワークに依存しない純粋な TypeScript。',
+  },
+  {
+    name       : '@geckou/ui-vue',
+    url        : NPM_URL,
+    role       : 'Vue 3',
+    description: 'フォーム UI と記事一覧 UI。このデモサイトで動いているのはこのパッケージ。',
+  },
+  {
+    name       : '@geckou/ui-react',
+    url        : NPM_REACT_URL,
+    role       : 'React 19',
+    description: 'フォーム UI。Next.js 向け。記事一覧は収録していない。',
+  },
+]
+
+const INSTALL_VUE = `yarn add @geckou/ui-vue`
+
+const INSTALL_REACT = `yarn add @geckou/ui-react`
 
 const PLUGIN_USAGE = `import { createApp } from 'vue'
-import GeckouVueUi from '@geckou/vue-ui'
+import GeckouUi from '@geckou/ui-vue'
 import App from './App.vue'
 
 createApp(App)
-  .use(GeckouVueUi) // TextBox / StandardList などがグローバル登録される
+  .use(GeckouUi) // TextBox / StandardList などがグローバル登録される
   .mount('#app')`
 
 const NAMED_USAGE = `<script setup lang="ts">
-import { TextBox, StandardList } from '@geckou/vue-ui'
+import { TextBox, StandardList } from '@geckou/ui-vue'
 <\/script>`
+
+const VALIDATION_VUE = `<script setup lang="ts">
+import { DatePicker, FormValidationManager } from '@geckou/ui-vue'
+
+const manager = new FormValidationManager()
+// manager.isAllValid.value でフォーム全体の状態を参照する
+<\/script>
+
+<template>
+  <DatePicker
+    v-model="startedOn"
+    name="startedOn"
+    :formValidationManager="manager"
+    isRequired
+  />
+  <button :disabled="!manager.isAllValid.value">送信</button>
+</template>`
+
+const VALIDATION_REACT = `import { DatePicker, useFormValidation } from '@geckou/ui-react'
+
+function Form() {
+  const { isAllValid } = useFormValidation()
+
+  return (
+    <form>
+      <DatePicker name="startedOn" isRequired />
+      <button disabled={!isAllValid}>送信</button>
+    </form>
+  )
+}`
 
 const CSS_VARS = `:root {
   /* 配色（値は geckou.net のブランドカラー） */
@@ -48,13 +104,14 @@ const CSS_VARS = `:root {
   <div :class="$style.page">
     <section :class="$style.hero">
       <p :class="$style.eyebrow">
-        @geckou/vue-ui
+        Geckou UI
       </p>
       <h2 :class="$style.title">
-        フォーム UI と記事一覧 UI を、ひとつのパッケージで
+        同じロジックを、Vue と React で
       </h2>
       <p :class="$style.lead">
-        入力フォーム系のコンポーネントと、WordPress REST API の記事データをそのまま渡せる記事一覧コンポーネント（10 レイアウト）を収録しています。
+        入力フォーム系のコンポーネントと、WordPress REST API の記事データをそのまま渡せる記事一覧コンポーネント（10 レイアウト）。
+        バリデーションや日付処理は共通の core パッケージが持つため、Vue 版と React 版で挙動が食い違いません。
       </p>
       <div :class="$style.heroLinks">
         <a
@@ -63,7 +120,7 @@ const CSS_VARS = `:root {
           target="_blank"
           rel="noopener"
         >
-          github.com/geckou/vue-ui
+          github.com/geckou/ui
         </a>
         <a
           :class="$style.heroLink"
@@ -71,8 +128,41 @@ const CSS_VARS = `:root {
           target="_blank"
           rel="noopener"
         >
-          npm: @geckou/vue-ui
+          npm: @geckou/ui-vue
         </a>
+      </div>
+    </section>
+
+    <section :class="$style.block">
+      <h3 :class="$style.heading">
+        パッケージ構成
+      </h3>
+      <p :class="$style.text">
+        3 つのパッケージに分かれています。
+        フレームワークに依存しないロジックを <code>@geckou/ui-core</code> に集約し、
+        Vue 版と React 版はどちらもそれを使います。
+        同じバグを 2 箇所で直す必要がなくなり、片方だけ修正が漏れることもありません。
+      </p>
+      <div :class="$style.cards">
+        <article
+          v-for="packageInfo in PACKAGES"
+          :key="packageInfo.name"
+          :class="$style.card"
+        >
+          <h4 :class="$style.cardTitle">
+            <a
+              :href="packageInfo.url"
+              target="_blank"
+              rel="noopener"
+            >{{ packageInfo.name }}</a>
+          </h4>
+          <p :class="$style.cardRole">
+            {{ packageInfo.role }}
+          </p>
+          <p :class="$style.cardText">
+            {{ packageInfo.description }}
+          </p>
+        </article>
       </div>
     </section>
 
@@ -81,14 +171,19 @@ const CSS_VARS = `:root {
         インストール
       </h3>
       <p :class="$style.text">
-        npm で配布しています（<a
-          :href="NPM_URL"
-          target="_blank"
-          rel="noopener"
-        >@geckou/vue-ui</a>）。Vue 3 のプロジェクトに追加してください。Vue 本体は同梱していないので、プロジェクト側の Vue（3.0 以上）がそのまま使われます。
+        Vue 3 のプロジェクトに追加してください。Vue 本体は同梱していないので、プロジェクト側の Vue（3.0 以上）がそのまま使われます。
       </p>
       <CodeBlock
-        :code="INSTALL"
+        :code="INSTALL_VUE"
+        language="bash"
+      />
+      <p :class="$style.text">
+        React（Next.js）の場合はこちら。ソースをそのまま配布しているため、
+        <code>next.config.ts</code> の <code>transpilePackages</code> に
+        <code>'@geckou/ui-react'</code> を追加してください。
+      </p>
+      <CodeBlock
+        :code="INSTALL_REACT"
         language="bash"
       />
     </section>
@@ -105,6 +200,22 @@ const CSS_VARS = `:root {
         language="ts"
       />
       <CodeBlock :code="NAMED_USAGE" />
+    </section>
+
+    <section :class="$style.block">
+      <h3 :class="$style.heading">
+        フォーム全体の検証状態
+      </h3>
+      <p :class="$style.text">
+        各入力の検証結果をまとめて追跡し、すべて有効になるまで送信ボタンを無効にできます。
+        Vue は <code>FormValidationManager</code>、React は <code>useFormValidation</code> を使いますが、
+        中身はどちらも core の同じストアです。
+      </p>
+      <CodeBlock :code="VALIDATION_VUE" />
+      <CodeBlock
+        :code="VALIDATION_REACT"
+        language="tsx"
+      />
     </section>
 
     <section :class="$style.block">
@@ -132,6 +243,9 @@ const CSS_VARS = `:root {
           <h4 :class="$style.cardTitle">
             Form
           </h4>
+          <p :class="$style.cardRole">
+            Vue / React 共通
+          </p>
           <p :class="$style.cardText">
             TextBox / TextArea / SelectBox / CheckBox / CheckBoxes / LabeledCheckbox /
             RadioButtons / ToggleButton / BasicButton / LabeledFieldset / TabUI ほか
@@ -139,8 +253,22 @@ const CSS_VARS = `:root {
         </article>
         <article :class="$style.card">
           <h4 :class="$style.cardTitle">
+            Date
+          </h4>
+          <p :class="$style.cardRole">
+            Vue / React 共通
+          </p>
+          <p :class="$style.cardText">
+            DatePicker / DateRangePicker / DateSelector
+          </p>
+        </article>
+        <article :class="$style.card">
+          <h4 :class="$style.cardTitle">
             Article List
           </h4>
+          <p :class="$style.cardRole">
+            Vue のみ
+          </p>
           <p :class="$style.cardText">
             StandardList / RoundedList / ArtisticList / TileList / SimpleList /
             RowList / NewsList / EntertainmentList / GalleryList / GridList
@@ -269,6 +397,30 @@ const CSS_VARS = `:root {
   font-size     : var(--fs-medium);
   font-weight   : 500;
   letter-spacing: var(--letter-spacing-normal);
+}
+
+.cardRole {
+  margin        : 0 0 var(--sp-small);
+  font-size     : var(--fs-min);
+  letter-spacing: var(--letter-spacing-normal);
+  color         : var(--primary-color);
+}
+
+.cardTitle a {
+  color          : inherit;
+  text-decoration: none;
+}
+
+.cardTitle a:hover {
+  color: var(--primary-color);
+}
+
+.text code {
+  padding         : 0 .25em;
+  border-radius   : var(--radius-small);
+  background-color: rgba(var(--black-rgb), .06);
+  font-family     : ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size       : .9em;
 }
 
 .cardText {

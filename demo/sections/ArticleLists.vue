@@ -119,9 +119,9 @@ onUnmounted(() => {
 })
 
 const SETUP_CODE = computed(() => `<script setup lang="ts">
-import type { Category, ListSettings } from '@geckou/vue-ui'
+import type { Category, ListSettings } from '@geckou/ui-vue'
 import { ref, onMounted } from 'vue'
-import { ${currentList.value.name} } from '@geckou/vue-ui'
+import { ${currentList.value.name} } from '@geckou/ui-vue'
 
 const settings: ListSettings = {
   domainToUse: 'example.com',

@@ -1,0 +1,23 @@
+// フォーム部品の型は @geckou/ui-core が正。Vue / React で共通のため、ここでは再エクスポートのみ行う
+export type {
+  StateVariation,
+  BorderStyle,
+  BaseStyle,
+  StyleForEachStatus,
+  InputBoxStyle,
+  InputBoxStyleForEachStatus,
+  ButtonStyle,
+  ButtonStyleForEachStatus,
+  CheckBoxStyle,
+  CheckBoxStyleForEachStatus,
+  RadioButtonStyle,
+  RadioButtonStyleForEachStatus,
+  SelectValue,
+  Option,
+  Validate,
+  Validates,
+  InputValue,
+  DateObject,
+  DateType,
+  ValidationResult,
+} from '@geckou/ui-core'

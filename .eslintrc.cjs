@@ -20,6 +20,21 @@ module.exports = {
     'vue',
     '@typescript-eslint',
   ],
+  overrides: [
+    // React（.tsx）は vue-eslint-parser を通さず、Hooks のルールを適用する
+    {
+      files  : ['packages/react/**/*.{ts,tsx}'],
+      parser : '@typescript-eslint/parser',
+      plugins: ['react-hooks'],
+      extends: ['plugin:react-hooks/recommended'],
+      rules  : {
+        'key-spacing' : 'off',
+        'no-multi-spaces': 'off',
+        'arrow-parens': 'off',
+      },
+    },
+  ],
+
   rules: {
     'arrow-parens': ['error', 'as-needed'],
     curly         : ['error', 'multi-line'],
