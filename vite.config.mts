@@ -25,6 +25,9 @@ export default defineConfig({
     alias: {
       '@'    : resolve(__dirname, 'packages/vue/src'),
       '~demo': resolve(__dirname, 'demo'),
+      // core は dist を参照するため、ビルド前だと解決できない。
+      // デモはワークスペースのソースを直接使う（yarn dev / build:demo の双方に効く）
+      '@geckou/ui-core': resolve(__dirname, 'packages/core/src/index.ts'),
     },
   },
 

@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: 対象パッケージ名（例: @geckou/vue-ui）
+        description: '対象パッケージ名。例 @geckou/vue-ui'
         required: true
       message:
-        description: 表示する非推奨メッセージ。空文字を渡すと非推奨を解除する
+        description: '表示する非推奨メッセージ。空文字を渡すと非推奨を解除する'
         required: true
 
 permissions:
