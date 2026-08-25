@@ -1,6 +1,6 @@
 'use client'
 
-import type { Option, CheckBoxStyleForEachStatus } from '../types'
+import type { Option, SelectValue, CheckBoxStyleForEachStatus } from '../types'
 import { MESSAGES } from '@geckou/ui-core'
 import { useEffect, useRef, useState } from 'react'
 import { LabeledCheckbox } from './LabeledCheckbox'
@@ -10,8 +10,8 @@ import { COLOR } from '../constants'
 type Props = {
   name: string
   options: Option[]
-  value?: string[]
-  onChange?: (newValue: string[]) => void
+  value?: SelectValue[]
+  onChange?: (newValue: SelectValue[]) => void
   isDisabled?: boolean
   isRequired?: boolean
   cssStyle?: CheckBoxStyleForEachStatus
@@ -26,10 +26,10 @@ export function CheckBoxes({
   isRequired,
   cssStyle,
 }: Props) {
-  const [checkedValues, setCheckedValues] = useState<string[]>(value ?? [])
+  const [checkedValues, setCheckedValues] = useState<SelectValue[]>(value ?? [])
   const [errorMessage, setErrorMessage] = useState('')
 
-  const validateInput = (newValues: string[]) =>
+  const validateInput = (newValues: SelectValue[]) =>
     setErrorMessage(isRequired && newValues.length === 0 ? MESSAGES.required : '')
 
   const isFirstRender = useRef(true)
@@ -45,9 +45,9 @@ export function CheckBoxes({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Vue 版（@geckou/ui-vue）同様、外部からの値変更時のみ同期する
   }, [value])
 
-  const toggleValue = (optionValue: string, checked: boolean) => {
+  const toggleValue = (optionValue: SelectValue, checked: boolean) => {
     const newValues = options
-      .map((option) => String(option.value))
+      .map((option) => option.value)
       .filter((candidate) =>
         candidate === optionValue ? checked : checkedValues.includes(candidate),
       )
@@ -75,8 +75,8 @@ export function CheckBoxes({
           key={option.value}
           name={name}
           label={option.label}
-          checked={checkedValues.includes(String(option.value))}
-          onChange={(checked) => toggleValue(String(option.value), checked)}
+          checked={checkedValues.includes(option.value)}
+          onChange={(checked) => toggleValue(option.value, checked)}
           isDisabled={isDisabled}
           cssStyle={cssStyle}
         />

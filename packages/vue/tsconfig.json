@@ -2,7 +2,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@geckou/ui-core": [
+        "../core/src/index.ts"
+      ]
     },
     "target": "ESNext",
     "module": "ESNext",
@@ -14,6 +19,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/main.ts", "src/App.vue"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/main.ts",
+    "src/App.vue"
+  ]
 }

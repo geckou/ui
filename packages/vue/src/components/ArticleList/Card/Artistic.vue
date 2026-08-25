@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { returnAuthor } from '@/scripts/utils'
 import type {
   Article,
   Category,
@@ -70,8 +71,8 @@ defineProps<{
         style="grid-area: tag;"
       />
       <AuthorInfo
-        v-if="postConfig.author"
-        :avatarUrls="article._embedded.author[0].avatar_urls"
+        v-if="postConfig.author && returnAuthor(article)"
+        :avatarUrls="returnAuthor(article)?.avatar_urls"
         :thumbnail="{
           size: 'large',
           shape: 'circle'
