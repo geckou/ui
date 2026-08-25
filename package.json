@@ -21,9 +21,9 @@
     "build": "yarn workspaces run build",
     "build:demo": "vite build",
     "preview:demo": "vite preview",
-    "test": "yarn workspace @geckou/ui-core test",
+    "test": "yarn workspaces run test",
     "type-check": "yarn workspaces run type-check",
-    "lint": "eslint packages/*/src demo --ext .ts,.vue",
+    "lint": "eslint packages/*/src demo --ext .ts,.tsx,.vue",
     "release": "bash scripts/release.sh"
   },
   "devDependencies": {
@@ -32,7 +32,11 @@
     "@typescript-eslint/parser": "^8.22.0",
     "@vitejs/plugin-vue": "^5.0.5",
     "eslint": "^8.57.1",
+    "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-vue": "^9.27.0",
+    "jsdom": "^25.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "sass": "^1.83.0",
     "typescript": "^5.5.3",
     "vite": "^5.3.3",
