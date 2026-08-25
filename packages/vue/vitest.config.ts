@@ -6,7 +6,11 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [vue()],
   resolve: {
-    alias: { '@': resolve(__dirname, 'src') },
+    alias: {
+      '@': resolve(__dirname, 'src'),
+      // core は dist を参照するため、ビルド前だと解決できない
+      '@geckou/ui-core': resolve(__dirname, '../core/src/index.ts'),
+    },
   },
   css: {
     preprocessorOptions: {
