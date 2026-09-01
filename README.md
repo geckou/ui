@@ -159,6 +159,56 @@ yarn release react 1.0.0   # バージョンを直接指定
 未コミットの変更がある場合と `production` 以外のブランチでは中断します。
 タグは 1 本ずつ push します（4 本以上をまとめて push すると GitHub がワークフローを起動しないため）。
 
+#### 公開できる範囲
+
+**`production` に入っているコミットだけが公開できます。** タグも手動実行も任意の ref から
+起動できるので、そのままだとレビューを通っていないコードを npm へ出せてしまいます
+（publish の前に `yarn install` / `yarn build` が走るため、その ref の任意のコードが
+公開権限を持つジョブ内で実行されます）。ワークフローは公開の前に以下を確認します。
+
+- 起動元のコミットが `origin/production` に含まれること
+- タグのバージョン部分が対象 `package.json` の `version` と一致すること
+- パッケージ名がケバブケースであること（パストラバーサル・注入の防止）
+
+#### 認証（Trusted Publishing）
+
+公開の認証は npm の **Trusted Publishing**（GitHub Actions の OIDC）で行います。
+`NPM_TOKEN` のような長期シークレットは持ちません。実行のたびに短命なトークンが
+発行されるので、盗まれて後から悪用される秘密が存在しません。
+
+そのかわり、**npm 側でパッケージごとに Trusted Publisher の登録が必要**です。
+npmjs.com のパッケージ設定（Settings → Trusted publishing）で以下を登録します。
+
+| 項目 | 値 |
+| --- | --- |
+| Provider | GitHub Actions |
+| Organization / Repository | `geckou` / `ui` |
+| Workflow filename | `publish.yml` |
+| Environment | `npm-publish` |
+
+`Workflow filename` は**ファイル名だけ**（`.github/workflows/` のパスは付けません）。
+Organization / Repository / Workflow filename は**大文字小文字まで一致**する必要があります。
+新しいパッケージを足したときは、この登録も 1 回だけ行います。
+
+npm 側の紐付けは「リポジトリ + ワークフロー」単位なので、どの ref から起動されたかまでは
+npm 側では縛れません。そこは上の `production` 包含チェックと、`npm-publish` Environment の
+「Deployment branches and tags」で担保しています。**許可するのは 2 つ**:
+
+| ref type | パターン | 用途 |
+| --- | --- | --- |
+| Tag | `*@*` | 通常のリリース（`yarn release`） |
+| Branch | `production` | `workflow_dispatch` での公開 |
+
+**タグだけに限定すると `workflow_dispatch` が Environment 側で弾かれます。**
+
+移行が動くことを確認できたら、パッケージ設定の
+**「Require two-factor authentication and disallow tokens」を有効にします**。
+以後そのパッケージはトークンでは公開できなくなります。**順番を逆にすると公開できなくなる**ので、
+必ず 1 回公開が通ってから有効にしてください。
+
+公開されたパッケージには provenance（どのコミット・どのワークフローから公開されたかの証明）
+が付きます。
+
 ## License
 
 [MIT](LICENSE)
