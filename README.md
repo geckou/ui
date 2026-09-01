@@ -142,22 +142,28 @@ yarn build:demo   # デモサイトを demo-dist に出力
 パッケージ単位でリリースします。タグは `<ディレクトリ名>@<バージョン>` 形式です。
 
 ```bash
-yarn release core          # @geckou/ui-core をパッチ更新
+# 1. packages/<パッケージ>/package.json の version を上げる PR を出してマージする
+# 2. production でタグを打つ（複数まとめて指定できる）
+git checkout production && git pull --ff-only
+yarn release core react vue
 ```
 
-```bash
-yarn release vue minor     # @geckou/ui-vue をマイナー更新
-```
+タグを push すると `.github/workflows/publish.yml` がタグから対象パッケージを判別して
+npm に publish します。
 
-```bash
-yarn release react 1.0.0   # バージョンを直接指定
-```
+**`yarn release` はタグを打つだけで、version は上げません。** `production` への直接 push は
+禁止しているため、version の変更は通常の PR で入れます。
 
-バージョンを上げてコミットし、タグを push すると `.github/workflows/publish.yml` が
-タグから対象パッケージを判別して npm に publish します。
+中断する条件:
 
-未コミットの変更がある場合と `production` 以外のブランチでは中断します。
-タグは 1 本ずつ push します（4 本以上をまとめて push すると GitHub がワークフローを起動しないため）。
+- 未コミットの変更がある
+- `production` 以外のブランチにいる
+- **HEAD が `origin/production` と一致していない** — 手元が古いままタグを打つと、GitHub は
+  「タグが指すコミットのワークフローファイル」で実行するため、古い `publish.yml` が動いて
+  意図しない中身が公開されうるため
+- 指定したパッケージのタグが既に存在する（打つ前に全部検査するので、一部だけタグが付くことはありません）
+
+タグは 1 本ずつ push します（まとめて push すると GitHub がワークフローを起動しないことがあるため）。
 
 #### 公開できる範囲
 
