@@ -1,6 +1,6 @@
 {
   "name": "@geckou/ui-react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A set of reusable React UI components (forms) by Geckou",
   "type": "module",
   "main": "./src/index.ts",
