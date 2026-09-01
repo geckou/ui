@@ -5,7 +5,7 @@ export const NPM_CORE_URL = 'https://www.npmjs.com/package/@geckou/ui-core'
 export const NPM_REACT_URL = 'https://www.npmjs.com/package/@geckou/ui-react'
 
 /** リポジトリ内のファイルへのリンクを作る */
-export const sourceUrl = (path: string) => `${REPOSITORY_URL}/blob/main/${path}`
+export const sourceUrl = (path: string) => `${REPOSITORY_URL}/blob/production/${path}`
 
 /** フォーム系コンポーネントのソースパス */
 export const componentSource = (name: string) =>
