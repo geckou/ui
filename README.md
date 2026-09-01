@@ -135,7 +135,7 @@ yarn build        # 各パッケージの配布物を生成
 yarn build:demo   # デモサイトを demo-dist に出力
 ```
 
-デモサイトは `main` への push で GitHub Pages に自動デプロイされます（`.github/workflows/deploy-demo.yml`）。
+デモサイトは `production` への push で GitHub Pages に自動デプロイされます（`.github/workflows/deploy-demo.yml`）。
 
 ### Release
 
@@ -156,7 +156,7 @@ yarn release react 1.0.0   # バージョンを直接指定
 バージョンを上げてコミットし、タグを push すると `.github/workflows/publish.yml` が
 タグから対象パッケージを判別して npm に publish します。
 
-未コミットの変更がある場合と `main` 以外のブランチでは中断します。
+未コミットの変更がある場合と `production` 以外のブランチでは中断します。
 タグは 1 本ずつ push します（4 本以上をまとめて push すると GitHub がワークフローを起動しないため）。
 
 ## License

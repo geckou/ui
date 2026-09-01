@@ -27,12 +27,12 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-if [ "$BRANCH" != "main" ]; then
-  echo "main ブランチで実行してください（現在: $BRANCH）" >&2
+if [ "$BRANCH" != "production" ]; then
+  echo "production ブランチで実行してください（現在: $BRANCH）" >&2
   exit 1
 fi
 
-git pull --rebase origin main
+git pull --rebase origin production
 
 case "$BUMP" in
   patch|minor|major) (cd "$PACKAGE_DIR" && yarn version "--$BUMP" --no-git-tag-version) ;;
@@ -47,7 +47,7 @@ git add "$PACKAGE_DIR/package.json"
 git commit -m "chore(release): $NAME v$VERSION"
 git tag "$TAG"
 
-git push origin main
+git push origin production
 # タグは 1 本ずつ push する（4 本以上まとめると GitHub がワークフローを起動しない）
 git push origin "$TAG"
 
