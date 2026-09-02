@@ -9,6 +9,7 @@ import type { Option, RadioButtonStyleForEachStatus } from '@/types'
 import { ref, watch, computed } from 'vue'
 import { isEmptyValue } from '@geckou/ui-core'
 import { COLOR } from '@/const'
+import ErrorMessage from '@/components/ErrorMessage.vue'
 
 type SelectValue = string | number
 
@@ -103,6 +104,7 @@ watch(
         {{ option.label }}
       </span>
     </label>
+    <ErrorMessage :errorMessages="errorMessages" />
   </div>
 </template>
 
@@ -130,6 +132,8 @@ watch(
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
+  // ErrorMessage は position: absolute で下に出るので、基準を作る
+  position: relative;
 }
 
 :is(.radio) {

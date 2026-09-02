@@ -87,11 +87,6 @@ describe('RadioButtons', () => {
 
   // 修正前は !selectedValue.value で判定しており、数値の 0 が未選択扱いになって
   // 選択済みでも必須エラーが出ていた（SelectValue は string | number）。
-  // RadioButtons は errorMessages を描画していないため（→ #18）、
-  // 描画結果ではなく検証結果そのものを見る
-  const errorMessagesOf = (wrapper: ReturnType<typeof mount>) =>
-    (wrapper.vm as unknown as { errorMessages: string[] }).errorMessages
-
   it('数値の 0 を選んでも必須エラーにしない', async () => {
     const wrapper = mount(RadioButtons, {
       props: {
@@ -116,7 +111,7 @@ describe('RadioButtons', () => {
     await radios[0].setValue()
     await wrapper.vm.$nextTick()
 
-    expect(errorMessagesOf(wrapper)).toEqual([])
+    expect(wrapper.text()).not.toContain('必須項目です')
   })
 
   // このテストは今回の不具合では落ちない（修正前は immediate が false になり
@@ -136,7 +131,29 @@ describe('RadioButtons', () => {
 
     await wrapper.vm.$nextTick()
 
-    expect(errorMessagesOf(wrapper)).toEqual([])
+    expect(wrapper.text()).not.toContain('必須項目です')
+  })
+
+  // 修正前は errorMessages を組み立てるだけで ErrorMessage を描画しておらず、
+  // 必須チェックの結果が画面に出ていなかった
+  it('選択が空に戻されたら必須エラーを描画する', async () => {
+    const wrapper = mount(RadioButtons, {
+      props: {
+        modelValue: 1,
+        options: [
+          { label: 'なし', value: 0 },
+          { label: 'あり', value: 1 },
+        ],
+        isRequired: true,
+      },
+    })
+
+    expect(wrapper.text()).not.toContain('必須項目です')
+
+    await wrapper.setProps({ modelValue: '' })
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('必須項目です')
   })
 })
 
