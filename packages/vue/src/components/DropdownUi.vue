@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUpdated } from 'vue'
 import IconChevronDown from '@/components/Icon/KeyboardArrowDownIcon.vue'
+import { useClickOutside } from '@/scripts/use-click-outside'
 withDefaults(
   defineProps<{
     isHiddenArrow?: boolean
@@ -17,6 +18,7 @@ withDefaults(
 )
 
 const isContentsOpened = ref(false)
+const root = ref<HTMLElement | null>(null)
 const contents = ref<HTMLElement | null>(null)
 const contentsHeight = ref(0)
 const toggleBox = () => (isContentsOpened.value = !isContentsOpened.value)
@@ -29,13 +31,15 @@ const updateContentsHeight = () => {
   }
 }
 
+useClickOutside(root, () => closeDropDown())
+
 onMounted(() => updateContentsHeight())
 onUpdated(() => updateContentsHeight())
 defineExpose({ isContentsOpened })
 </script>
 
 <template>
-  <div v-click-outside="closeDropDown" :class="$style.drop_down_box">
+  <div ref="root" :class="$style.drop_down_box">
     <button
       :class="$style.button"
       :disabled="isDisabled"

@@ -1,9 +1,12 @@
 // @geckou/ui-core への移行時に修正したバグのリグレッションテスト
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import DateSelector from '@/components/DateSelector.vue'
+import DropdownUi from '@/components/DropdownUi.vue'
 import RadioButtons from '@/components/RadioButtons.vue'
 import SelectBox from '@/components/SelectBox.vue'
+import SlideDownUi from '@/components/SlideDownUi.vue'
 import TabUI from '@/components/TabUI.vue'
 import TextBox from '@/components/TextBox.vue'
 
@@ -321,5 +324,73 @@ describe('SelectBox', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('必須項目です')
+  })
+})
+
+describe('DropdownUi / SlideDownUi の外側クリック', () => {
+  // 修正前は v-click-outside ディレクティブに頼っていたが app.directive() の登録が
+  // どこにも無く、「Failed to resolve directive: click-outside」で無効化されていた
+  const pointerDownOutside = async () => {
+    document.dispatchEvent(
+      new MouseEvent('pointerdown', { bubbles: true }) as unknown as Event
+    )
+    await nextTick()
+  }
+
+  it('DropdownUi: 外側の pointerdown で閉じる', async () => {
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: 'contents' },
+      attachTo: document.body,
+    })
+
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.vm.isContentsOpened).toBe(true)
+
+    await pointerDownOutside()
+    expect(wrapper.vm.isContentsOpened).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  it('DropdownUi: 内側の pointerdown では閉じない', async () => {
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: 'contents' },
+      attachTo: document.body,
+    })
+
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('button').trigger('pointerdown')
+    await nextTick()
+
+    expect(wrapper.vm.isContentsOpened).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('SlideDownUi: isDisableClickOutside なら外側クリックでも閉じない', async () => {
+    const wrapper = mount(SlideDownUi, {
+      props: { isDisableClickOutside: true },
+      attachTo: document.body,
+    })
+
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.vm.isOpenedContents).toBe(true)
+
+    await pointerDownOutside()
+    expect(wrapper.vm.isOpenedContents).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('SlideDownUi: 既定では外側クリックで閉じる', async () => {
+    const wrapper = mount(SlideDownUi, { attachTo: document.body })
+
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.vm.isOpenedContents).toBe(true)
+
+    await pointerDownOutside()
+    expect(wrapper.vm.isOpenedContents).toBe(false)
+
+    wrapper.unmount()
   })
 })
