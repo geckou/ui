@@ -450,7 +450,7 @@
     minimatch "^3.1.5"
     strip-json-comments "^3.1.1"
 
-"@eslint/js@9.39.5":
+"@eslint/js@9.39.5", "@eslint/js@^9.0.0":
   version "9.39.5"
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-9.39.5.tgz#6f2fbcff75500d229d535e0a949ae13472c84787"
   integrity sha512-QywQuszQh77pIXCsq998c8hbhSTI/azTty1Z6N53dmAudKHhy573j3yvRLsX2BSp8YpLtoCEG8E9DJe+8zUh4A==
@@ -475,12 +475,13 @@
   dependencies:
     "@commitlint/config-conventional" "^21"
 
-"@geckou/eslint-config@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@geckou/eslint-config/-/eslint-config-0.2.0.tgz#5c55505dce69c09746bb030b71c54442b7050de5"
-  integrity sha512-IZ3WAtv9NduUo9VdFOkDxUSjvBFg5qZ1no8w7Lmer1673+vwVxB+bWdcBOvTY/mh0CYrbDiZd4njyQI3eRWSvg==
+"@geckou/eslint-config@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@geckou/eslint-config/-/eslint-config-0.3.0.tgz#38805ec3c366b57a093d4a3fbcd9366c8b57b92c"
+  integrity sha512-pPimOVWl8K4UouJQJzXg3r6Tbn6cNTBFjPaeDGUF1h94MgcaP0e0C83EhpN0lQBRabZd0ojLTQW59Gx4TPPPtw==
   dependencies:
     "@eslint/eslintrc" "^3.0.0"
+    "@eslint/js" "^9.0.0"
     "@typescript-eslint/eslint-plugin" "^8.0.0"
     "@typescript-eslint/parser" "^8.0.0"
     eslint-config-expo "~8.0.0"
