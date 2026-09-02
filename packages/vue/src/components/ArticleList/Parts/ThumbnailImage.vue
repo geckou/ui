@@ -21,15 +21,23 @@ const props = withDefaults(
   }
 )
 
+const articleMedia = computed(
+  () => props.article?.['_embedded']?.['wp:featuredmedia']?.[0] || {}
+)
+
+// WordPress は登録サイズ次第で thumbnail を返さない。`?.` が sizes にしか
+// 効いておらず、指定サイズが無いと TypeError で一覧全体が描画されなくなっていた。
+// 指定サイズが無ければ full へ、それも無ければ空文字（NoImage）にフォールバックする
+const returnThumbnailSrc = (type: 'full' | 'thumbnail') => {
+  const sizes = articleMedia.value.media_details?.sizes
+
+  return sizes?.[type]?.source_url ?? sizes?.full?.source_url ?? ''
+}
+
 const thumbnailSrcset = computed(
   () =>
     `${returnThumbnailSrc('full')} 1024w, ${returnThumbnailSrc('thumbnail')} 640w`
 )
-const articleMedia = computed(
-  () => props.article?.['_embedded']?.['wp:featuredmedia']?.[0] || {}
-)
-const returnThumbnailSrc = (type: 'full' | 'thumbnail') =>
-  articleMedia.value.media_details?.sizes?.[type].source_url ?? ''
 </script>
 
 <template>

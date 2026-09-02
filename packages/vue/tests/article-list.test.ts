@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import StandardCard from '@/components/ArticleList/Card/Standard.vue'
+import ThumbnailImage from '@/components/ArticleList/Parts/ThumbnailImage.vue'
 import { returnAuthor } from '@/scripts/utils'
 import type { Article, PostConfig } from '@/types'
 
@@ -107,5 +108,56 @@ describe('ArticleList のカード', () => {
     })
 
     expect(wrapper.text()).not.toContain('執筆者')
+  })
+})
+
+describe('ThumbnailImage', () => {
+  const withMedia = (sizes: Record<string, { source_url: string }>) =>
+    ({
+      ...baseArticle,
+      _embedded: {
+        'wp:featuredmedia': [{ alt_text: '', media_details: { sizes } }],
+      },
+    }) as unknown as Article
+
+  // 修正前は sizes?.[type].source_url で、指定サイズが無いと
+  // TypeError になり一覧全体が描画されなくなっていた
+  it('thumbnail が無くても throw せず full を使う', () => {
+    const wrapper = mount(ThumbnailImage, {
+      props: {
+        article: withMedia({
+          full: { source_url: 'https://example.com/f.jpg' },
+        }),
+      },
+    })
+
+    const img = wrapper.find('img')
+    expect(img.exists()).toBe(true)
+    expect(img.attributes('srcset')).toBe(
+      'https://example.com/f.jpg 1024w, https://example.com/f.jpg 640w'
+    )
+  })
+
+  it('サイズが 1 つも無ければ NoImage を出す', () => {
+    const wrapper = mount(ThumbnailImage, {
+      props: { article: withMedia({}) },
+    })
+
+    expect(wrapper.find('img').exists()).toBe(false)
+  })
+
+  it('thumbnail があればそれを使う', () => {
+    const wrapper = mount(ThumbnailImage, {
+      props: {
+        article: withMedia({
+          full: { source_url: 'https://example.com/f.jpg' },
+          thumbnail: { source_url: 'https://example.com/t.jpg' },
+        }),
+      },
+    })
+
+    expect(wrapper.find('img').attributes('srcset')).toBe(
+      'https://example.com/f.jpg 1024w, https://example.com/t.jpg 640w'
+    )
   })
 })
