@@ -1,5 +1,12 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // ビルド時は core をソースではなくパッケージとして解決させる。
+    // tsconfig.json の paths を残すと vite-plugin-dts が
+    // `../../../core/src/index.ts` への相対 import を .d.ts に書き出し、
+    // tarball に含まれない（files: ["dist"]）ため利用側で型が解決できなくなる
+    "paths": {}
+  },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "tests"]
 }

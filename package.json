@@ -19,6 +19,7 @@
   "scripts": {
     "build": "yarn workspaces run build",
     "build:demo": "vite build",
+    "check:dist-types": "bash scripts/check-dist-types.sh",
     "dev": "vite",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

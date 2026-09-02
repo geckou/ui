@@ -47,5 +47,10 @@ jobs:
       - name: Build packages
         run: yarn build
 
+      # dist の型定義が packages/core/src を参照していないか
+      # （tarball に入らないため、参照が残ると利用側で型が解決できない）
+      - name: Check dist types
+        run: yarn check:dist-types
+
       - name: Build demo site
         run: yarn build:demo

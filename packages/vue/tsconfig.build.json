@@ -1,7 +1,14 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    // `@/*` は残し、`@geckou/ui-core` の paths だけ落とす。
+    // core をソースへ向けたままだと vite-plugin-dts が
+    // `../../../core/src/index.ts` への相対 import を .d.ts に書き出し、
+    // tarball に含まれない（files: ["dist"]）ため利用側で型が解決できなくなる
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests", "src/main.ts", "src/App.vue"]
