@@ -1,5 +1,7 @@
 <script setup lang="ts">
-withDefaults(
+import { computed } from 'vue'
+
+const props = withDefaults(
   defineProps<{
     avatarUrls?: Record<string, string> | null
     name?: string
@@ -31,6 +33,42 @@ withDefaults(
     }),
   }
 )
+
+// 渡されたサイズだけで srcset を組み立てる。WordPress の avatar_urls は
+// 24 / 48 / 96 が揃っているとは限らないため、欠けている候補は入れない
+const srcset = computed(() => {
+  const urls = props.avatarUrls
+
+  if (!urls) {
+    return undefined
+  }
+
+  const candidates = [
+    { url: urls['96'], width: '1024w' },
+    { url: urls['48'], width: '640w' },
+  ].filter((candidate) => Boolean(candidate.url))
+
+  if (candidates.length === 0) {
+    return undefined
+  }
+
+  return candidates
+    .map((candidate) => `${candidate.url} ${candidate.width}`)
+    .join(', ')
+})
+
+// srcset に対応しない環境と、96 が無いケースのためのフォールバック。
+// src が無いまま <img> を出すと壊れた画像になるので、
+// URL が 1 つも無ければ描画自体をやめる（テンプレートの v-if）
+const src = computed(() => {
+  const urls = props.avatarUrls
+
+  if (!urls) {
+    return undefined
+  }
+
+  return urls['96'] ?? urls['48']
+})
 </script>
 
 <template>
@@ -44,10 +82,9 @@ withDefaults(
     }"
   >
     <img
-      v-if="avatarUrls"
-      :src="avatarUrls['96']"
-      :srcset="`${avatarUrls['96']} 1024w,
-        ${['48']} 640w`"
+      v-if="src"
+      :src="src"
+      :srcset="srcset"
       :alt="`${name} thumbnail`"
       loading="lazy"
       :class="[$style.thumbnail, $style[thumbnail.shape ?? 'square']]"
