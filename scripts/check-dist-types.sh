@@ -15,7 +15,7 @@ status=0
 for dir in packages/*/dist; do
   [ -d "$dir" ] || continue
 
-  if hits=$(grep -rn "core/src" "$dir" --include='*.d.ts' 2>/dev/null); then
+  if hits=$(grep -rn --include='*.d.ts' "core/src" "$dir" 2>/dev/null); then
     echo "❌ $dir の型定義がパッケージ外の core/src を参照しています:"
     echo "$hits"
     status=1
