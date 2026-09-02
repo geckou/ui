@@ -38,6 +38,27 @@ describe('formatDateValue', () => {
   it("type='month' なら日が無くても YYYY-MM を返す", () => {
     expect(formatDateValue('2026-08', 'month')).toBe('2026-08')
   })
+
+  // 回帰: 正規表現に $ が無く、範囲検査も無かった
+  it('範囲外の月日は空文字を返す', () => {
+    expect(formatDateValue('2024-13-45')).toBe('')
+    expect(formatDateValue('2024-00-10')).toBe('')
+    expect(formatDateValue('2026-02-30')).toBe('')
+    expect(formatDateValue('2024-02-29')).toBe('2024-02-29')
+  })
+
+  it('日付の後ろにゴミが付いた文字列は空文字を返す', () => {
+    expect(formatDateValue('2024-01-15abc')).toBe('')
+  })
+
+  // 回帰: 先頭 10 文字を字面で採っており、UTC 日付のまま返していた
+  it('ISO 8601 の文字列はローカル時刻の日付として読む', () => {
+    const iso = '2024-01-14T23:00:00.000Z'
+    const local = new Date(iso)
+    const expected = `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, '0')}-${String(local.getDate()).padStart(2, '0')}`
+
+    expect(formatDateValue(iso)).toBe(expected)
+  })
 })
 
 describe('splitDate / composeDateValue', () => {
@@ -62,12 +83,28 @@ describe('splitDate / composeDateValue', () => {
       composeDateValue({ year: '2026', month: '08', day: '' }, 'month')
     ).toBe('2026-08')
   })
+
+  it('1 桁の月日はゼロ埋めして組み立てる', () => {
+    expect(composeDateValue({ year: '2024', month: '1', day: '5' })).toBe(
+      '2024-01-05'
+    )
+    expect(
+      composeDateValue({ year: '2024', month: '1', day: '' }, 'month')
+    ).toBe('2024-01')
+  })
 })
 
 describe('daysInMonth', () => {
   it('うるう年の 2 月は 29 日', () => {
     expect(daysInMonth(2024, 2)).toBe(29)
     expect(daysInMonth(2026, 2)).toBe(28)
+  })
+
+  // 回帰: new Date(year, ...) が年 0〜99 を 1900 年代として扱っていた
+  it('年 0〜99 を西暦そのままで扱う', () => {
+    expect(daysInMonth(0, 2)).toBe(29)
+    expect(daysInMonth(4, 2)).toBe(29)
+    expect(daysInMonth(1900, 2)).toBe(28)
   })
 })
 
@@ -112,6 +149,16 @@ describe('validateDateObject', () => {
     ).toEqual({
       isValid: false,
       message: MESSAGES.dayOutOfRange(28),
+    })
+  })
+
+  // 回帰: parseInt('00') が 0（falsy）で、日の範囲検査が飛んでいた
+  it("日 '00' を弾く", () => {
+    expect(
+      validateDateObject({ year: '2024', month: '01', day: '00' })
+    ).toEqual({
+      isValid: false,
+      message: MESSAGES.dayOutOfRange(31),
     })
   })
 

@@ -29,7 +29,7 @@
     "vue": "^3.0.0"
   },
   "dependencies": {
-    "@geckou/ui-core": "^0.1.0",
+    "@geckou/ui-core": "^0.2.0",
     "date-fns": "^4.4.0"
   },
   "scripts": {

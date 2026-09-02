@@ -11,7 +11,12 @@ function isNumeric(value: string): boolean {
 
 /** 指定した年月の日数。month は 1 始まり */
 export function daysInMonth(year: number, month: number): number {
-  return new Date(year, month, 0).getDate()
+  // new Date(year, ...) は年 0〜99 を 1900 年代として扱う（0 → 1900）。
+  // setFullYear なら西暦そのままで解釈される
+  const date = new Date(0)
+  date.setFullYear(year, month, 0)
+
+  return date.getDate()
 }
 
 /**
@@ -30,18 +35,38 @@ export function formatDateValue(
     return ''
   }
 
-  const matched = value.match(/^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?/)
+  // 末尾を固定する。固定しないと '2024-01-15abc' のような値の頭だけを拾ってしまう。
+  // ISO 8601（'2024-01-14T23:00:00.000Z'）もここでは一致せず、下の Date へ回して
+  // ローカル時刻の日付に直す（字面の先頭 10 文字を採ると UTC 日付になり、
+  // JST では前日にずれる）
+  const matched = value.match(/^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/)
 
   if (matched) {
     const [, year, month, day] = matched
-    const yearMonth = `${year}-${pad(Number(month))}`
+    const monthNumber = Number(month)
+
+    if (monthNumber < 1 || monthNumber > 12) {
+      return ''
+    }
+
+    const yearMonth = `${year}-${pad(monthNumber)}`
 
     if (type === 'month') {
       return yearMonth
     }
 
     // type='date' は完全な日付を要求する。日が欠けていれば入力欄には反映しない
-    return day ? `${yearMonth}-${pad(Number(day))}` : ''
+    if (!day) {
+      return ''
+    }
+
+    const dayNumber = Number(day)
+
+    if (dayNumber < 1 || dayNumber > daysInMonth(Number(year), monthNumber)) {
+      return ''
+    }
+
+    return `${yearMonth}-${pad(dayNumber)}`
   }
 
   const parsed = new Date(value)
@@ -66,7 +91,10 @@ export function splitDate(value: string): DateObject {
   return { year, month, day }
 }
 
-/** 年・月・日から日付文字列を組み立てる。要素が欠けていれば空文字 */
+/**
+ * 年・月・日から日付文字列を組み立てる。要素が欠けていれば空文字。
+ * 月・日は 2 桁へゼロ埋めする（'2024-1-5' ではなく '2024-01-05'）
+ */
 export function composeDateValue(
   dateObject: DateObject,
   type: DateType = 'date'
@@ -78,7 +106,9 @@ export function composeDateValue(
     return ''
   }
 
-  return parts.join('-')
+  const [yearPart, ...rest] = parts
+
+  return [yearPart, ...rest.map((part) => pad(Number(part)))].join('-')
 }
 
 /**
@@ -123,10 +153,11 @@ export function validateDateObject(
     return { isValid: false, message: MESSAGES.monthOutOfRange }
   }
 
+  // parseInt('00') は 0（falsy）。null との比較にしないと日 '00' の検査が飛ぶ
   const dayNumber = day ? parseInt(day, 10) : null
   const maxDay = daysInMonth(parseInt(year, 10), monthNumber)
 
-  if (dayNumber && (dayNumber < 1 || dayNumber > maxDay)) {
+  if (dayNumber !== null && (dayNumber < 1 || dayNumber > maxDay)) {
     return { isValid: false, message: MESSAGES.dayOutOfRange(maxDay) }
   }
 
