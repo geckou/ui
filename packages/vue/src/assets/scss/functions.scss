@@ -1,6 +1,12 @@
 @function calcClamp($minValuePx, $maxValuePx, $minViewport, $maxViewport) {
-  $variablePart: calc(($maxValuePx - $minValuePx) / ($maxViewport - $minViewport));
+  $variablePart: calc(
+    ($maxValuePx - $minValuePx) / ($maxViewport - $minViewport)
+  );
   $constant: calc(($maxValuePx - $maxViewport * $variablePart) / 16);
 
-  @return clamp(#{calc($minValuePx / 16)}rem, #{$constant}rem + #{100 * $variablePart}vw, #{calc($maxValuePx / 16)}rem);
+  @return clamp(
+    #{calc($minValuePx / 16)}rem,
+    #{$constant}rem + #{100 * $variablePart}vw,
+    #{calc($maxValuePx / 16)}rem
+  );
 }

@@ -10,7 +10,9 @@ type Props = {
 }
 
 export function ErrorMessage({ errorMessages, cssStyle }: Props) {
-  if (!errorMessages || !errorMessages.length) return null
+  if (!errorMessages || !errorMessages.length) {
+    return null
+  }
 
   const style = {
     '--error-text-color': cssStyle?.textColor || COLOR.white,

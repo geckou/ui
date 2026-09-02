@@ -13,42 +13,51 @@ import InputBox from '@/components/InputBox.vue'
 import CalendarIcon from '@/components/Icon/CalendarIcon.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 
-const emit = defineEmits<{ (e: 'update:modelValue', newValue: string | null): void }>()
+const emit = defineEmits<{
+  (e: 'update:modelValue', newValue: string | null): void
+}>()
 const datePicker = ref<HTMLInputElement | null>(null)
-const props = withDefaults(defineProps<{
-  name: string
-  modelValue: string
-  isDisabled? : boolean
-  isRequired?: boolean
-  formValidationManager?: FormValidationManager | null
-  minDate?: string
-  maxDate?: string
-  size?: 'small' | 'medium'
-  type?: 'date' | 'month'
-}>(), {
-  isDisabled           : false,
-  formValidationManager: null,
-  minDate              : '',
-  maxDate              : '',
-  size                 : 'medium',
-  type                 : 'date',
-})
+const props = withDefaults(
+  defineProps<{
+    name: string
+    modelValue: string
+    isDisabled?: boolean
+    isRequired?: boolean
+    formValidationManager?: FormValidationManager | null
+    minDate?: string
+    maxDate?: string
+    size?: 'small' | 'medium'
+    type?: 'date' | 'month'
+  }>(),
+  {
+    isDisabled: false,
+    formValidationManager: null,
+    minDate: '',
+    maxDate: '',
+    size: 'medium',
+    type: 'date',
+  }
+)
 
 const dateObject = reactive({
-  year : '',
+  year: '',
   month: '',
-  day  : '',
+  day: '',
 })
 
 const dateValue: Ref<string> = ref('')
 const errorMessage = ref('')
 
 const setValid = (isValid: boolean): void => {
-  if (props.formValidationManager) props.formValidationManager.setValid(props.name, isValid)
+  if (props.formValidationManager) {
+    props.formValidationManager.setValid(props.name, isValid)
+  }
 }
 
 const validateInput = (value: string) => {
-  if (!value && props.isRequired) return { isValid: false, message: MESSAGES.required }
+  if (!value && props.isRequired) {
+    return { isValid: false, message: MESSAGES.required }
+  }
   return { isValid: true, message: '' }
 }
 
@@ -56,10 +65,11 @@ const validateObject = (object: {
   year: string
   month: string
   day?: string
-}) => validateDateObject(
-  { year: object.year, month: object.month, day: object.day ?? '' },
-  { type: props.type, isRequired: props.isRequired },
-)
+}) =>
+  validateDateObject(
+    { year: object.year, month: object.month, day: object.day ?? '' },
+    { type: props.type, isRequired: props.isRequired }
+  )
 
 const setDateObject = (value: string): void => {
   const { year, month, day } = splitDate(value)
@@ -70,22 +80,32 @@ const setDateObject = (value: string): void => {
 }
 
 /** 年月日から入力欄の値（YYYY-MM-DD / YYYY-MM）を組み立てる */
-const composeDateValue = (): string => composeDate({ ...dateObject }, props.type)
+const composeDateValue = (): string =>
+  composeDate({ ...dateObject }, props.type)
 
-watch(() => dateValue.value, newValue => {
-  setDateObject(newValue)
-  const { isValid, message } = validateInput(newValue)
-  errorMessage.value = message
-  emit('update:modelValue', newValue)
-  setValid(isValid)
-})
+watch(
+  () => dateValue.value,
+  (newValue) => {
+    setDateObject(newValue)
+    const { isValid, message } = validateInput(newValue)
+    errorMessage.value = message
+    emit('update:modelValue', newValue)
+    setValid(isValid)
+  }
+)
 
-watch(() => dateObject, newValue => {
-  const { isValid, message } = validateObject(newValue)
-  errorMessage.value = message
-  setValid(isValid)
-  if (isValid) dateValue.value = composeDateValue()
-}, { deep: true })
+watch(
+  () => dateObject,
+  (newValue) => {
+    const { isValid, message } = validateObject(newValue)
+    errorMessage.value = message
+    setValid(isValid)
+    if (isValid) {
+      dateValue.value = composeDateValue()
+    }
+  },
+  { deep: true }
+)
 
 const applyModelValue = (value: string): void => {
   if (!value) {
@@ -97,13 +117,18 @@ const applyModelValue = (value: string): void => {
   }
 
   const formatted = formatDateValue(value, props.type)
-  if (!formatted || formatted === dateValue.value) return
+  if (!formatted || formatted === dateValue.value) {
+    return
+  }
 
   dateValue.value = formatted
   setDateObject(formatted)
 }
 
-watch(() => props.modelValue, newValue => applyModelValue(newValue))
+watch(
+  () => props.modelValue,
+  (newValue) => applyModelValue(newValue)
+)
 
 applyModelValue(props.modelValue)
 setValid(validateInput(dateValue.value).isValid)
@@ -133,7 +158,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
         :min="minDate"
         :required="isRequired"
         :disabled="isDisabled"
-      >
+      />
     </div>
     <input
       v-model="dateObject.year"
@@ -142,14 +167,14 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       type="text"
       :disabled="isDisabled"
       :class="$style.year"
-    >/
+    />/
     <input
       v-model="dateObject.month"
       placeholder="月"
       maxlength="2"
       type="text"
       :disabled="isDisabled"
-    >
+    />
     <span v-if="type === 'date'">/</span>
     <input
       v-if="type === 'date'"
@@ -158,7 +183,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       maxlength="2"
       type="text"
       :disabled="isDisabled"
-    >
+    />
     <ErrorMessage :errorMessages="errorMessage ? [errorMessage] : []" />
   </InputBox>
 </template>
@@ -168,53 +193,53 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
 
 .icon {
   @include icon($color: var(--link-color));
-  margin  : auto;
+  margin: auto;
   position: absolute;
-  top     : 0;
-  left    : var(--sp-small);
-  bottom  : 0;
+  top: 0;
+  left: var(--sp-small);
+  bottom: 0;
 }
 
 .date_input {
-  flex    : 0 0 auto;
+  flex: 0 0 auto;
   position: relative;
-  
+
   > input {
-    width  : calc(var(--icon-medium) + var(--sp-small) * 2);
+    width: calc(var(--icon-medium) + var(--sp-small) * 2);
     padding: var(--sp-medium) var(--sp-small);
 
-    &[type="date"],
-    &[type="month"] {
+    &[type='date'],
+    &[type='month'] {
       opacity: 0;
 
       &::-webkit-calendar-picker-indicator {
         position: absolute;
-        left    : 0;
-        width   : 100%;
-        height  : 100%;
+        left: 0;
+        width: 100%;
+        height: 100%;
         opacity: 0;
-        cursor  : pointer;
+        cursor: pointer;
       }
     }
   }
 }
 
 .date_picker {
-  display    : flex;
+  display: flex;
   align-items: center;
-  width      : 100%;
-  position   : relative;
+  width: 100%;
+  position: relative;
   line-height: 1;
 
   > input {
     padding: var(--sp-medium);
-    width  : calc( var(--sp-medium) * 2 + 3ch);
+    width: calc(var(--sp-medium) * 2 + 3ch);
 
     &.year {
-      width: calc( var(--sp-medium) * 2 + 5ch);
+      width: calc(var(--sp-medium) * 2 + 5ch);
     }
 
-    &[type="text"] {
+    &[type='text'] {
       flex: 0 0 auto;
     }
   }
@@ -226,7 +251,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
     }
 
     input {
-      padding  : var(--sp-min) var(--sp-small);
+      padding: var(--sp-min) var(--sp-small);
       font-size: var(--fs-small);
     }
   }

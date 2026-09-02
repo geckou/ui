@@ -4,18 +4,23 @@ import { computed } from 'vue'
 import CheckBox from '@/components/CheckBox.vue'
 import { COLOR } from '@/const'
 
-const emit = defineEmits<{ (e: 'update:modelValue', newValue: boolean): void }>()
+const emit = defineEmits<{
+  (e: 'update:modelValue', newValue: boolean): void
+}>()
 
-const props = withDefaults(defineProps<{
-  name: string
-  label: string
-  modelValue?: boolean
-  isDisabled?: boolean
-  cssStyle?: CheckBoxStyleForEachStatus
-  isDisableAnimation?: boolean
-}>(), {
-  cssStyle: undefined,
-})
+const props = withDefaults(
+  defineProps<{
+    name: string
+    label: string
+    modelValue?: boolean
+    isDisabled?: boolean
+    cssStyle?: CheckBoxStyleForEachStatus
+    isDisableAnimation?: boolean
+  }>(),
+  {
+    cssStyle: undefined,
+  }
+)
 
 const isChecked = computed<boolean>({
   get: () => props.modelValue ?? false,
@@ -23,11 +28,13 @@ const isChecked = computed<boolean>({
 })
 
 const currentCssStyle = computed(() => {
-  const cssStyle = props.isDisabled ? props.cssStyle?.disabled : props.cssStyle?.default
+  const cssStyle = props.isDisabled
+    ? props.cssStyle?.disabled
+    : props.cssStyle?.default
 
   return {
     ...{
-      textColor      : props.isDisabled ? COLOR.darkGray : COLOR.black,
+      textColor: props.isDisabled ? COLOR.darkGray : COLOR.black,
       backgroundColor: props.isDisabled ? COLOR.darkGray : COLOR.blue,
     },
     ...(cssStyle ?? {}),
@@ -43,7 +50,7 @@ const currentCssStyle = computed(() => {
       :isDisabled="isDisabled"
       :cssStyle="cssStyle"
       :isDisableAnimation="isDisableAnimation"
-      style="pointer-events: none;"
+      style="pointer-events: none"
     />
     <span
       :class="$style.label"
@@ -59,10 +66,10 @@ const currentCssStyle = computed(() => {
 
 <style lang="scss" module>
 :is(.labeled_check_box) {
-  display    : inline-flex;
+  display: inline-flex;
   align-items: center;
-  gap        : .5em;
-  cursor     : pointer;
+  gap: 0.5em;
+  cursor: pointer;
 
   &:has(input:disabled) {
     cursor: auto;
@@ -78,5 +85,4 @@ const currentCssStyle = computed(() => {
     }
   }
 }
-
 </style>

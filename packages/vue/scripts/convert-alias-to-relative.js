@@ -19,7 +19,11 @@ function processDirectory(dir) {
     const stat = fs.statSync(fullPath)
     if (stat.isDirectory()) {
       processDirectory(fullPath)
-    } else if (file.endsWith('.vue') || file.endsWith('.ts') || file.endsWith('.js')) {
+    } else if (
+      file.endsWith('.vue') ||
+      file.endsWith('.ts') ||
+      file.endsWith('.js')
+    ) {
       replaceAlias(fullPath)
     }
   }
@@ -28,10 +32,14 @@ function processDirectory(dir) {
 // ファイル内のエイリアスを相対パスに変換する関数
 function replaceAlias(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8')
-  const updatedContent = content.replace(new RegExp(`(['"])${alias}`, 'g'), (match, quote) => {
-    const relativePath = path.relative(path.dirname(filePath), targetDir) || '.'
-    return `${quote}${relativePath}/`
-  })
+  const updatedContent = content.replace(
+    new RegExp(`(['"])${alias}`, 'g'),
+    (match, quote) => {
+      const relativePath =
+        path.relative(path.dirname(filePath), targetDir) || '.'
+      return `${quote}${relativePath}/`
+    }
+  )
 
   if (content !== updatedContent) {
     fs.writeFileSync(filePath, updatedContent, 'utf-8')

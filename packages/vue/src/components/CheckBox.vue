@@ -4,17 +4,22 @@ import { computed } from 'vue'
 import CheckIcon from '@/components/Icon/CheckIcon.vue'
 import { COLOR } from '@/const'
 
-const emit = defineEmits<{ (e: 'update:modelValue', newValue: boolean): void }>()
+const emit = defineEmits<{
+  (e: 'update:modelValue', newValue: boolean): void
+}>()
 
-const props = withDefaults(defineProps<{
-  name: string
-  modelValue?: boolean
-  isDisabled?: boolean
-  cssStyle?: CheckBoxStyleForEachStatus
-  isDisableAnimation?: boolean
-}>(), {
-  cssStyle: undefined,
-})
+const props = withDefaults(
+  defineProps<{
+    name: string
+    modelValue?: boolean
+    isDisabled?: boolean
+    cssStyle?: CheckBoxStyleForEachStatus
+    isDisableAnimation?: boolean
+  }>(),
+  {
+    cssStyle: undefined,
+  }
+)
 
 const isChecked = computed<boolean>({
   get: () => props.modelValue ?? false,
@@ -22,15 +27,17 @@ const isChecked = computed<boolean>({
 })
 
 const currentCssStyle = computed(() => {
-  const cssStyle = props.isDisabled ? props.cssStyle?.disabled : props.cssStyle?.default
+  const cssStyle = props.isDisabled
+    ? props.cssStyle?.disabled
+    : props.cssStyle?.default
 
   return {
     ...{
-      textColor      : props.isDisabled ? COLOR.darkGray : COLOR.blue,
+      textColor: props.isDisabled ? COLOR.darkGray : COLOR.blue,
       backgroundColor: props.isDisabled ? COLOR.lightGray : COLOR.white,
-      border         : {
-        color : props.isDisabled ? COLOR.darkGray : COLOR.blue,
-        size  : '1px',
+      border: {
+        color: props.isDisabled ? COLOR.darkGray : COLOR.blue,
+        size: '1px',
         radius: '.25rem',
       },
     },
@@ -45,20 +52,20 @@ const currentCssStyle = computed(() => {
     :style="{
       '--text-color': currentCssStyle?.textColor,
       '--border-color': currentCssStyle?.border?.color,
-      '--border-size' : currentCssStyle?.border?.size,
+      '--border-size': currentCssStyle?.border?.size,
       '--radius-size': currentCssStyle?.border?.radius,
       '--background-color': currentCssStyle?.backgroundColor,
       '--duration': isDisableAnimation ? '0s' : '.3s',
     }"
     type="button"
-    @click.stop="!isDisabled ? isChecked = !isChecked : null"
+    @click.stop="!isDisabled ? (isChecked = !isChecked) : null"
   >
-    <input 
+    <input
       v-model="isChecked"
       type="checkbox"
       :name="name"
       :disabled="isDisabled"
-    >
+    />
     <div :class="$style.check_container">
       <slot name="check" />
       <CheckIcon v-if="!$slots.check" />
@@ -69,15 +76,15 @@ const currentCssStyle = computed(() => {
 <style lang="scss" module>
 @keyframes pop {
   0% {
-    scale  : 1;
+    scale: 1;
   }
 
   10% {
-    scale  : .8;
+    scale: 0.8;
   }
 
   50% {
-    scale  : 1.1;
+    scale: 1.1;
   }
 
   100% {

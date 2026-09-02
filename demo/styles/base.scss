@@ -9,116 +9,125 @@
   $minViewport: 320;
 
   // --- geckou.net のブランドカラー
-  --gk-blue      : #1c4ac9;
+  --gk-blue: #1c4ac9;
   --gk-light-blue: #5b84ff;
-  --gk-dark-blue : #15143a;
-  --gk-navy      : #00081a;
-  --gk-white     : #e0e0e4;
-  --gk-gray      : #d9d9d9;
+  --gk-dark-blue: #15143a;
+  --gk-navy: #00081a;
+  --gk-white: #e0e0e4;
+  --gk-gray: #d9d9d9;
 
   // --- ライトテーマ
-  --white              : #fff;
-  --black              : var(--gk-navy);
-  --black-rgb          : 0, 8, 26;
-  --base-color         : #f3f4f8;
-  --page-background    : linear-gradient(180deg, #f7f8fb, #eef0f7);
-  --surface-color      : #fff;
-  --surface-muted      : #f7f8fb;
-  --text-color         : var(--gk-dark-blue);
-  --gray               : #656a7d;
-  --light-gray         : #e5e5e5;
-  --dark-white         : #eee;
-  --primary-color      : var(--gk-blue);
-  --main-color         : var(--gk-blue);
-  --sub-color          : #e7ecfb;
-  --link-color         : var(--gk-blue);
-  --checked-color      : var(--gk-blue);
-  --trigger-color      : var(--gk-blue);
-  --disable-text-color : var(--gray);
-  --border-color       : rgba(21, 20, 58, .12);
-  --light-border-color : rgba(21, 20, 58, .08);
-  --error-text-color   : #fff;
+  --white: #fff;
+  --black: var(--gk-navy);
+  --black-rgb: 0, 8, 26;
+  --base-color: #f3f4f8;
+  --page-background: linear-gradient(180deg, #f7f8fb, #eef0f7);
+  --surface-color: #fff;
+  --surface-muted: #f7f8fb;
+  --text-color: var(--gk-dark-blue);
+  --gray: #656a7d;
+  --light-gray: #e5e5e5;
+  --dark-white: #eee;
+  --primary-color: var(--gk-blue);
+  --main-color: var(--gk-blue);
+  --sub-color: #e7ecfb;
+  --link-color: var(--gk-blue);
+  --checked-color: var(--gk-blue);
+  --trigger-color: var(--gk-blue);
+  --disable-text-color: var(--gray);
+  --border-color: rgba(21, 20, 58, 0.12);
+  --light-border-color: rgba(21, 20, 58, 0.08);
+  --error-text-color: #fff;
   --error-background-color: #aa0000;
-  --overlay-color      : rgba(0, 8, 26, .5);
-  --shadow-color       : rgba(21, 20, 58, .12);
-  --box-shadow         : 0 1px 2px var(--shadow-color);
-  --button-shadow      : 0 0 0 1px rgba(21, 20, 58, .1) inset;
-  --code-background    : #10142a;
-  --code-border        : #262c4b;
-  --code-text          : #d8dee9;
+  --overlay-color: rgba(0, 8, 26, 0.5);
+  --shadow-color: rgba(21, 20, 58, 0.12);
+  --box-shadow: 0 1px 2px var(--shadow-color);
+  --button-shadow: 0 0 0 1px rgba(21, 20, 58, 0.1) inset;
+  --code-background: #10142a;
+  --code-border: #262c4b;
+  --code-text: #d8dee9;
 
   // --- タイポグラフィ（geckou.net と同じクランプスケール）
-  --font-family        : 'Zen Kaku Gothic Antique', 'Hiragino Sans', 'Noto Sans JP', Meiryo, sans-serif;
-  --fs-min             : 10px;
-  --fs-smaller         : clamp(.688rem, .572rem + .23vw, .75rem);
-  --fs-small           : clamp(.75rem, .519rem + .46vw, .875rem);
-  --fs-medium          : clamp(.875rem, .644rem + .46vw, 1rem);
-  --fs-large           : clamp(1rem, .769rem + .46vw, 1.125rem);
-  --fs-larger          : clamp(1.125rem, .663rem + .93vw, 1.375rem);
-  --fs-max             : clamp(1.75rem, .825rem + 1.85vw, 2.25rem);
-  --line-height-tight  : 1.1;
-  --line-height-narrow : 1.4;
-  --line-height-normal : 2;
-  --letter-spacing-normal: .1em;
-  --letter-spacing-narrow: .05em;
+  --font-family:
+    'Zen Kaku Gothic Antique', 'Hiragino Sans', 'Noto Sans JP', Meiryo,
+    sans-serif;
+  --fs-min: 10px;
+  --fs-smaller: clamp(0.688rem, 0.572rem + 0.23vw, 0.75rem);
+  --fs-small: clamp(0.75rem, 0.519rem + 0.46vw, 0.875rem);
+  --fs-medium: clamp(0.875rem, 0.644rem + 0.46vw, 1rem);
+  --fs-large: clamp(1rem, 0.769rem + 0.46vw, 1.125rem);
+  --fs-larger: clamp(1.125rem, 0.663rem + 0.93vw, 1.375rem);
+  --fs-max: clamp(1.75rem, 0.825rem + 1.85vw, 2.25rem);
+  --line-height-tight: 1.1;
+  --line-height-narrow: 1.4;
+  --line-height-normal: 2;
+  --letter-spacing-normal: 0.1em;
+  --letter-spacing-narrow: 0.05em;
 
   // --- 余白・サイズ
-  --bv                 : #{calcClamp(6, 8, $minViewport, $maxViewport)};
-  --sp                 : var(--bv);
-  --sp-max             : calc(var(--sp) * 12);
-  --sp-larger          : calc(var(--sp) * 8);
-  --sp-large           : calc(var(--sp) * 4);
-  --sp-medium          : calc(var(--sp) * 2);
-  --sp-small           : var(--sp);
-  --sp-min             : calc(var(--sp) / 2);
-  --animation-duration : .3s;
-  --transition-duration: .2s;
-  --duration           : .2s;
-  --icon-size          : calc(var(--bv) * 3);
-  --small-icon-size    : calc(var(--bv) * 2);
-  --medium-icon-size   : calc(var(--bv) * 3);
-  --large-icon-size    : calc(var(--bv) * 5);
-  --icon-small         : var(--small-icon-size);
-  --icon-medium        : var(--medium-icon-size);
-  --radius-size        : 4px;
-  --radius-small       : 4px;
-  --border-size        : 1px;
-  --border-style       : solid;
-  --padding-size       : var(--sp-medium);
-  --contents-max-width : 1440px;
-  --mobile-lower-width : 320px;
-  --tablet-lower-width : 576px;
+  --bv: #{calcClamp(6, 8, $minViewport, $maxViewport)};
+  --sp: var(--bv);
+  --sp-max: calc(var(--sp) * 12);
+  --sp-larger: calc(var(--sp) * 8);
+  --sp-large: calc(var(--sp) * 4);
+  --sp-medium: calc(var(--sp) * 2);
+  --sp-small: var(--sp);
+  --sp-min: calc(var(--sp) / 2);
+  --animation-duration: 0.3s;
+  --transition-duration: 0.2s;
+  --duration: 0.2s;
+  --icon-size: calc(var(--bv) * 3);
+  --small-icon-size: calc(var(--bv) * 2);
+  --medium-icon-size: calc(var(--bv) * 3);
+  --large-icon-size: calc(var(--bv) * 5);
+  --icon-small: var(--small-icon-size);
+  --icon-medium: var(--medium-icon-size);
+  --radius-size: 4px;
+  --radius-small: 4px;
+  --border-size: 1px;
+  --border-style: solid;
+  --padding-size: var(--sp-medium);
+  --contents-max-width: 1440px;
+  --mobile-lower-width: 320px;
+  --tablet-lower-width: 576px;
   --desktop-lower-width: 992px;
-  --z-index-nav        : 70;
-  --z-index-overlay    : 90;
+  --z-index-nav: 70;
+  --z-index-overlay: 90;
   --global-header-height: calc(var(--bv) * 8);
-  --sidebar-width      : 15rem;
+  --sidebar-width: 15rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --white              : var(--gk-white);
-    --base-color         : #0b1020;
-    --page-background    : linear-gradient(180deg, #000515, #050c1b 25%, #091220 50%, #0b1726 75%, #0c1b2c);
-    --surface-color      : rgba(224, 224, 228, .04);
-    --surface-muted      : rgba(224, 224, 228, .02);
-    --text-color         : var(--gk-white);
-    --gray               : #97a0b5;
-    --light-gray         : rgba(224, 224, 228, .16);
-    --dark-white         : rgba(224, 224, 228, .1);
-    --primary-color      : var(--gk-light-blue);
-    --main-color         : var(--gk-blue);
-    --sub-color          : rgba(28, 74, 201, .28);
-    --link-color         : var(--gk-light-blue);
-    --checked-color      : var(--gk-light-blue);
-    --trigger-color      : var(--gk-light-blue);
-    --border-color       : rgba(224, 224, 228, .16);
-    --light-border-color : rgba(224, 224, 228, .1);
-    --overlay-color      : rgba(0, 5, 21, .7);
-    --shadow-color       : rgba(0, 5, 21, .6);
-    --button-shadow      : 0 0 0 1px rgba(224, 224, 228, .16) inset;
-    --code-background    : #060b18;
-    --code-border        : rgba(224, 224, 228, .12);
+    --white: var(--gk-white);
+    --base-color: #0b1020;
+    --page-background: linear-gradient(
+      180deg,
+      #000515,
+      #050c1b 25%,
+      #091220 50%,
+      #0b1726 75%,
+      #0c1b2c
+    );
+    --surface-color: rgba(224, 224, 228, 0.04);
+    --surface-muted: rgba(224, 224, 228, 0.02);
+    --text-color: var(--gk-white);
+    --gray: #97a0b5;
+    --light-gray: rgba(224, 224, 228, 0.16);
+    --dark-white: rgba(224, 224, 228, 0.1);
+    --primary-color: var(--gk-light-blue);
+    --main-color: var(--gk-blue);
+    --sub-color: rgba(28, 74, 201, 0.28);
+    --link-color: var(--gk-light-blue);
+    --checked-color: var(--gk-light-blue);
+    --trigger-color: var(--gk-light-blue);
+    --border-color: rgba(224, 224, 228, 0.16);
+    --light-border-color: rgba(224, 224, 228, 0.1);
+    --overlay-color: rgba(0, 5, 21, 0.7);
+    --shadow-color: rgba(0, 5, 21, 0.6);
+    --button-shadow: 0 0 0 1px rgba(224, 224, 228, 0.16) inset;
+    --code-background: #060b18;
+    --code-border: rgba(224, 224, 228, 0.12);
   }
 }
 
@@ -128,24 +137,24 @@
 
 html,
 body {
-  margin : 0;
+  margin: 0;
   padding: 0;
 }
 
 body {
-  min-height     : 100vh;
-  color          : var(--text-color);
-  background     : var(--page-background) fixed;
+  min-height: 100vh;
+  color: var(--text-color);
+  background: var(--page-background) fixed;
   background-color: var(--base-color);
-  font-family    : var(--font-family);
-  font-size      : var(--fs-medium);
-  line-height    : var(--line-height-normal);
-  letter-spacing : var(--letter-spacing-narrow);
+  font-family: var(--font-family);
+  font-size: var(--fs-medium);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-narrow);
   -webkit-font-smoothing: antialiased;
 }
 
 a {
-  color          : var(--link-color);
+  color: var(--link-color);
   text-decoration: none;
 }
 
@@ -155,8 +164,8 @@ li,
 dl,
 dt,
 dd {
-  margin    : 0;
-  padding   : 0;
+  margin: 0;
+  padding: 0;
   list-style: none;
 
   &[role='list'] {
@@ -165,8 +174,8 @@ dd {
 }
 
 img {
-  display   : block;
-  max-width : 100%;
+  display: block;
+  max-width: 100%;
   max-height: 100%;
 }
 
@@ -181,14 +190,14 @@ dt,
 dd,
 label,
 span {
-  word-break   : auto-phrase;
+  word-break: auto-phrase;
   overflow-wrap: anywhere;
 }
 
 code {
-  font-family  : 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  font-size    : .875em;
-  word-break   : normal;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.875em;
+  word-break: normal;
   overflow-wrap: break-word;
 }
 
@@ -201,10 +210,10 @@ code {
   .demo-preview {
     // ライブラリがインラインで流し込む配色変数を、デモ内だけ上書きする
     * {
-      --text-color       : #e0e0e4 !important;
+      --text-color: #e0e0e4 !important;
       --placeholder-color: #97a0b5 !important;
-      --checked-color    : #5b84ff !important;
-      --border-style     : 0 0 0 1px rgba(224, 224, 228, .24) inset !important;
+      --checked-color: #5b84ff !important;
+      --border-style: 0 0 0 1px rgba(224, 224, 228, 0.24) inset !important;
     }
 
     input:not([type='checkbox']):not([type='radio']),
@@ -217,11 +226,11 @@ code {
     input:not([type='checkbox']):not([type='radio']),
     textarea,
     select {
-      background-color: rgba(224, 224, 228, .06) !important;
+      background-color: rgba(224, 224, 228, 0.06) !important;
     }
 
     option {
-      color           : #15143a;
+      color: #15143a;
       background-color: #fff;
     }
   }

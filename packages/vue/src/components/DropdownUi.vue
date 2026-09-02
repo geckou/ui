@@ -1,23 +1,26 @@
 <script setup lang="ts">
 import { ref, onMounted, onUpdated } from 'vue'
 import IconChevronDown from '@/components/Icon/KeyboardArrowDownIcon.vue'
-withDefaults(defineProps<{
-  isHiddenArrow?: boolean,
-  contentAlignment?: 'left' | 'center' | 'right',
-  isDisabled?: boolean
-  contentsWidth?: string
-}>(), {
-  isHiddenArrow   : false,
-  contentAlignment: 'left',
-  isDisabled      : false,
-  contentsWidth   : 'auto',
-})
+withDefaults(
+  defineProps<{
+    isHiddenArrow?: boolean
+    contentAlignment?: 'left' | 'center' | 'right'
+    isDisabled?: boolean
+    contentsWidth?: string
+  }>(),
+  {
+    isHiddenArrow: false,
+    contentAlignment: 'left',
+    isDisabled: false,
+    contentsWidth: 'auto',
+  }
+)
 
 const isContentsOpened = ref(false)
 const contents = ref<HTMLElement | null>(null)
 const contentsHeight = ref(0)
-const toggleBox = () => isContentsOpened.value = !isContentsOpened.value
-const closeDropDown = () => isContentsOpened.value = false
+const toggleBox = () => (isContentsOpened.value = !isContentsOpened.value)
+const closeDropDown = () => (isContentsOpened.value = false)
 
 const updateContentsHeight = () => {
   const contentsValue = contents.value
@@ -26,22 +29,22 @@ const updateContentsHeight = () => {
   }
 }
 
-onMounted(()=> updateContentsHeight())
+onMounted(() => updateContentsHeight())
 onUpdated(() => updateContentsHeight())
 defineExpose({ isContentsOpened })
 </script>
 
 <template>
-  <div
-    v-click-outside="closeDropDown"
-    :class="$style.drop_down_box"
-  >
+  <div v-click-outside="closeDropDown" :class="$style.drop_down_box">
     <button
       :class="$style.button"
       :disabled="isDisabled"
       type="button"
       :style="{
-        '--trigger-color': isDisabled || !$slots.contents ? 'var(--text-color)' : 'var(--link-color)',
+        '--trigger-color':
+          isDisabled || !$slots.contents
+            ? 'var(--text-color)'
+            : 'var(--link-color)',
         cursor: isDisabled || !$slots.contents ? 'auto' : 'pointer',
       }"
       @click.prevent="toggleBox"
@@ -64,10 +67,7 @@ defineExpose({ isContentsOpened })
         zIndex: '2',
       }"
     >
-      <div
-        ref="contents"
-        @click="closeDropDown"
-      >
+      <div ref="contents" @click="closeDropDown">
         <slot name="contents" />
       </div>
     </div>
@@ -82,18 +82,18 @@ defineExpose({ isContentsOpened })
 }
 
 .button {
-  display    : flex;
+  display: flex;
   align-items: center;
   inline-size: 100%;
-  block-size : 100%;
-  gap        : var(--sp-small);
-  color      : var(--trigger-color);
+  block-size: 100%;
+  gap: var(--sp-small);
+  color: var(--trigger-color);
 }
 
 .icon {
   @include icon($size: var(--icon-small));
-  flex      : 0 0 auto;
-  transition: all .1s;
+  flex: 0 0 auto;
+  transition: all 0.1s;
 
   &.open {
     transform: rotate(180deg);
@@ -102,17 +102,17 @@ defineExpose({ isContentsOpened })
 
 .contents {
   border-radius: var(--radius-small);
-  position     : absolute;
-  top          : calc(100% - var(--sp-min));
-  transition   : block-size .1s;
-  overflow     : hidden;
-  cursor       : pointer;
-  
+  position: absolute;
+  top: calc(100% - var(--sp-min));
+  transition: block-size 0.1s;
+  overflow: hidden;
+  cursor: pointer;
+
   > div {
-    max-block-size  : calc(var(--bv) * 48);
-    min-inline-size : calc(var(--bv) * 20);
+    max-block-size: calc(var(--bv) * 48);
+    min-inline-size: calc(var(--bv) * 20);
     background-color: var(--white);
-    overflow        : auto;
+    overflow: auto;
   }
 }
 </style>

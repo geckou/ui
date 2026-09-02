@@ -43,7 +43,9 @@ export function PopupBox({
     setIsMounted(true)
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
     }
   }, [])
 
@@ -51,12 +53,16 @@ export function PopupBox({
     showPopup: () => {
       setIsShown(true)
 
-      if (timerRef.current) clearTimeout(timerRef.current)
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
       timerRef.current = setTimeout(() => setIsShown(false), 3000)
     },
   }))
 
-  if (!isMounted) return null
+  if (!isMounted) {
+    return null
+  }
 
   return createPortal(
     <div
@@ -65,6 +71,6 @@ export function PopupBox({
     >
       {children}
     </div>,
-    document.body,
+    document.body
   )
 }

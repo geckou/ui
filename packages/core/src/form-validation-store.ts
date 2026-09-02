@@ -47,7 +47,9 @@ export function createFormValidationStore(): FormValidationStore {
     const invalidNames: string[] = []
 
     states.forEach((isValid, name) => {
-      if (!isValid) invalidNames.push(name)
+      if (!isValid) {
+        invalidNames.push(name)
+      }
     })
 
     return { isAllValid: invalidNames.length === 0, invalidNames }
@@ -60,17 +62,23 @@ export function createFormValidationStore(): FormValidationStore {
     const isSame =
       next.isAllValid === snapshot.isAllValid &&
       next.invalidNames.length === snapshot.invalidNames.length &&
-      next.invalidNames.every((name, index) => name === snapshot.invalidNames[index])
+      next.invalidNames.every(
+        (name, index) => name === snapshot.invalidNames[index]
+      )
 
-    if (isSame) return
+    if (isSame) {
+      return
+    }
 
     snapshot = next
-    listeners.forEach(listener => listener())
+    listeners.forEach((listener) => listener())
   }
 
   return {
     setValid(name, isValid) {
-      if (states.get(name) === isValid) return
+      if (states.get(name) === isValid) {
+        return
+      }
 
       states.set(name, isValid)
       notify()
@@ -81,13 +89,17 @@ export function createFormValidationStore(): FormValidationStore {
     },
 
     remove(name) {
-      if (!states.delete(name)) return
+      if (!states.delete(name)) {
+        return
+      }
 
       notify()
     },
 
     reset() {
-      if (states.size === 0) return
+      if (states.size === 0) {
+        return
+      }
 
       states.clear()
       notify()

@@ -2,37 +2,40 @@
 import { ref } from 'vue'
 import { COLOR } from '@/const'
 
-const props = withDefaults(defineProps<{
-  tabs: {
-    key: string
-    label: string
-  }[]
-  color?: {
-    active: string
-    background: string
-    text: string
-  }
-  cssStyle?: {
-    textColor: string
-    backgroundColor: string
-    border: {
-      color: string
-      size: string
-      radius: string
+const props = withDefaults(
+  defineProps<{
+    tabs: {
+      key: string
+      label: string
+    }[]
+    color?: {
+      active: string
+      background: string
+      text: string
     }
+    cssStyle?: {
+      textColor: string
+      backgroundColor: string
+      border: {
+        color: string
+        size: string
+        radius: string
+      }
+    }
+    type?: 'tab' | 'button' | 'border'
+    initialIndex?: number
+  }>(),
+  {
+    color: undefined,
+    cssStyle: undefined,
+    type: 'tab',
+    initialIndex: 0,
   }
-  type?: 'tab' | 'button' | 'border'
-  initialIndex?: number
-}>(), {
-  color       : undefined,
-  cssStyle    : undefined,
-  type        : 'tab',
-  initialIndex: 0,
-})
+)
 
 const activeTab = ref(props.tabs[props.initialIndex].key)
 const tabRefs = ref<HTMLButtonElement[]>([])
-const changeTabs = (key: string) => activeTab.value = key
+const changeTabs = (key: string) => (activeTab.value = key)
 
 const activateTab = (index: number) => {
   activeTab.value = props.tabs[index].key
@@ -43,10 +46,16 @@ const activateTab = (index: number) => {
 // 切り替わり、1 画面に複数設置すると互いに競合した。
 // タブリストにフォーカスがあるときだけ矢印キーで移動する（WAI-ARIA Tabs パターン）
 const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+    return
+  }
 
-  const currentIndex = props.tabs.findIndex(tab => tab.key === activeTab.value)
-  if (currentIndex === -1) return
+  const currentIndex = props.tabs.findIndex(
+    (tab) => tab.key === activeTab.value
+  )
+  if (currentIndex === -1) {
+    return
+  }
 
   event.preventDefault()
   const lastIndex = props.tabs.length - 1
@@ -74,7 +83,11 @@ const handleKeydown = (event: KeyboardEvent) => {
         v-for="(tab, index) in tabs"
         :id="tab.key"
         :key="tab.key"
-        :ref="el => { if (el) tabRefs[index] = el as HTMLButtonElement }"
+        :ref="
+          (el) => {
+            if (el) tabRefs[index] = el as HTMLButtonElement
+          }
+        "
         role="tab"
         :aria-controls="`${tab.key}_${index}`"
         :aria-selected="activeTab === tab.key"
@@ -103,16 +116,16 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 <style lang="scss" module>
 .tabs {
-  display         : flex;
+  display: flex;
   background-color: var(--background-color);
 
   > button {
-    &[role="tab"] {
-      border          : none;
+    &[role='tab'] {
+      border: none;
       background-color: transparent;
-      font-size       : 1rem;
-      padding         : .5rem 1rem;
-      cursor          : pointer;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
 
       &.active {
         cursor: auto;

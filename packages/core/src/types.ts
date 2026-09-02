@@ -1,11 +1,6 @@
 // フォーム部品の状態。Vue / React 双方の実装が共通で参照する
 export type StateVariation =
-  | 'default'
-  | 'error'
-  | 'disabled'
-  | 'valid'
-  | 'focus'
-  | 'hover'
+  'default' | 'error' | 'disabled' | 'valid' | 'focus' | 'hover'
 
 export type BorderStyle = {
   color: string

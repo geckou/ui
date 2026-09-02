@@ -8,7 +8,7 @@ import { resolve } from 'path'
 const base = process.env.BASE_PATH ?? '/'
 
 export default defineConfig({
-  root   : resolve(__dirname, 'demo'),
+  root: resolve(__dirname, 'demo'),
   base,
   plugins: [vue()],
 
@@ -23,7 +23,7 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@'    : resolve(__dirname, 'packages/vue/src'),
+      '@': resolve(__dirname, 'packages/vue/src'),
       '~demo': resolve(__dirname, 'demo'),
       // core は dist を参照するため、ビルド前だと解決できない。
       // デモはワークスペースのソースを直接使う（yarn dev / build:demo の双方に効く）
@@ -32,7 +32,7 @@ export default defineConfig({
   },
 
   build: {
-    outDir     : resolve(__dirname, 'demo-dist'),
+    outDir: resolve(__dirname, 'demo-dist'),
     emptyOutDir: true,
   },
 

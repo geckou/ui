@@ -5,33 +5,31 @@ let groupSequence = 0
 </script>
 
 <script setup lang="ts">
-import type {
-  Option,
-  RadioButtonStyleForEachStatus,
-} from '@/types'
-import {
-  ref,
-  watch,
-  computed,
-} from 'vue'
+import type { Option, RadioButtonStyleForEachStatus } from '@/types'
+import { ref, watch, computed } from 'vue'
 import { COLOR } from '@/const'
 
 type SelectValue = string | number
 
-const emit = defineEmits<{(e: 'update:modelValue', newValue: SelectValue): void}>()
+const emit = defineEmits<{
+  (e: 'update:modelValue', newValue: SelectValue): void
+}>()
 
-const props = withDefaults(defineProps<{
-  modelValue: SelectValue
-  options: Array<Option>
-  name?: string
-  isDisabled? : boolean
-  isRequired?: boolean
-  cssStyle?: RadioButtonStyleForEachStatus
-  isDisableAnimation?: boolean
-}>(), {
-  name    : undefined,
-  cssStyle: undefined,
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue: SelectValue
+    options: Array<Option>
+    name?: string
+    isDisabled?: boolean
+    isRequired?: boolean
+    cssStyle?: RadioButtonStyleForEachStatus
+    isDisableAnimation?: boolean
+  }>(),
+  {
+    name: undefined,
+    cssStyle: undefined,
+  }
+)
 
 // name を省略したときの一意な既定値。
 // vue 3.5 の useId は peerDependencies（^3.0.0）を満たさないため使わない
@@ -45,15 +43,17 @@ const selectedValue = computed({
 })
 
 const currentCssStyle = computed(() => {
-  const cssStyle = props.isDisabled ? props.cssStyle?.disabled : props.cssStyle?.default
+  const cssStyle = props.isDisabled
+    ? props.cssStyle?.disabled
+    : props.cssStyle?.default
 
   return {
     ...{
-      textColor      : props.isDisabled ? COLOR.darkGray : COLOR.black,
+      textColor: props.isDisabled ? COLOR.darkGray : COLOR.black,
       backgroundColor: props.isDisabled ? COLOR.lightGray : COLOR.white,
-      border         : {
+      border: {
         color: props.isDisabled ? COLOR.darkGray : COLOR.blue,
-        size : '1px',
+        size: '1px',
       },
     },
     ...(cssStyle ?? {}),
@@ -62,10 +62,16 @@ const currentCssStyle = computed(() => {
 
 const validateValue = () => {
   errorMessages.value = []
-  if (!selectedValue.value && props.isRequired) errorMessages.value.push('必須項目です')
+  if (!selectedValue.value && props.isRequired) {
+    errorMessages.value.push('必須項目です')
+  }
 }
 
-watch(() => selectedValue.value, () => validateValue(), { immediate: !!props.modelValue })
+watch(
+  () => selectedValue.value,
+  () => validateValue(),
+  { immediate: !!props.modelValue }
+)
 </script>
 
 <template>
@@ -76,7 +82,7 @@ watch(() => selectedValue.value, () => validateValue(), { immediate: !!props.mod
       :class="$style.radio"
       :style="{
         '--border-color': currentCssStyle?.border?.color,
-        '--border-size' : currentCssStyle?.border?.size,
+        '--border-size': currentCssStyle?.border?.size,
         '--background-color': currentCssStyle?.backgroundColor,
         '--duration': isDisableAnimation ? '0s' : '.3s',
       }"
@@ -89,7 +95,7 @@ watch(() => selectedValue.value, () => validateValue(), { immediate: !!props.mod
         :disabled="isDisabled"
         :required="isRequired"
         :checked="option.value === selectedValue"
-      >
+      />
       <span>
         {{ option.label }}
       </span>
@@ -100,15 +106,15 @@ watch(() => selectedValue.value, () => validateValue(), { immediate: !!props.mod
 <style lang="scss" module>
 @keyframes pop {
   0% {
-    scale  : 1;
+    scale: 1;
   }
 
   10% {
-    scale  : .8;
+    scale: 0.8;
   }
 
   50% {
-    scale  : 1.2;
+    scale: 1.2;
   }
 
   100% {
@@ -117,38 +123,40 @@ watch(() => selectedValue.value, () => validateValue(), { immediate: !!props.mod
 }
 
 :is(.radios) {
-  display    : flex;
+  display: flex;
   align-items: center;
-  flex-wrap  : wrap;
-  gap        : 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 :is(.radio) {
-  display              : grid;
+  display: grid;
   grid-template-columns: auto 1fr;
-  align-items          : center;
-  gap                  : .5rem;
-  color                : var(--border-color);
-  cursor               : pointer;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--border-color);
+  cursor: pointer;
 
   &::before {
-    content         : '';
-    display         : inline-block;
-    aspect-ratio    : 1 / 1;
-    width           : 1rem;
-    box-shadow      : 0 0 0 1px var(--border-color) inset;
+    content: '';
+    display: inline-block;
+    aspect-ratio: 1 / 1;
+    width: 1rem;
+    box-shadow: 0 0 0 1px var(--border-color) inset;
     background-color: var(--background-color);
-    border-radius   : 50%;
-    transition      : all var(--duration) linear;
+    border-radius: 50%;
+    transition: all var(--duration) linear;
   }
-  
+
   &:has(input:checked) {
     color: var(--text-color);
 
     &::before {
-      box-shadow      : 0 0 0 2px var(--background-color) inset, 0 0 0 1px var(--border-color);
+      box-shadow:
+        0 0 0 2px var(--background-color) inset,
+        0 0 0 1px var(--border-color);
       background-color: var(--border-color);
-      animation       : pop var(--duration) ease-out;
+      animation: pop var(--duration) ease-out;
     }
   }
 

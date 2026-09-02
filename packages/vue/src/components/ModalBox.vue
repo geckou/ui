@@ -9,8 +9,8 @@ import { onMounted, onBeforeUnmount, watch } from 'vue'
 import IconClose from '@/components/Icon/CloseIcon.vue'
 
 const props = defineProps<{
-  isShown: boolean,
-  size?: 'small' | 'medium' | 'large',
+  isShown: boolean
+  size?: 'small' | 'medium' | 'large'
 }>()
 
 const emit = defineEmits<{ (e: 'closeModal', state: boolean): void }>()
@@ -19,7 +19,9 @@ const bodyElement = document.querySelector('body') as HTMLElement
 let isLocked = false
 
 const toggleScrollLock = (shouldLock: boolean) => {
-  if (!bodyElement || isLocked === shouldLock) return
+  if (!bodyElement || isLocked === shouldLock) {
+    return
+  }
 
   isLocked = shouldLock
   lockCount += shouldLock ? 1 : -1
@@ -38,10 +40,16 @@ const closeModal = () => {
   emit('closeModal', false)
 }
 
-watch(() => props.isShown, newVal => {
-  if (newVal) toggleScrollLock(true)
-  else closeModal()
-})
+watch(
+  () => props.isShown,
+  (newVal) => {
+    if (newVal) {
+      toggleScrollLock(true)
+    } else {
+      closeModal()
+    }
+  }
+)
 
 onMounted(() => toggleScrollLock(props.isShown))
 onBeforeUnmount(() => closeModal())
@@ -49,30 +57,20 @@ onBeforeUnmount(() => closeModal())
 
 <template>
   <div
-    :class="[$style.overlay, {[$style.display]: isShown}]"
+    :class="[$style.overlay, { [$style.display]: isShown }]"
     @click.self="closeModal"
   >
-    <div :class="[$style.container, $style[size ?? 'medium'],]">
-      <header
-        v-if="$slots.header"
-        :class="$style.header"
-      >
+    <div :class="[$style.container, $style[size ?? 'medium']]">
+      <header v-if="$slots.header" :class="$style.header">
         <slot name="header" />
       </header>
       <div :class="$style.contents">
         <slot />
       </div>
-      <footer
-        v-if="$slots.footer"
-        :class="$style.footer"
-      >
+      <footer v-if="$slots.footer" :class="$style.footer">
         <slot name="footer" />
       </footer>
-      <button
-        type="button"
-        :class="$style.close_button"
-        @click="closeModal"
-      >
+      <button type="button" :class="$style.close_button" @click="closeModal">
         <IconClose />
       </button>
     </div>
@@ -83,16 +81,16 @@ onBeforeUnmount(() => closeModal())
 @use '@/assets/scss/mixin' as *;
 
 .container {
-  display         : flex;
-  flex-direction  : column;
-  inline-size     : 100%;
-  max-inline-size : var(--desktop-lower-width);
-  max-block-size  : 100%;
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  max-inline-size: var(--desktop-lower-width);
+  max-block-size: 100%;
   background-color: var(--white);
-  border-radius   : var(--radius-small);
-  cursor          : auto;
-  filter          : drop-shadow(0 0 6px var(--shadow-color));
-  position        : relative;
+  border-radius: var(--radius-small);
+  cursor: auto;
+  filter: drop-shadow(0 0 6px var(--shadow-color));
+  position: relative;
 
   &.small {
     max-inline-size: var(--mobile-lower-width);
@@ -108,7 +106,7 @@ onBeforeUnmount(() => closeModal())
   border-block-end: 1px solid var(--light-border-color);
 
   > h2 {
-    font-size  : var(--fs-large);
+    font-size: var(--fs-large);
     font-weight: bold;
   }
 
@@ -118,9 +116,9 @@ onBeforeUnmount(() => closeModal())
 }
 
 .contents {
-  flex    : 1 1 auto;
+  flex: 1 1 auto;
   overflow: auto;
-  padding : var(--sp-large);
+  padding: var(--sp-large);
 
   @include media('mobile') {
     padding: var(--sp-medium);
@@ -128,14 +126,14 @@ onBeforeUnmount(() => closeModal())
 }
 
 .footer {
-  display           : flex;
-  justify-content   : center;
-  gap               : var(--sp-large);
-  padding           : var(--sp-medium) var(--sp-large);
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-large);
+  padding: var(--sp-medium) var(--sp-large);
   border-block-start: 1px solid var(--light-border-color);
 
   @include media('mobile') {
-    gap    : var(--sp-medium);
+    gap: var(--sp-medium);
     padding: var(--sp-medium);
 
     > * {
@@ -146,13 +144,13 @@ onBeforeUnmount(() => closeModal())
 
 .close_button {
   inline-size: var(--icon-medium);
-  block-size : var(--icon-medium);
-  color      : var(--white);
+  block-size: var(--icon-medium);
+  color: var(--white);
   line-height: 1;
-  cursor     : pointer;
-  position   : absolute;
-  bottom     : 100%;
-  left       : 100%;
+  cursor: pointer;
+  position: absolute;
+  bottom: 100%;
+  left: 100%;
 
   > * {
     @include icon();
@@ -160,33 +158,33 @@ onBeforeUnmount(() => closeModal())
 }
 
 .overlay {
-  display              : flex;
-  justify-content      : center;
-  align-items          : center;
-  inline-size          : 100dvw;
-  block-size           : 100dvh;
-  padding              : var(--sp-larger);
-  background           : var(--overlay-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  inline-size: 100dvw;
+  block-size: 100dvh;
+  padding: var(--sp-larger);
+  background: var(--overlay-color);
   background-blend-mode: multiply;
-  backdrop-filter      : blur(4px);
-  opacity              : 0;
-  transition           : opacity .1s linear;
-  pointer-events       : none;
-  position             : fixed;
-  z-index              : var(--z-index-overlay);
-  top                  : 0;
-  left                 : 0;
-  cursor               : pointer;
-  overflow             : hidden;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.1s linear;
+  pointer-events: none;
+  position: fixed;
+  z-index: var(--z-index-overlay);
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  overflow: hidden;
 
   @include media('mobile') {
     padding-inline: var(--sp-large);
   }
 
   &.display {
-    opacity       : 1;
+    opacity: 1;
     pointer-events: auto;
-    z-index       : calc(var(--z-index-nav) + 1);
+    z-index: calc(var(--z-index-nav) + 1);
   }
 }
 </style>

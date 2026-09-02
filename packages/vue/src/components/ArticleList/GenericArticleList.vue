@@ -1,10 +1,5 @@
 <script setup lang="ts">
-
-import type {
-  Article,
-  Category,
-  ListSettings,
-} from '@/types'
+import type { Article, Category, ListSettings } from '@/types'
 import { computed } from 'vue'
 import { returnArticlePath, normalizePostConfig } from '@/scripts/utils'
 import { LIST_THEME } from '@/const/list-theme'
@@ -29,7 +24,9 @@ const props = defineProps<{
 // settings は親から動的に差し替えられるため computed で参照する
 const domainToUse = computed(() => props.settings.domainToUse)
 const isEnabledPickUp = computed(() => props.settings.isEnabledPickUp)
-const postConfig = computed(() => normalizePostConfig(props.settings.postConfig))
+const postConfig = computed(() =>
+  normalizePostConfig(props.settings.postConfig)
+)
 
 const listItem = computed(() => {
   switch (props.theme) {
@@ -63,12 +60,12 @@ const listItem = computed(() => {
       ['--column-number']: columnNumber,
       ['--tablet-column-number']: columnNumber - 1 ? columnNumber - 1 : 1,
     }"
-    :class="[$style.list, {[$style.pickup]: isEnabledPickUp}]"
+    :class="[$style.list, { [$style.pickup]: isEnabledPickUp }]"
   >
     <li
       v-for="(article, index) in articles"
       :key="article.id"
-      :style="{animationDelay: `${Number(index) * .1}s`}"
+      :style="{ animationDelay: `${Number(index) * 0.1}s` }"
     >
       <component
         :is="listItem"
@@ -86,40 +83,52 @@ const listItem = computed(() => {
 @use '@/assets/scss/mixin' as *;
 
 .list {
-  --list-gap        : var(--sp-large);
-  display           : grid;
+  --list-gap: var(--sp-large);
+  display: grid;
   grid-template-rows: 1fr;
-  gap               : var(--list-gap);
-  width             : 100%;
-  
+  gap: var(--list-gap);
+  width: 100%;
+
   @keyframes fadeIn {
     from {
       opacity: 0;
     }
-    
+
     to {
       opacity: 1;
     }
   }
-  
+
   @include media('mobile') {
-    grid-template-columns : repeat(auto-fit, 100%);
+    grid-template-columns: repeat(auto-fit, 100%);
   }
-  
+
   @include media('tablet') {
-    grid-template-columns : repeat(auto-fit, calc((100% - var(--list-gap) * (var(--tablet-column-number) - 1)) / var(--tablet-column-number)));
+    grid-template-columns: repeat(
+      auto-fit,
+      calc(
+        (100% - var(--list-gap) * (var(--tablet-column-number) - 1)) /
+          var(--tablet-column-number)
+      )
+    );
   }
-  
+
   @include media('desktop') {
-    grid-template-columns : repeat(auto-fit, calc((100% - var(--list-gap) * (var(--column-number) - 1)) / var(--column-number)));
+    grid-template-columns: repeat(
+      auto-fit,
+      calc(
+        (100% - var(--list-gap) * (var(--column-number) - 1)) /
+          var(--column-number)
+      )
+    );
   }
 
   > li {
-    opacity                  : 0;
-    animation-name           : fadeIn;
-    animation-duration       : 1s;
+    opacity: 0;
+    animation-name: fadeIn;
+    animation-duration: 1s;
     animation-timing-function: ease-out;
-    animation-fill-mode      : forwards;
+    animation-fill-mode: forwards;
   }
 
   &.pickup {

@@ -1,46 +1,42 @@
 <script lang="ts" setup>
-import type {
-  Validates,
-  InputBoxStyleForEachStatus,
-} from '@/types'
-import {
-  ref,
-  computed,
-  watch,
-  nextTick,
-  onMounted,
-} from 'vue'
+import type { Validates, InputBoxStyleForEachStatus } from '@/types'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { isEmptyValue, validateInputValue } from '@geckou/ui-core'
 import InputBox from '@/components/InputBox.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 
 type InputValue = string | null
 
-const emit = defineEmits<{ (e: 'update:modelValue', newValue: InputValue): void }>()
+const emit = defineEmits<{
+  (e: 'update:modelValue', newValue: InputValue): void
+}>()
 
-const props = withDefaults(defineProps<{
-  name: string
-  modelValue?: InputValue
-  cssStyle?: InputBoxStyleForEachStatus | undefined
-  placeholder?: string
-  isDisabled? : boolean
-  isRequired?: boolean
-  rows?: number
-  maxLength?: number
-  autocomplete?: string
-  validates?: Validates
-  autoAdjustHeight?: boolean
-}>(), {
-  modelValue  : undefined,
-  cssStyle    : undefined,
-  isRequired  : false,
-  placeholder : '入力してください',
-  rows        : undefined,
-  maxLength   : 100,
-  isDisabled  : false,
-  autocomplete: 'off',
-  validates   : () => [],
-})
+const props = withDefaults(
+  defineProps<{
+    name: string
+    modelValue?: InputValue
+    cssStyle?: InputBoxStyleForEachStatus | undefined
+    placeholder?: string
+    isDisabled?: boolean
+    isRequired?: boolean
+    rows?: number
+    maxLength?: number
+    autocomplete?: string
+    validates?: Validates
+    autoAdjustHeight?: boolean
+  }>(),
+  {
+    modelValue: undefined,
+    cssStyle: undefined,
+    isRequired: false,
+    placeholder: '入力してください',
+    rows: undefined,
+    maxLength: 100,
+    isDisabled: false,
+    autocomplete: 'off',
+    validates: () => [],
+  }
+)
 
 const inputValue = computed<InputValue>({
   get: () => props.modelValue ?? '',
@@ -53,12 +49,14 @@ const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const validateValue = () => {
   errorMessages.value = validateInputValue(inputValue.value, {
     isRequired: props.isRequired,
-    validates : props.validates,
+    validates: props.validates,
   })
 }
 
 const adjustTextareaHeight = () => {
-  if (!props.autoAdjustHeight) return
+  if (!props.autoAdjustHeight) {
+    return
+  }
 
   nextTick(() => {
     if (textareaRef.value) {
@@ -70,12 +68,15 @@ const adjustTextareaHeight = () => {
 
 onMounted(adjustTextareaHeight)
 
-watch(inputValue, () => {
-  validateValue()
-  adjustTextareaHeight()
-},
-// 数値 0 も初期値として扱うため truthy 判定は使わない
-{ immediate: !isEmptyValue(props.modelValue), flush: 'post' })
+watch(
+  inputValue,
+  () => {
+    validateValue()
+    adjustTextareaHeight()
+  },
+  // 数値 0 も初期値として扱うため truthy 判定は使わない
+  { immediate: !isEmptyValue(props.modelValue), flush: 'post' }
+)
 </script>
 
 <template>

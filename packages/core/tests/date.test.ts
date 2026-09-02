@@ -42,8 +42,14 @@ describe('formatDateValue', () => {
 
 describe('splitDate / composeDateValue', () => {
   it('分解と組み立てが往復する', () => {
-    expect(splitDate('2026-08-25')).toEqual({ year: '2026', month: '08', day: '25' })
-    expect(composeDateValue({ year: '2026', month: '08', day: '25' })).toBe('2026-08-25')
+    expect(splitDate('2026-08-25')).toEqual({
+      year: '2026',
+      month: '08',
+      day: '25',
+    })
+    expect(composeDateValue({ year: '2026', month: '08', day: '25' })).toBe(
+      '2026-08-25'
+    )
   })
 
   it('欠けた要素は空文字になる', () => {
@@ -52,7 +58,9 @@ describe('splitDate / composeDateValue', () => {
   })
 
   it('type="month" なら日が無くても組み立てられる', () => {
-    expect(composeDateValue({ year: '2026', month: '08', day: '' }, 'month')).toBe('2026-08')
+    expect(
+      composeDateValue({ year: '2026', month: '08', day: '' }, 'month')
+    ).toBe('2026-08')
   })
 })
 
@@ -77,7 +85,9 @@ describe('validateDateObject', () => {
   })
 
   it('正しい日付を通す', () => {
-    expect(validateDateObject({ year: '2026', month: '08', day: '25' })).toEqual(valid)
+    expect(
+      validateDateObject({ year: '2026', month: '08', day: '25' })
+    ).toEqual(valid)
   })
 
   it('桁数が違う年を弾く', () => {
@@ -88,14 +98,18 @@ describe('validateDateObject', () => {
   })
 
   it('範囲外の月を弾く', () => {
-    expect(validateDateObject({ year: '2026', month: '13', day: '01' })).toEqual({
+    expect(
+      validateDateObject({ year: '2026', month: '13', day: '01' })
+    ).toEqual({
       isValid: false,
       message: MESSAGES.monthOutOfRange,
     })
   })
 
   it('その月に存在しない日を弾く', () => {
-    expect(validateDateObject({ year: '2026', month: '02', day: '30' })).toEqual({
+    expect(
+      validateDateObject({ year: '2026', month: '02', day: '30' })
+    ).toEqual({
       isValid: false,
       message: MESSAGES.dayOutOfRange(28),
     })
@@ -103,7 +117,10 @@ describe('validateDateObject', () => {
 
   it('type="month" では日を見ない', () => {
     expect(
-      validateDateObject({ year: '2026', month: '02', day: '99' }, { type: 'month' })
+      validateDateObject(
+        { year: '2026', month: '02', day: '99' },
+        { type: 'month' }
+      )
     ).toEqual(valid)
   })
 })

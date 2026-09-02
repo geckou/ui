@@ -4,7 +4,7 @@ export const generateQueryObject = (url: string): Record<string, string> => {
   const regex = /[?&]([^=#]+)=([^&#]*)/g
   const queryObject: Record<string, string> = {}
 
-  for (let match; (match = regex.exec(url)) !== null; ) {
+  for (let match; (match = regex.exec(url)) !== null;) {
     queryObject[match[1]] = match[2]
   }
 
@@ -24,7 +24,11 @@ export const returnTagList = (articleObject: Article): string[] => {
   return terms.map((tag: WpTerm) => tag.name)
 }
 
-export const returnArticlePath = (postConfig: PostConfig, domain: string, articleId: string | number) => {
+export const returnArticlePath = (
+  postConfig: PostConfig,
+  domain: string,
+  articleId: string | number
+) => {
   // ドメイン末尾とパス先頭のスラッシュが重ならないようにする
   const base = String(domain).replace(/\/+$/, '')
   const path = String(postConfig.article_page_path ?? '').replace(/^\/+/, '')
@@ -38,7 +42,7 @@ export const returnArticlePath = (postConfig: PostConfig, domain: string, articl
  */
 export const normalizePostConfig = (postConfig: PostConfig): PostConfig => ({
   ...postConfig,
-  author  : postConfig?.author ?? postConfig?.useAuthor ?? false,
+  author: postConfig?.author ?? postConfig?.useAuthor ?? false,
   category: postConfig?.category ?? postConfig?.useCategory ?? false,
-  tag     : postConfig?.tag ?? postConfig?.useTag ?? false,
+  tag: postConfig?.tag ?? postConfig?.useTag ?? false,
 })

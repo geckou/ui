@@ -30,18 +30,24 @@ export function CheckBoxes({
   const [errorMessage, setErrorMessage] = useState('')
 
   const validateInput = (newValues: SelectValue[]) =>
-    setErrorMessage(isRequired && newValues.length === 0 ? MESSAGES.required : '')
+    setErrorMessage(
+      isRequired && newValues.length === 0 ? MESSAGES.required : ''
+    )
 
   const isFirstRender = useRef(true)
 
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
-      if (value?.length) validateInput(value)
+      if (value?.length) {
+        validateInput(value)
+      }
       return
     }
 
-    if (value) setCheckedValues(value)
+    if (value) {
+      setCheckedValues(value)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Vue 版（@geckou/ui-vue）同様、外部からの値変更時のみ同期する
   }, [value])
 
@@ -49,7 +55,7 @@ export function CheckBoxes({
     const newValues = options
       .map((option) => option.value)
       .filter((candidate) =>
-        candidate === optionValue ? checked : checkedValues.includes(candidate),
+        candidate === optionValue ? checked : checkedValues.includes(candidate)
       )
 
     setCheckedValues(newValues)

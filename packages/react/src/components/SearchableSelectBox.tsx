@@ -35,7 +35,9 @@ export function SearchableSelectBox({
   const lastValueProp = useRef(value)
 
   useEffect(() => {
-    if (lastValueProp.current === value) return
+    if (lastValueProp.current === value) {
+      return
+    }
     lastValueProp.current = value
     setSearchWord(value)
   }, [value])
@@ -43,7 +45,9 @@ export function SearchableSelectBox({
   useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
       const root = rootRef.current
-      if (root && !root.contains(event.target as Node)) setIsOpened(false)
+      if (root && !root.contains(event.target as Node)) {
+        setIsOpened(false)
+      }
     }
 
     document.addEventListener('pointerdown', handleClickOutside)
@@ -54,7 +58,7 @@ export function SearchableSelectBox({
     ? options.filter((option) =>
         String(option[searchTarget])
           .toLowerCase()
-          .includes(searchWord.toLowerCase()),
+          .includes(searchWord.toLowerCase())
       )
     : options
 

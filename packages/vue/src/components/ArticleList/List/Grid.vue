@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import type {
-  Article,
-  Category,
-  ListSettings,
-} from '@/types'
+import type { Article, Category, ListSettings } from '@/types'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { returnArticlePath, normalizePostConfig } from '@/scripts/utils'
 import GridCard from '@/components/ArticleList/Card/Grid.vue'
@@ -18,16 +14,22 @@ const props = defineProps<{
 // settings は親から動的に差し替えられるため computed で参照する
 const domainToUse = computed(() => props.settings.domainToUse)
 const isEnabledPickUp = computed(() => props.settings.isEnabledPickUp)
-const postConfig = computed(() => normalizePostConfig(props.settings.postConfig))
+const postConfig = computed(() =>
+  normalizePostConfig(props.settings.postConfig)
+)
 
 const listElement = ref<HTMLElement | null>(null)
 const listWidth = ref(0)
 const resizeTimeout = ref<number | null>(null)
 
 const deviceColumnNumber = computed(() => {
-  if (listWidth.value > 992) return props.columnNumber
-  else if (listWidth.value >= 576 && listWidth.value <= 992) return props.columnNumber - 1
-  else return 1
+  if (listWidth.value > 992) {
+    return props.columnNumber
+  } else if (listWidth.value >= 576 && listWidth.value <= 992) {
+    return props.columnNumber - 1
+  } else {
+    return 1
+  }
 })
 
 const returnRowNumber = (index: number): number => {
@@ -39,8 +41,12 @@ const returnRowNumber = (index: number): number => {
 const returnColumnNumber = (index: number): number => {
   const itemNum = index + 1
   const columns = Number(deviceColumnNumber.value)
-  if (itemNum < columns) return itemNum
-  if (columns === 1) return 1
+  if (itemNum < columns) {
+    return itemNum
+  }
+  if (columns === 1) {
+    return 1
+  }
   const remainder = itemNum % (columns - 1)
   return remainder === 0 ? columns - 1 : remainder
 }
@@ -48,8 +54,10 @@ const returnColumnNumber = (index: number): number => {
 const calcGridRowValue = (index: number): string | undefined => {
   if (deviceColumnNumber.value === 4) {
     const rowNum = returnRowNumber(index)
-    const actualRowNumber = Array.from({ length: 49 }, (_, i) => i + 1)
-      .find(n => rowNum <= n * 2) || 0
+    const actualRowNumber =
+      Array.from({ length: 49 }, (_, i) => i + 1).find(
+        (n) => rowNum <= n * 2
+      ) || 0
     const adjustedRowNum = rowNum - 1 + actualRowNumber
 
     return returnItemDirection(index) === 'vertical'
@@ -115,26 +123,36 @@ const returnItemDirection = (index: number): 'horizontal' | 'vertical' => {
     return division !== 2 && division !== 4 ? 'horizontal' : 'vertical'
   } else {
     const gridValue = calcGridColumnValue(index)
-    if (!gridValue.includes('/')) return 'horizontal'
+    if (!gridValue.includes('/')) {
+      return 'horizontal'
+    }
     const values = gridValue.split('/').map(Number)
     return values[1] - values[0] >= 2 ? 'horizontal' : 'vertical'
   }
 }
 
 onMounted(() => {
-  const resizeObserver = new ResizeObserver(entries => {
-    if (resizeTimeout.value) clearTimeout(resizeTimeout.value)
+  const resizeObserver = new ResizeObserver((entries) => {
+    if (resizeTimeout.value) {
+      clearTimeout(resizeTimeout.value)
+    }
     resizeTimeout.value = setTimeout(() => {
       listWidth.value = entries[0].contentRect.width
     }, 100) as unknown as number
   })
 
-  if (listElement.value) resizeObserver.observe(listElement.value)
+  if (listElement.value) {
+    resizeObserver.observe(listElement.value)
+  }
 
   onUnmounted(() => {
-    if (listElement.value) resizeObserver.unobserve(listElement.value)
+    if (listElement.value) {
+      resizeObserver.unobserve(listElement.value)
+    }
     resizeObserver.disconnect()
-    if (resizeTimeout.value) clearTimeout(resizeTimeout.value)
+    if (resizeTimeout.value) {
+      clearTimeout(resizeTimeout.value)
+    }
   })
 })
 </script>
@@ -152,8 +170,8 @@ onMounted(() => {
       v-for="(article, index) in articles"
       :key="article.id"
       :class="$style.item"
-      :style="{ 
-        animationDelay: `${Number(index) * .1}s`,
+      :style="{
+        animationDelay: `${Number(index) * 0.1}s`,
         gridRow: calcGridRowValue(Number(index)) || 'auto',
         gridColumn: calcGridColumnValue(Number(index)) || 'auto',
       }"
@@ -174,13 +192,13 @@ onMounted(() => {
 @use '@/assets/scss/mixin' as *;
 
 .list {
-  --list-gap        : var(--sp-medium);
-  display           : grid;
-  gap               : var(--list-gap);
+  --list-gap: var(--sp-medium);
+  display: grid;
+  gap: var(--list-gap);
   grid-template-rows: 1fr;
-  width             : 100%;
-  list-style        : none;
-  grid-auto-flow    : dense;
+  width: 100%;
+  list-style: none;
+  grid-auto-flow: dense;
 
   @keyframes fadeIn {
     from {
@@ -193,24 +211,36 @@ onMounted(() => {
   }
 
   @include media('mobile') {
-    display       : flex;
+    display: flex;
     flex-direction: column;
-    gap           : var(--sp-large);
+    gap: var(--sp-large);
   }
 
   @include media('tablet') {
-    grid-template-columns : repeat(auto-fit, calc((100% - var(--list-gap) * (var(--tablet-column-number) - 1)) / var(--tablet-column-number)));
+    grid-template-columns: repeat(
+      auto-fit,
+      calc(
+        (100% - var(--list-gap) * (var(--tablet-column-number) - 1)) /
+          var(--tablet-column-number)
+      )
+    );
   }
 
   @include media('desktop') {
-    grid-template-columns : repeat(auto-fit, calc((100% - var(--list-gap) * (var(--column-number) - 1)) / var(--column-number)));
+    grid-template-columns: repeat(
+      auto-fit,
+      calc(
+        (100% - var(--list-gap) * (var(--column-number) - 1)) /
+          var(--column-number)
+      )
+    );
   }
 
   > li {
-    animation-name           : fadeIn;
-    animation-duration       : 1s;
+    animation-name: fadeIn;
+    animation-duration: 1s;
     animation-timing-function: ease-out;
-    animation-fill-mode      : backwards;
+    animation-fill-mode: backwards;
   }
 }
 </style>

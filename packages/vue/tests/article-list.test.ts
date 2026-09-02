@@ -39,13 +39,22 @@ describe('returnAuthor', () => {
   })
 
   it('author が空配列でも undefined を返す', () => {
-    expect(returnAuthor({ ...baseArticle, _embedded: { author: [] } } as Article)).toBeUndefined()
+    expect(
+      returnAuthor({ ...baseArticle, _embedded: { author: [] } } as Article)
+    ).toBeUndefined()
   })
 
   it('著者があれば取り出す', () => {
     const article = {
       ...baseArticle,
-      _embedded: { author: [{ name: '執筆者', avatar_urls: { '96': 'https://example.com/a.png' } }] },
+      _embedded: {
+        author: [
+          {
+            name: '執筆者',
+            avatar_urls: { '96': 'https://example.com/a.png' },
+          },
+        ],
+      },
     } as Article
 
     expect(returnAuthor(article)?.name).toBe('執筆者')
@@ -68,7 +77,14 @@ describe('ArticleList のカード', () => {
   it('著者があれば描画する', () => {
     const article = {
       ...baseArticle,
-      _embedded: { author: [{ name: '執筆者', avatar_urls: { '96': 'https://example.com/a.png' } }] },
+      _embedded: {
+        author: [
+          {
+            name: '執筆者',
+            avatar_urls: { '96': 'https://example.com/a.png' },
+          },
+        ],
+      },
     } as Article
     const wrapper = mountCard(article)
 

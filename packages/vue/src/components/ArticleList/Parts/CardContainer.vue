@@ -3,21 +3,18 @@ defineProps<{ path: string }>()
 </script>
 
 <template>
-  <a
-    :href="path"
-    :class="$style.container"
-  >
+  <a :href="path" :class="$style.container">
     <slot />
   </a>
 </template>
 
 <style lang="scss" module>
 .container {
-  position        : relative;
-  display         : grid;
-  width           : 100%;
-  height          : 100%;
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
   background-color: var(--base-color);
-  text-decoration : none;
+  text-decoration: none;
 }
 </style>

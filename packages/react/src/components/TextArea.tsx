@@ -59,7 +59,9 @@ export function TextArea({
     if (!hasChanged.current) {
       if (inputValue === initialValue.current) {
         // 数値 0 も初期値として扱うため truthy 判定は使わない
-        if (!isEmptyValue(inputValue)) validateValue()
+        if (!isEmptyValue(inputValue)) {
+          validateValue()
+        }
         return
       }
       hasChanged.current = true

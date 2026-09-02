@@ -49,7 +49,9 @@ export function SelectBox({
   const validateValue = () => {
     const messages: string[] = []
     // 数値 0 も正当な選択値として扱うため、truthy 判定ではなく空文字と比較する
-    if (selectedValue === '' && isRequired) messages.push(MESSAGES.required)
+    if (selectedValue === '' && isRequired) {
+      messages.push(MESSAGES.required)
+    }
     setErrorMessages(messages)
   }
 
@@ -61,7 +63,9 @@ export function SelectBox({
   useEffect(() => {
     if (!hasChanged.current) {
       if (selectedValue === initialValue.current) {
-        if (selectedValue !== '') validateValue()
+        if (selectedValue !== '') {
+          validateValue()
+        }
         return
       }
       hasChanged.current = true
@@ -72,12 +76,12 @@ export function SelectBox({
   }, [selectedValue])
 
   const flattenedOptions = options.flatMap((option) =>
-    isOption(option) ? [option] : Object.values(option).flat(),
+    isOption(option) ? [option] : Object.values(option).flat()
   )
 
   const handleChange = (rawValue: string) => {
     const matched = flattenedOptions.find(
-      (option) => String(option.value) === rawValue,
+      (option) => String(option.value) === rawValue
     )
     onChange?.(matched ? matched.value : rawValue)
   }
@@ -134,7 +138,7 @@ export function SelectBox({
               ))}
               <hr />
             </Fragment>
-          ),
+          )
         )}
       </select>
       <div className="pointer-events-none absolute inset-y-0 end-2 flex items-center [&>*]:h-4 [&>*]:fill-current [&>*]:text-current">

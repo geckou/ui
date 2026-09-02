@@ -41,10 +41,12 @@ export function DatePicker({
   type = 'date',
 }: Props) {
   const [dateValue, setDateValue] = useState(() =>
-    value ? formatDateValue(value, type) : '',
+    value ? formatDateValue(value, type) : ''
   )
   const [dateObject, setDateObject] = useState<DateObject>(() =>
-    value ? splitDate(formatDateValue(value, type)) : { year: '', month: '', day: '' },
+    value
+      ? splitDate(formatDateValue(value, type))
+      : { year: '', month: '', day: '' }
   )
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -52,7 +54,9 @@ export function DatePicker({
   const lastValueProp = useRef(value)
 
   useEffect(() => {
-    if (lastValueProp.current === value) return
+    if (lastValueProp.current === value) {
+      return
+    }
     lastValueProp.current = value
 
     const normalized = value ? formatDateValue(value, type) : ''
@@ -61,8 +65,9 @@ export function DatePicker({
   }, [value, type])
 
   const validateInput = (newValue: string) => {
-    if (!newValue && isRequired)
-      {return { isValid: false, message: MESSAGES.required }}
+    if (!newValue && isRequired) {
+      return { isValid: false, message: MESSAGES.required }
+    }
     return { isValid: true, message: '' }
   }
 
