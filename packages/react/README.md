@@ -52,13 +52,15 @@ import { TextBox, BasicButton, ModalBox } from '@geckou/ui-react'
 
 `useFormValidation` で各入力の検証結果を集約する。
 Vue 版の `FormValidationManager` と同じストア（`@geckou/ui-core`）を使う。
+**`store` を入力コンポーネントの `formValidationStore` に渡してください**（渡さない入力は集計されません）。
+対応しているのは `DatePicker` / `DateRangePicker` / `DateSelector`。
 
 ```tsx
 const { isAllValid, store } = useFormValidation()
 
 return (
   <form>
-    <DatePicker name="startedOn" isRequired />
+    <DatePicker name="startedOn" isRequired formValidationStore={store} />
     <button disabled={!isAllValid}>送信</button>
   </form>
 )

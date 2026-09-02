@@ -1,10 +1,12 @@
 'use client'
 
 import type { CSSProperties, MouseEvent } from 'react'
+import type { FormValidationStore } from '@geckou/ui-core'
 import { useEffect, useState } from 'react'
 import { daysInMonth, splitDate } from '@geckou/ui-core'
 import { InputBox } from './InputBox'
 import { KeyboardArrowDownIcon } from './icons/KeyboardArrowDownIcon'
+import { useRegisterValidation } from '../hooks/useFormValidation'
 import { COLOR } from '../constants'
 
 type Birthday = {
@@ -18,12 +20,31 @@ type Props = {
   value?: string
   onChange?: (newValue: string) => void
   isRequired?: boolean
+  /** useFormValidation() が返す store。渡すとフォーム全体の検証状態に参加する */
+  formValidationStore?: FormValidationStore | null
 }
 
 const EMPTY_BIRTHDAY: Birthday = { year: '', month: '', day: '' }
 
-export function DateSelector({ name, value, onChange, isRequired }: Props) {
+export function DateSelector({
+  name,
+  value,
+  onChange,
+  isRequired,
+  formValidationStore,
+}: Props) {
   const [birthday, setBirthday] = useState<Birthday>(EMPTY_BIRTHDAY)
+
+  // Vue 版（DateSelector.vue）と同じ判定。任意項目は「全部空」か「全部埋まっている」
+  // のどちらかであれば有効
+  const isFilled = Boolean(birthday.year && birthday.month && birthday.day)
+  const isEmpty = !birthday.year && !birthday.month && !birthday.day
+
+  useRegisterValidation(
+    formValidationStore,
+    name,
+    isRequired ? isFilled : isFilled || isEmpty
+  )
 
   // Vue 版（@geckou/ui-vue）は value が空に戻されたときリセットされなかった
   useEffect(() => {

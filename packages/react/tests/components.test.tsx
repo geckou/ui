@@ -1,5 +1,5 @@
 // @geckou/ui の移植時に修正したバグのリグレッションテスト
-import { act } from 'react'
+import { act, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -722,5 +722,101 @@ describe('useFormValidation', () => {
 
     act(() => api!.remove('endedOn'))
     expect(container.textContent).toBe('true')
+  })
+})
+
+describe('formValidationStore との接続', () => {
+  // 修正前は useRegisterValidation を使うコンポーネントが 1 つも無く、
+  // 空の必須項目があっても isAllValid が true のままだった
+  function Form({
+    isRequired = true,
+    initialValue = '',
+  }: {
+    isRequired?: boolean
+    initialValue?: string
+  }) {
+    const { isAllValid, invalidNames, store } = useFormValidation()
+    const [value, setValue] = useState(initialValue)
+
+    return (
+      <div>
+        <span data-testid="valid">{String(isAllValid)}</span>
+        <span data-testid="invalid">{invalidNames.join(',')}</span>
+        <DatePicker
+          name="startedOn"
+          value={value}
+          isRequired={isRequired}
+          formValidationStore={store}
+          onChange={setValue}
+        />
+      </div>
+    )
+  }
+
+  const valid = () =>
+    container.querySelector('[data-testid="valid"]')!.textContent
+
+  it('空の必須 DatePicker は isAllValid を false にする', () => {
+    act(() => {
+      root.render(<Form />)
+    })
+
+    expect(valid()).toBe('false')
+    expect(
+      container.querySelector('[data-testid="invalid"]')!.textContent
+    ).toBe('startedOn')
+  })
+
+  it('日付を入れると isAllValid が true になる', () => {
+    act(() => {
+      root.render(<Form />)
+    })
+    expect(valid()).toBe('false')
+
+    const dateInput =
+      container.querySelector<HTMLInputElement>('input[type="date"]')!
+    act(() => setInputValue(dateInput, '2024-01-01'))
+
+    expect(valid()).toBe('true')
+  })
+
+  it('必須でなければ空でも有効', () => {
+    act(() => {
+      root.render(<Form isRequired={false} />)
+    })
+
+    expect(valid()).toBe('true')
+  })
+
+  it('DateSelector: 必須の未選択は無効、揃うと有効になる', () => {
+    function SelectorForm() {
+      const { isAllValid, store } = useFormValidation()
+      const [value, setValue] = useState('')
+
+      return (
+        <div>
+          <span data-testid="valid">{String(isAllValid)}</span>
+          <DateSelector
+            name="birthday"
+            value={value}
+            isRequired
+            formValidationStore={store}
+            onChange={setValue}
+          />
+        </div>
+      )
+    }
+
+    act(() => {
+      root.render(<SelectorForm />)
+    })
+    expect(valid()).toBe('false')
+
+    const selects = container.querySelectorAll<HTMLSelectElement>('select')
+    act(() => setSelectValue(selects[0], '1990'))
+    act(() => setSelectValue(selects[1], '05'))
+    act(() => setSelectValue(selects[2], '20'))
+
+    expect(valid()).toBe('true')
   })
 })
