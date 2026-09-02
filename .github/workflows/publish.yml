@@ -1,5 +1,8 @@
 name: Publish package
 
+# **このファイルの正は geckou/project-starter/.github/workflows/publish.yml。**
+# 直すときはまずそちらを直してから配ること。
+#
 # タグ駆動。<パッケージのディレクトリ名>@<バージョン>（例: vue@0.3.0）。
 # タグは scripts/release.sh が打つ（yarn release <パッケージ>）。
 #
