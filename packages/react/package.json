@@ -3,18 +3,18 @@
   "version": "0.1.1",
   "description": "A set of reusable React UI components (forms) by Geckou",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
-    "./styles/tokens.css": "./src/styles/tokens.css",
+    "./styles/tokens.css": "./dist/styles/tokens.css",
     "./package.json": "./package.json"
   },
   "files": [
-    "src",
+    "dist",
     "README.md",
     "LICENSE"
   ],
@@ -40,13 +40,15 @@
     "@geckou/ui-core": "^0.1.0"
   },
   "scripts": {
-    "build": "echo 'ソースをそのまま配布する（利用側で transpilePackages に指定する）'",
+    "build": "vite build && node scripts/copy-assets.mjs",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "yarn build"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0"
-  }
+  },
+  "module": "./dist/index.js"
 }

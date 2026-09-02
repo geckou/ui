@@ -21,10 +21,15 @@ Vue 本体は同梱していません。プロジェクト側の Vue 3.0 以上�
 ```ts
 import { createApp } from 'vue'
 import GeckouUi from '@geckou/ui-vue'
+import '@geckou/ui-vue/style.css'
 import App from './App.vue'
 
 createApp(App).use(GeckouUi).mount('#app')
 ```
+
+**スタイルの読み込みが必要です。** コンポーネントの `<style module>` はビルド時に
+`dist/style.css` へまとめて出しているため、`@geckou/ui-vue/style.css` を 1 度読み込んでください
+（ソース配布だった 0.3.1 以前は不要でした）。
 
 ```ts
 // 個別インポート
