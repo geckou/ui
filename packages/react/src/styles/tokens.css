@@ -6,7 +6,7 @@
  * 各コンポーネントは var(--token, フォールバック値) で参照するため、
  * このファイルを読み込まなくても固定値で動作する。
  * アプリ側で読み込むと本来の流体スケーリングが有効になる:
- *   @import '@geckou/ui/styles/tokens.css';
+ *   @import '@geckou/ui-react/styles/tokens.css';
  */
 :root {
   /* 基準値（6px〜8px） */

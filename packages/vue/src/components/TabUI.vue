@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { COLOR } from '@/const'
+import { nextUniqueId } from '@/scripts/unique-id'
 
 const props = withDefaults(
   defineProps<{
@@ -33,7 +34,14 @@ const props = withDefaults(
   }
 )
 
-const activeTab = ref(props.tabs[props.initialIndex].key)
+// 1 画面に複数置いても DOM id が衝突しないよう、インスタンスごとの接頭辞を付ける
+const uid = nextUniqueId('tabs')
+const tabId = (key: string) => `${uid}_tab_${key}`
+const panelId = (key: string) => `${uid}_panel_${key}`
+
+// initialIndex が範囲外でも落とさない（React 版と揃える）
+const initialTab = props.tabs[props.initialIndex] ?? props.tabs[0]
+const activeTab = ref(initialTab?.key ?? '')
 const tabRefs = ref<HTMLButtonElement[]>([])
 const changeTabs = (key: string) => (activeTab.value = key)
 
@@ -81,7 +89,7 @@ const handleKeydown = (event: KeyboardEvent) => {
     >
       <button
         v-for="(tab, index) in tabs"
-        :id="tab.key"
+        :id="tabId(tab.key)"
         :key="tab.key"
         :ref="
           (el) => {
@@ -89,7 +97,7 @@ const handleKeydown = (event: KeyboardEvent) => {
           }
         "
         role="tab"
-        :aria-controls="`${tab.key}_${index}`"
+        :aria-controls="panelId(tab.key)"
         :aria-selected="activeTab === tab.key"
         :tabindex="activeTab === tab.key ? 0 : -1"
         :class="{ [$style.active]: activeTab === tab.key }"
@@ -102,12 +110,12 @@ const handleKeydown = (event: KeyboardEvent) => {
       </button>
     </div>
     <div
-      v-for="(tab, index) in tabs"
+      v-for="tab in tabs"
       v-show="activeTab === tab.key"
-      :id="`${tab.key}_${index}`"
+      :id="panelId(tab.key)"
       :key="`${tab.key}_panel`"
       role="tabpanel"
-      :aria-labelledby="tab.key"
+      :aria-labelledby="tabId(tab.key)"
     >
       <slot :name="`${tab.key}Contents`" />
     </div>

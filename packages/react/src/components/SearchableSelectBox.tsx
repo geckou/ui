@@ -66,12 +66,9 @@ export function SearchableSelectBox({
     const word = String(newValue)
     setSearchWord(word)
 
-    if (!word) {
-      setIsOpened(false)
-      return
-    }
-
-    setIsOpened(true)
+    // 空にしたときも通知する。早期 return していたため、値を消しても
+    // 親が古い値を持ったままだった
+    setIsOpened(Boolean(word))
     onChange?.(word)
   }
 

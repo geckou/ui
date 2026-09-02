@@ -1,8 +1,9 @@
 {
   "name": "@geckou/ui-react",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A set of reusable React UI components (forms) by Geckou",
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -37,7 +38,7 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@geckou/ui-core": "^0.1.0"
+    "@geckou/ui-core": "^0.2.0"
   },
   "scripts": {
     "build": "vite build && node scripts/copy-assets.mjs",

@@ -1,11 +1,12 @@
 // @geckou/ui の移植時に修正したバグのリグレッションテスト
-import { act } from 'react'
+import { act, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import {
   TabUI,
   DateSelector,
   DatePicker,
+  DateRangePicker,
   SearchableSelectBox,
   FileInput,
   TextBox,
@@ -208,17 +209,21 @@ describe('SearchableSelectBox', () => {
     ).toBe(false)
   })
 
-  it('入力を空にすると選択肢が閉じる', () => {
-    renderBox('')
+  it("入力を空にすると選択肢が閉じ、onChange('') が呼ばれる", () => {
+    const onChange = vi.fn()
+    renderBox('', onChange)
     const input = container.querySelector(
       'input[name="fruit"]'
     ) as HTMLInputElement
 
     act(() => setInputValue(input, 'り'))
     expect(container.querySelectorAll('button').length).toBeGreaterThan(0)
+    expect(onChange).toHaveBeenLastCalledWith('り')
 
+    // 修正前は早期 return しており、空にしても親へ通知されなかった
     act(() => setInputValue(input, ''))
     expect(container.querySelectorAll('button').length).toBe(0)
+    expect(onChange).toHaveBeenLastCalledWith('')
   })
 })
 
@@ -722,5 +727,157 @@ describe('useFormValidation', () => {
 
     act(() => api!.remove('endedOn'))
     expect(container.textContent).toBe('true')
+  })
+})
+
+describe('formValidationStore との接続', () => {
+  // 修正前は useRegisterValidation を使うコンポーネントが 1 つも無く、
+  // 空の必須項目があっても isAllValid が true のままだった
+  function Form({
+    isRequired = true,
+    initialValue = '',
+  }: {
+    isRequired?: boolean
+    initialValue?: string
+  }) {
+    const { isAllValid, invalidNames, store } = useFormValidation()
+    const [value, setValue] = useState(initialValue)
+
+    return (
+      <div>
+        <span data-testid="valid">{String(isAllValid)}</span>
+        <span data-testid="invalid">{invalidNames.join(',')}</span>
+        <DatePicker
+          name="startedOn"
+          value={value}
+          isRequired={isRequired}
+          formValidationStore={store}
+          onChange={setValue}
+        />
+      </div>
+    )
+  }
+
+  const valid = () =>
+    container.querySelector('[data-testid="valid"]')!.textContent
+
+  it('空の必須 DatePicker は isAllValid を false にする', () => {
+    act(() => {
+      root.render(<Form />)
+    })
+
+    expect(valid()).toBe('false')
+    expect(
+      container.querySelector('[data-testid="invalid"]')!.textContent
+    ).toBe('startedOn')
+  })
+
+  it('日付を入れると isAllValid が true になる', () => {
+    act(() => {
+      root.render(<Form />)
+    })
+    expect(valid()).toBe('false')
+
+    const dateInput =
+      container.querySelector<HTMLInputElement>('input[type="date"]')!
+    act(() => setInputValue(dateInput, '2024-01-01'))
+
+    expect(valid()).toBe('true')
+  })
+
+  it('必須でなければ空でも有効', () => {
+    act(() => {
+      root.render(<Form isRequired={false} />)
+    })
+
+    expect(valid()).toBe('true')
+  })
+
+  it('DateSelector: 必須の未選択は無効、揃うと有効になる', () => {
+    function SelectorForm() {
+      const { isAllValid, store } = useFormValidation()
+      const [value, setValue] = useState('')
+
+      return (
+        <div>
+          <span data-testid="valid">{String(isAllValid)}</span>
+          <DateSelector
+            name="birthday"
+            value={value}
+            isRequired
+            formValidationStore={store}
+            onChange={setValue}
+          />
+        </div>
+      )
+    }
+
+    act(() => {
+      root.render(<SelectorForm />)
+    })
+    expect(valid()).toBe('false')
+
+    const selects = container.querySelectorAll<HTMLSelectElement>('select')
+    act(() => setSelectValue(selects[0], '1990'))
+    act(() => setSelectValue(selects[1], '05'))
+    act(() => setSelectValue(selects[2], '20'))
+
+    expect(valid()).toBe('true')
+  })
+})
+
+describe('Vue 版との API 統一', () => {
+  it('DateRangePicker: value が {start, end}、name は <name>Start / <name>End', () => {
+    const onChange = vi.fn()
+
+    act(() => {
+      root.render(
+        <DateRangePicker
+          name="period"
+          value={{ start: '2024-01-01', end: '2024-01-31' }}
+          onChange={onChange}
+        />
+      )
+    })
+
+    const inputs = [
+      ...container.querySelectorAll<HTMLInputElement>('input[type="date"]'),
+    ]
+    expect(inputs.map((input) => input.name)).toEqual([
+      'periodStart',
+      'periodEnd',
+    ])
+    expect(inputs.map((input) => input.value)).toEqual([
+      '2024-01-01',
+      '2024-01-31',
+    ])
+
+    // 開始 ↔ 終了の min / max が連動する
+    expect(inputs[0].max).toBe('2024-01-31')
+    expect(inputs[1].min).toBe('2024-01-01')
+
+    act(() => setInputValue(inputs[0], '2024-01-10'))
+    expect(onChange).toHaveBeenLastCalledWith({
+      start: '2024-01-10',
+      end: '2024-01-31',
+    })
+  })
+
+  it("DateSelector: type='month' なら日を出さず YYYY-MM を返す", () => {
+    const onChange = vi.fn()
+
+    act(() => {
+      root.render(
+        <DateSelector name="startedOn" type="month" onChange={onChange} />
+      )
+    })
+
+    const selects = container.querySelectorAll<HTMLSelectElement>('select')
+    expect(selects).toHaveLength(2)
+
+    act(() => setSelectValue(selects[0], '1990'))
+    act(() => setSelectValue(selects[1], '05'))
+
+    expect(onChange).toHaveBeenLastCalledWith('1990-05')
   })
 })

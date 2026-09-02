@@ -39,10 +39,12 @@ watch(
   (newValue) => (isChecked.value = newValue),
   { immediate: true }
 )
+// label で包むことで、input を視覚的に隠したままクリックでも切り替えられる。
+// @click での手動トグルは label が二重に切り替えるため置かない
 </script>
 
 <template>
-  <span
+  <label
     :class="$style.check_box"
     :style="{
       '--border-color': currentCssStyle?.border?.color || 'blue',
@@ -51,7 +53,6 @@ watch(
       '--background-color': currentCssStyle?.backgroundColor || '#fff',
       '--duration': isDisableAnimation ? '0s' : '.3s',
     }"
-    @click="isChecked = !isChecked"
   >
     <input
       v-model="isChecked"
@@ -63,10 +64,12 @@ watch(
       <slot name="check" />
       <CheckIcon v-if="!$slots.check" />
     </div>
-  </span>
+  </label>
 </template>
 
 <style lang="scss" module>
+@use '@/assets/scss/mixin' as *;
+
 @keyframes pop {
   0% {
     scale: 1;
@@ -87,6 +90,8 @@ watch(
 
 :is(.check_box) {
   display: flex;
+  // 視覚的に隠した input と、無効時の ::before オーバーレイの基準にする
+  position: relative;
   align-items: center;
   justify-content: center;
   width: 1.5rem;
@@ -97,7 +102,7 @@ watch(
   cursor: pointer;
 
   > input {
-    display: none;
+    @include visually-hidden;
   }
 
   &:has(input:disabled) {

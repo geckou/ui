@@ -32,3 +32,17 @@ $contentsMaxWidth: 1200px;
     }
   }
 }
+
+// 視覚的には隠すが、フォーカスとスクリーンリーダーには残す。
+// display: none にすると input がタブ順から外れ、キーボードで操作できなくなる
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}

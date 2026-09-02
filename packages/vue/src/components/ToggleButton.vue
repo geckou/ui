@@ -107,6 +107,8 @@ const currentCssStyle = computed(() => {
 </template>
 
 <style lang="scss" module>
+@use '@/assets/scss/mixin' as *;
+
 :is(.toggle_button) {
   --handle-size: 1.5rem;
   --padding-size: calc(var(--border-size) + 2px);
@@ -126,7 +128,7 @@ const currentCssStyle = computed(() => {
   cursor: pointer;
 
   > input {
-    display: none;
+    @include visually-hidden;
   }
 }
 

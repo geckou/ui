@@ -2,6 +2,7 @@
 import type { Ref } from 'vue'
 import { ref, onMounted, onUpdated, watch } from 'vue'
 import IconChevronDown from '@/components/Icon/KeyboardArrowDownIcon.vue'
+import { useClickOutside } from '@/scripts/use-click-outside'
 const props = withDefaults(
   defineProps<{
     isOpened?: boolean | null
@@ -17,6 +18,7 @@ const props = withDefaults(
 )
 
 const isOpenedContents = ref(props.isOpened || false)
+const root: Ref<HTMLElement | null> = ref(null)
 const contents: Ref<HTMLElement | null> = ref(null)
 const contentsHeight = ref(0)
 const toggleBox = () => (isOpenedContents.value = !isOpenedContents.value)
@@ -34,6 +36,8 @@ const updateContentsHeight = () => {
   }
 }
 
+useClickOutside(root, () => closeDropDown())
+
 onMounted(() => updateContentsHeight())
 onUpdated(() => updateContentsHeight())
 watch(
@@ -49,7 +53,7 @@ defineExpose({ isOpenedContents })
 
 <template>
   <div
-    v-click-outside="closeDropDown"
+    ref="root"
     :class="{ [$style.opened]: isOpenedContents }"
     :style="{ '--accordion-toggle-duration': `${props.duration}s` }"
   >

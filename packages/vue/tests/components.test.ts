@@ -1,11 +1,16 @@
 // @geckou/ui-core への移行時に修正したバグのリグレッションテスト
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
+import CheckButton from '@/components/CheckButton.vue'
 import DateSelector from '@/components/DateSelector.vue'
+import DropdownUi from '@/components/DropdownUi.vue'
 import RadioButtons from '@/components/RadioButtons.vue'
 import SelectBox from '@/components/SelectBox.vue'
+import SlideDownUi from '@/components/SlideDownUi.vue'
 import TabUI from '@/components/TabUI.vue'
 import TextBox from '@/components/TextBox.vue'
+import { FormValidationManager } from '@/scripts/form-validation-manager'
 
 describe('DateSelector', () => {
   // 修正前は watchEffect が if (modelValue) のみで else が無く、
@@ -163,11 +168,13 @@ describe('TabUI', () => {
     { key: 'tabB', label: 'B' },
   ]
 
+  // DOM id はインスタンスごとの接頭辞付き（`<uid>_tab_<key>`）
   const selectedKey = (wrapper: ReturnType<typeof mount>) =>
     wrapper
       .findAll('[role="tab"]')
       .find((tab) => tab.attributes('aria-selected') === 'true')
       ?.attributes('id')
+      ?.replace(/^.*_tab_/, '')
 
   // 修正前は window 全体に keydown を張っていたため、フォーカス位置と無関係に
   // タブが切り替わり、1 画面に複数設置すると互いに競合した
@@ -321,5 +328,131 @@ describe('SelectBox', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('必須項目です')
+  })
+})
+
+describe('DropdownUi / SlideDownUi の外側クリック', () => {
+  // 修正前は v-click-outside ディレクティブに頼っていたが app.directive() の登録が
+  // どこにも無く、「Failed to resolve directive: click-outside」で無効化されていた
+  const pointerDownOutside = async () => {
+    document.dispatchEvent(
+      new MouseEvent('pointerdown', { bubbles: true }) as unknown as Event
+    )
+    await nextTick()
+  }
+
+  it('DropdownUi: 外側の pointerdown で閉じる', async () => {
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: 'contents' },
+      attachTo: document.body,
+    })
+
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.vm.isContentsOpened).toBe(true)
+
+    await pointerDownOutside()
+    expect(wrapper.vm.isContentsOpened).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  it('DropdownUi: 内側の pointerdown では閉じない', async () => {
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: 'contents' },
+      attachTo: document.body,
+    })
+
+    await wrapper.find('button').trigger('click')
+    await wrapper.find('button').trigger('pointerdown')
+    await nextTick()
+
+    expect(wrapper.vm.isContentsOpened).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('SlideDownUi: isDisableClickOutside なら外側クリックでも閉じない', async () => {
+    const wrapper = mount(SlideDownUi, {
+      props: { isDisableClickOutside: true },
+      attachTo: document.body,
+    })
+
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.vm.isOpenedContents).toBe(true)
+
+    await pointerDownOutside()
+    expect(wrapper.vm.isOpenedContents).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('SlideDownUi: 既定では外側クリックで閉じる', async () => {
+    const wrapper = mount(SlideDownUi, { attachTo: document.body })
+
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.vm.isOpenedContents).toBe(true)
+
+    await pointerDownOutside()
+    expect(wrapper.vm.isOpenedContents).toBe(false)
+
+    wrapper.unmount()
+  })
+})
+
+describe('DateSelector と FormValidationManager', () => {
+  // 修正前は setValid(!isRequired) で登録し、初期値からの判定は watch にあったため
+  // 初回は発火せず、初期値ありの必須項目が「無効」のまま残っていた
+  it('初期値ありの必須項目を有効として登録する', () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DateSelector, {
+      props: {
+        name: 'birthday',
+        modelValue: '1990-05-20',
+        isRequired: true,
+        formValidationManager: manager,
+      },
+    })
+
+    expect(manager.isValid('birthday')).toBe(true)
+    expect(manager.isAllValid.value).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('初期値なしの必須項目は無効として登録する', () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DateSelector, {
+      props: {
+        name: 'birthday',
+        modelValue: '',
+        isRequired: true,
+        formValidationManager: manager,
+      },
+    })
+
+    expect(manager.isValid('birthday')).toBe(false)
+    expect(manager.isAllValid.value).toBe(false)
+
+    wrapper.unmount()
+  })
+})
+
+describe('CheckButton', () => {
+  // 修正前は <span> + @click の手動トグルで、input は display: none。
+  // label 包装にしたことで、クリックは 1 回だけ切り替わる（二重トグルしない）
+  it('label で包み、クリックで 1 回だけ切り替わる', async () => {
+    const wrapper = mount(CheckButton, {
+      props: { name: 'agreed', modelValue: false },
+      attachTo: document.body,
+    })
+
+    expect(wrapper.element.tagName).toBe('LABEL')
+
+    const input = wrapper.find('input')
+    await input.setValue(true)
+
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([true])
+
+    wrapper.unmount()
   })
 })

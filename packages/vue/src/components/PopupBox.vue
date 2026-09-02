@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import { ref } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 withDefaults(
   defineProps<{
     position?: {
@@ -14,14 +14,28 @@ withDefaults(
 )
 
 const isShown: Ref<boolean> = ref(false)
+let hideTimer: ReturnType<typeof setTimeout> | null = null
 
 const showPopup = () => {
   isShown.value = true
 
-  setTimeout(() => {
+  // 連打されたら前のタイマーを捨てて数え直す（消えるまでの時間を毎回 3 秒にする）
+  if (hideTimer !== null) {
+    clearTimeout(hideTimer)
+  }
+
+  hideTimer = setTimeout(() => {
     isShown.value = false
+    hideTimer = null
   }, 3000)
 }
+
+// unmount 後に ref を触らないよう解除する
+onBeforeUnmount(() => {
+  if (hideTimer !== null) {
+    clearTimeout(hideTimer)
+  }
+})
 
 defineExpose({
   showPopup,

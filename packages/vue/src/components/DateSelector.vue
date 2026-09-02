@@ -117,7 +117,18 @@ const setValid = (isValid: boolean): void => {
   }
 }
 
-setValid(!props.isRequired)
+// 初期値の判定にも使う。watch だけに置くと、登録の時点（初回）は発火せず、
+// 初期値の入った必須項目が「無効」のまま残っていた
+const judgeValid = (value: Date): boolean => {
+  const isFilled = Boolean(
+    value.year && value.month && (props.type === 'month' || value.day)
+  )
+  const isEmpty = !value.year && !value.month && !value.day
+
+  return props.isRequired ? isFilled : isFilled || isEmpty
+}
+
+setValid(judgeValid(birthday.value))
 
 watch(
   () => birthday.value,
@@ -129,7 +140,7 @@ watch(
     )
     const isEmpty = !newValue.year && !newValue.month && !newValue.day
 
-    setValid(props.isRequired ? isFilled : isFilled || isEmpty)
+    setValid(judgeValid(newValue))
 
     if (isEmpty) {
       emit('update:modelValue', '')

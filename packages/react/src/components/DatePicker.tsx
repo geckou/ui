@@ -1,6 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import type { FormValidationStore } from '@geckou/ui-core'
 import type { DateObject, InputBoxStyleForEachStatus } from '../types'
 import {
   MESSAGES,
@@ -13,6 +14,7 @@ import { useEffect, useRef, useState } from 'react'
 import { InputBox } from './InputBox'
 import { ErrorMessage } from './ErrorMessage'
 import { CalendarIcon } from './icons/CalendarIcon'
+import { useRegisterValidation } from '../hooks/useFormValidation'
 import { COLOR } from '../constants'
 
 type Props = {
@@ -22,6 +24,8 @@ type Props = {
   cssStyle?: InputBoxStyleForEachStatus
   isDisabled?: boolean
   isRequired?: boolean
+  /** useFormValidation() が返す store。渡すとフォーム全体の検証状態に参加する */
+  formValidationStore?: FormValidationStore | null
   minDate?: string
   maxDate?: string
   size?: 'small' | 'medium'
@@ -35,6 +39,7 @@ export function DatePicker({
   cssStyle,
   isDisabled,
   isRequired,
+  formValidationStore,
   minDate = '',
   maxDate = '',
   size = 'medium',
@@ -95,6 +100,13 @@ export function DatePicker({
     }
   }
 
+  // Vue 版（DatePicker.vue）と同じく、必須の空欄だけを無効として登録する
+  useRegisterValidation(
+    formValidationStore,
+    name,
+    validateInput(dateValue).isValid
+  )
+
   const isSmall = size === 'small'
   const textInputClass = `flex-none! ${isSmall ? 'px-[var(--sp-small,0.375rem)]! py-[var(--sp-min,0.1875rem)]! text-[length:var(--fs-small,0.6875rem)]' : 'p-[var(--sp-medium,0.75rem)]!'}`
   const iconStyle = { '--icon-color': COLOR.blue } as CSSProperties
@@ -125,6 +137,7 @@ export function DatePicker({
       <input
         value={dateObject.year}
         placeholder="年"
+        aria-label={`${name}の年`}
         maxLength={4}
         type="text"
         disabled={isDisabled}
@@ -135,6 +148,7 @@ export function DatePicker({
       <input
         value={dateObject.month}
         placeholder="月"
+        aria-label={`${name}の月`}
         maxLength={2}
         type="text"
         disabled={isDisabled}
@@ -146,6 +160,7 @@ export function DatePicker({
         <input
           value={dateObject.day}
           placeholder="日"
+          aria-label={`${name}の日`}
           maxLength={2}
           type="text"
           disabled={isDisabled}

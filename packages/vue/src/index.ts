@@ -123,3 +123,36 @@ export {
 
 export { LIST_THEME } from '@/const/list-theme'
 export { FormValidationManager } from '@/scripts/form-validation-manager'
+
+// 型も公開する。README の `import type { Category, ListSettings } from '@geckou/ui-vue'` が
+// 動くようにするため（src/index.ts が型を export しておらず、これまではコンパイルできなかった）
+export type {
+  StateVariation,
+  BorderStyle,
+  BaseStyle,
+  StyleForEachStatus,
+  InputBoxStyle,
+  InputBoxStyleForEachStatus,
+  ButtonStyle,
+  ButtonStyleForEachStatus,
+  CheckBoxStyle,
+  CheckBoxStyleForEachStatus,
+  RadioButtonStyle,
+  RadioButtonStyleForEachStatus,
+  SelectValue,
+  Option,
+  Validate,
+  Validates,
+  InputValue,
+  DateObject,
+  DateType,
+  ValidationResult,
+  Category,
+  PostConfig,
+  ListSettings,
+  RenderedField,
+  WpTerm,
+  WpAuthor,
+  WpMedia,
+  Article,
+} from '@/types'

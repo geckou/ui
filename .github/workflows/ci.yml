@@ -9,7 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  check:
+  # ジョブ ID は geckou/kit・geckou/project-starter と揃える
+  # （required status check の名前になるため）
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +31,15 @@ jobs:
       - name: Release Command Test
         run: bash scripts/test-release-command.sh
 
+      # packages/* の version が、それを参照するワークスペースのレンジを
+      # 満たしているか。満たしていないと yarn が npm の旧版を落としてきて、
+      # ローカルの変更が使われないまま lint も type-check も通ってしまう
+      - name: Workspace Range Check
+        run: node scripts/check-workspace-ranges.mjs
+
+      - name: Workspace Range Check Test
+        run: bash scripts/test-workspace-ranges.sh
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
@@ -46,6 +57,11 @@ jobs:
 
       - name: Build packages
         run: yarn build
+
+      # dist の型定義が packages/core/src を参照していないか
+      # （tarball に入らないため、参照が残ると利用側で型が解決できない）
+      - name: Check dist types
+        run: yarn check:dist-types
 
       - name: Build demo site
         run: yarn build:demo
