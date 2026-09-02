@@ -86,7 +86,12 @@ describe('RadioButtons', () => {
   })
 
   // 修正前は !selectedValue.value で判定しており、数値の 0 が未選択扱いになって
-  // 選択済みでも必須エラーが出ていた（SelectValue は string | number）
+  // 選択済みでも必須エラーが出ていた（SelectValue は string | number）。
+  // RadioButtons は errorMessages を描画していないため（→ #18）、
+  // 描画結果ではなく検証結果そのものを見る
+  const errorMessagesOf = (wrapper: ReturnType<typeof mount>) =>
+    (wrapper.vm as unknown as { errorMessages: string[] }).errorMessages
+
   it('数値の 0 を選んでも必須エラーにしない', async () => {
     const wrapper = mount(RadioButtons, {
       props: {
@@ -96,17 +101,28 @@ describe('RadioButtons', () => {
           { label: 'あり', value: 1 },
         ],
         isRequired: true,
+        // selectedValue は emit するだけの computed なので、
+        // 親が modelValue を返さないと watch が走らない
+        'onUpdate:modelValue': (value: string | number) => {
+          void wrapper.setProps({ modelValue: value })
+        },
       },
     })
 
-    // 0 を選ぶ。watch が走って検証される
-    await wrapper.findAll('input[type="radio"]')[0]?.setValue()
+    const radios = wrapper.findAll('input[type="radio"]')
+
+    expect(radios).toHaveLength(2)
+
+    await radios[0].setValue()
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).not.toContain('必須項目です')
+    expect(errorMessagesOf(wrapper)).toEqual([])
   })
 
-  it('modelValue が 0 でも初期検証を行う', async () => {
+  // このテストは今回の不具合では落ちない（修正前は immediate が false になり
+  // 検証自体が走らなかったため）。0 を初期値に持つ必須項目でエラーを出す方向の
+  // 退行を止めるために置いている
+  it('modelValue が 0 でも必須エラーを出さない', async () => {
     const wrapper = mount(RadioButtons, {
       props: {
         modelValue: 0,
@@ -120,7 +136,7 @@ describe('RadioButtons', () => {
 
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).not.toContain('必須項目です')
+    expect(errorMessagesOf(wrapper)).toEqual([])
   })
 })
 
@@ -252,13 +268,41 @@ describe('SelectBox', () => {
           { label: '1 個', value: 1 },
         ],
         isRequired: true,
+        // selectedValue は emit するだけの computed なので、
+        // 親が modelValue を返さないと watch が走らない
+        'onUpdate:modelValue': (value: string | number) => {
+          void wrapper.setProps({ modelValue: value })
+        },
       },
     })
 
-    // 0 を選ぶ。watch が走って検証される
-    await wrapper.find('select').setValue('0')
+    const select = wrapper.find('select')
+
+    expect(select.exists()).toBe(true)
+
+    await select.setValue('0')
     await wrapper.vm.$nextTick()
 
+    expect(wrapper.props('modelValue')).toBe(0)
     expect(wrapper.text()).not.toContain('必須項目です')
+  })
+
+  it('未選択のまま操作したら必須エラーを出す', async () => {
+    const wrapper = mount(SelectBox, {
+      props: {
+        name: 'count',
+        modelValue: '',
+        options: [
+          { label: '0 個', value: 0 },
+          { label: '1 個', value: 1 },
+        ],
+        isRequired: true,
+      },
+    })
+
+    await wrapper.find('select').trigger('blur')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('必須項目です')
   })
 })
