@@ -110,4 +110,4 @@ for TAG in "${TAGS[@]}"; do
 done
 
 echo ""
-echo "publish ワークフローが npm へ公開します。既に公開済みのバージョンだと publish は失敗するので、version を上げてから打ってください。"
+echo "publish ワークフローが npm へ公開します。既に公開済みのバージョンならスキップされます。"

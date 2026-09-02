@@ -126,8 +126,23 @@ jobs:
       - name: Build all packages
         run: yarn build
 
+      # 公開済みのバージョンに対して起動されることがある（タグを打ち直した場合や、
+      # 初回リリースを workflow_dispatch で行って後からタグを打つ場合など）。
+      # その場合 npm publish は必ず失敗するので、実行を冪等にする
       - name: Publish to npm
         working-directory: packages/${{ steps.target.outputs.package }}
-        # --provenance: どのコミット・どのワークフローから公開されたかの証明を
-        # npm に添付する（OIDC で公開するときだけ付けられる）
-        run: npm publish --access public --provenance
+        run: |
+          NAME="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+
+          # 未公開なら npm view はエラー（パッケージ未登録）か空（バージョン未登録）になる
+          PUBLISHED="$(npm view "$NAME@$VERSION" version 2>/dev/null || true)"
+
+          if [ -n "$PUBLISHED" ]; then
+            echo "$NAME@$VERSION は既に公開済みのため、publish をスキップします"
+            exit 0
+          fi
+
+          # --provenance: どのコミット・どのワークフローから公開されたかの証明を
+          # npm に添付する（OIDC で公開するときだけ付けられる）
+          npm publish --access public --provenance
