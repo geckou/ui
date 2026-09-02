@@ -6,6 +6,7 @@ import {
   TabUI,
   DateSelector,
   DatePicker,
+  DateRangePicker,
   SearchableSelectBox,
   FileInput,
   TextBox,
@@ -822,5 +823,61 @@ describe('formValidationStore との接続', () => {
     act(() => setSelectValue(selects[2], '20'))
 
     expect(valid()).toBe('true')
+  })
+})
+
+describe('Vue 版との API 統一', () => {
+  it('DateRangePicker: value が {start, end}、name は <name>Start / <name>End', () => {
+    const onChange = vi.fn()
+
+    act(() => {
+      root.render(
+        <DateRangePicker
+          name="period"
+          value={{ start: '2024-01-01', end: '2024-01-31' }}
+          onChange={onChange}
+        />
+      )
+    })
+
+    const inputs = [
+      ...container.querySelectorAll<HTMLInputElement>('input[type="date"]'),
+    ]
+    expect(inputs.map((input) => input.name)).toEqual([
+      'periodStart',
+      'periodEnd',
+    ])
+    expect(inputs.map((input) => input.value)).toEqual([
+      '2024-01-01',
+      '2024-01-31',
+    ])
+
+    // 開始 ↔ 終了の min / max が連動する
+    expect(inputs[0].max).toBe('2024-01-31')
+    expect(inputs[1].min).toBe('2024-01-01')
+
+    act(() => setInputValue(inputs[0], '2024-01-10'))
+    expect(onChange).toHaveBeenLastCalledWith({
+      start: '2024-01-10',
+      end: '2024-01-31',
+    })
+  })
+
+  it("DateSelector: type='month' なら日を出さず YYYY-MM を返す", () => {
+    const onChange = vi.fn()
+
+    act(() => {
+      root.render(
+        <DateSelector name="startedOn" type="month" onChange={onChange} />
+      )
+    })
+
+    const selects = container.querySelectorAll<HTMLSelectElement>('select')
+    expect(selects).toHaveLength(2)
+
+    act(() => setSelectValue(selects[0], '1990'))
+    act(() => setSelectValue(selects[1], '05'))
+
+    expect(onChange).toHaveBeenLastCalledWith('1990-05')
   })
 })

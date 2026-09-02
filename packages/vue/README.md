@@ -83,7 +83,9 @@ const period = ref({ start: '', end: '' })
 |-----------|-----------|-----------|
 | `DatePicker` | `string`（`YYYY-MM-DD` / `type="month"` なら `YYYY-MM`） | `name` / `isRequired` / `isDisabled` / `minDate` / `maxDate` / `size` / `type` / `formValidationManager` |
 | `DateRangePicker` | `{ start: string; end: string }` | `DatePicker` と同じ（開始日と終了日の min / max が自動連動） |
-| `DateSelector` | `string`（`YYYY-MM-DD`） | `name` / `isRequired` / `type` / `formValidationManager` |
+| `DateSelector` | `string`（`YYYY-MM-DD` / `type="month"` なら `YYYY-MM`） | `name` / `isRequired` / `type` / `formValidationManager` |
+
+React 版（`@geckou/ui-react`）も同じ props 構成です（`v-model` が `value` + `onChange` になります）。
 
 ### Article List
 

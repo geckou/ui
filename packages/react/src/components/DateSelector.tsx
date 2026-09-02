@@ -22,6 +22,8 @@ type Props = {
   isRequired?: boolean
   /** useFormValidation() が返す store。渡すとフォーム全体の検証状態に参加する */
   formValidationStore?: FormValidationStore | null
+  /** 'month' なら日の選択を出さない（Vue 版と揃える） */
+  type?: 'date' | 'month'
 }
 
 const EMPTY_BIRTHDAY: Birthday = { year: '', month: '', day: '' }
@@ -32,12 +34,15 @@ export function DateSelector({
   onChange,
   isRequired,
   formValidationStore,
+  type = 'date',
 }: Props) {
   const [birthday, setBirthday] = useState<Birthday>(EMPTY_BIRTHDAY)
 
   // Vue 版（DateSelector.vue）と同じ判定。任意項目は「全部空」か「全部埋まっている」
   // のどちらかであれば有効
-  const isFilled = Boolean(birthday.year && birthday.month && birthday.day)
+  const isFilled = Boolean(
+    birthday.year && birthday.month && (type === 'month' || birthday.day)
+  )
   const isEmpty = !birthday.year && !birthday.month && !birthday.day
 
   useRegisterValidation(
@@ -80,12 +85,18 @@ export function DateSelector({
 
   const emitBirthday = (next: Birthday) => {
     setBirthday(next)
+
+    const parts =
+      type === 'month'
+        ? [next.year, next.month]
+        : [next.year, next.month, next.day]
+
     if (!next.year && !next.month && !next.day) {
       onChange?.('')
-    } else if (!next.year || !next.month || !next.day) {
+    } else if (parts.some((part) => !part)) {
       return
     } else {
-      onChange?.(`${next.year}-${next.month}-${next.day}`)
+      onChange?.(parts.join('-'))
     }
   }
 
@@ -159,25 +170,31 @@ export function DateSelector({
         </select>
         <KeyboardArrowDownIcon className={iconClass} />
       </div>
-      <div className={wrapperClass} style={wrapperStyle} onClick={openDropdown}>
-        <select
-          value={birthday.day}
-          name={`${name}-day`}
-          required={isRequired}
-          onChange={(event) => selectItem('day', event.target.value)}
-          className={selectClass}
+      {type === 'date' && (
+        <div
+          className={wrapperClass}
+          style={wrapperStyle}
+          onClick={openDropdown}
         >
-          <option disabled value="">
-            日
-          </option>
-          {dayOptions.map((day) => (
-            <option key={day.value} value={day.value}>
-              {day.label}
+          <select
+            value={birthday.day}
+            name={`${name}-day`}
+            required={isRequired}
+            onChange={(event) => selectItem('day', event.target.value)}
+            className={selectClass}
+          >
+            <option disabled value="">
+              日
             </option>
-          ))}
-        </select>
-        <KeyboardArrowDownIcon className={iconClass} />
-      </div>
+            {dayOptions.map((day) => (
+              <option key={day.value} value={day.value}>
+                {day.label}
+              </option>
+            ))}
+          </select>
+          <KeyboardArrowDownIcon className={iconClass} />
+        </div>
+      )}
       <button
         type="button"
         style={deleteButtonStyle}

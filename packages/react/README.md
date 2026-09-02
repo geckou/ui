@@ -57,14 +57,32 @@ Vue 版の `FormValidationManager` と同じストア（`@geckou/ui-core`）を�
 
 ```tsx
 const { isAllValid, store } = useFormValidation()
+const [startedOn, setStartedOn] = useState('')
+const [period, setPeriod] = useState({ start: '', end: '' })
 
 return (
   <form>
-    <DatePicker name="startedOn" isRequired formValidationStore={store} />
+    <DatePicker
+      name="startedOn"
+      value={startedOn}
+      onChange={setStartedOn}
+      isRequired
+      formValidationStore={store}
+    />
+    <DateRangePicker name="period" value={period} onChange={setPeriod} />
     <button disabled={!isAllValid}>送信</button>
   </form>
 )
 ```
+
+props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあたるものが
+`value` + `onChange` になるだけで、名前と意味は同じ。
+
+| Component | value | 主な props |
+|-----------|-------|-----------|
+| `DatePicker` | `string`（`YYYY-MM-DD` / `type="month"` なら `YYYY-MM`） | `name` / `isRequired` / `isDisabled` / `minDate` / `maxDate` / `size` / `type` / `formValidationStore` |
+| `DateRangePicker` | `{ start: string; end: string }` | `DatePicker` と同じ（開始日と終了日の min / max が自動連動）。各入力の name は `<name>Start` / `<name>End` |
+| `DateSelector` | `string`（`YYYY-MM-DD` / `type="month"` なら `YYYY-MM`） | `name` / `isRequired` / `type` / `formValidationStore` |
 
 ## 収録コンポーネント
 

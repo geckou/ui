@@ -2,48 +2,52 @@
 
 import type { CSSProperties } from 'react'
 import type { FormValidationStore } from '@geckou/ui-core'
-import { useState } from 'react'
 import { DatePicker } from './DatePicker'
 import { COLOR } from '../constants'
 
-type DateRange = {
-  startDate: string
-  endDate: string
+export type DateRange = {
+  start: string
+  end: string
 }
 
 type Props = {
-  /** 入力の名前。`<name>Start` / `<name>End` として使う（省略時は startDate / endDate） */
-  name?: string
+  /** 各入力の name は `<name>Start` / `<name>End` になる */
+  name: string
+  /** 制御コンポーネントとして使う。省略時は空の範囲から始まる */
+  value?: DateRange
+  onChange?: (newValue: DateRange) => void
   isDisabled?: boolean
   isRequired?: boolean
   /** useFormValidation() が返す store。渡すとフォーム全体の検証状態に参加する */
   formValidationStore?: FormValidationStore | null
-  onChange?: (newValue: DateRange) => void
+  minDate?: string
+  maxDate?: string
+  size?: 'small' | 'medium'
+  type?: 'date' | 'month'
 }
 
+const EMPTY_RANGE: DateRange = { start: '', end: '' }
+
+// props は Vue 版（DateRangePicker.vue）と揃えている。
+// 同じフォームを Vue / React で書き換えられるようにするため、
+// フィールド名（start / end）と min/max の連動も合わせる。
 export function DateRangePicker({
   name,
+  value = EMPTY_RANGE,
+  onChange,
   isDisabled,
   isRequired,
   formValidationStore,
-  onChange,
+  minDate = '',
+  maxDate = '',
+  size = 'medium',
+  type = 'date',
 }: Props) {
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const handleStartChange = (newValue: string) =>
+    onChange?.({ start: newValue, end: value.end })
 
-  // 既定の名前は従来と同じ startDate / endDate のままにする（input の name が変わるため）
-  const startName = name ? `${name}Start` : 'startDate'
-  const endName = name ? `${name}End` : 'endDate'
-
-  const handleStartChange = (newValue: string) => {
-    setStartDate(newValue)
-    onChange?.({ startDate: newValue, endDate })
-  }
-
-  const handleEndChange = (newValue: string) => {
-    setEndDate(newValue)
-    onChange?.({ startDate, endDate: newValue })
-  }
+  const handleEndChange = (newValue: string) =>
+    onChange?.({ start: value.start, end: newValue })
 
   const style = {
     '--range-background-color': COLOR.white,
@@ -56,24 +60,32 @@ export function DateRangePicker({
       className="flex bg-(--range-background-color) [&>*]:flex-auto [&>*]:rounded-none! [&>*:first-child]:rounded-s-[calc(var(--bv,0.375rem)/2)]! [&>*:last-child]:rounded-e-[calc(var(--bv,0.375rem)/2)]! [&>*:not(:last-child)]:border-e [&>*:not(:last-child)]:border-(--range-border-color)"
     >
       <DatePicker
-        value={startDate}
-        name={startName}
+        name={`${name}Start`}
+        value={value.start}
         isDisabled={isDisabled}
         isRequired={isRequired}
         formValidationStore={formValidationStore}
-        maxDate={endDate}
+        minDate={minDate}
+        // 終了日より後は選べない
+        maxDate={value.end || maxDate}
+        size={size}
+        type={type}
         onChange={handleStartChange}
       />
       <div className="flex flex-none! items-center px-[var(--bv,0.375rem)]">
         〜
       </div>
       <DatePicker
-        value={endDate}
-        name={endName}
+        name={`${name}End`}
+        value={value.end}
         isDisabled={isDisabled}
         isRequired={isRequired}
         formValidationStore={formValidationStore}
-        minDate={startDate}
+        // 開始日より前は選べない
+        minDate={value.start || minDate}
+        maxDate={maxDate}
+        size={size}
+        type={type}
         onChange={handleEndChange}
       />
     </div>
