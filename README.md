@@ -138,6 +138,10 @@ yarn build:demo   # デモサイトを demo-dist に出力
 
 デモサイトは `production` への push で GitHub Pages に自動デプロイされます（`.github/workflows/deploy-demo.yml`）。
 
+コミットメッセージは commitlint が検証し、**規約違反はコミットをブロックします**
+（`.husky/commit-msg`）。派生プロジェクト向けのテンプレート（geckou/project-starter）は
+警告のみですが、このリポジトリはリリース単位が `git log` の可読性に直結するため止めます。
+
 ### Release
 
 パッケージ単位でリリースします。タグは `<ディレクトリ名>@<バージョン>` 形式です。
