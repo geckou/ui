@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import DateSelector from '@/components/DateSelector.vue'
 import RadioButtons from '@/components/RadioButtons.vue'
+import SelectBox from '@/components/SelectBox.vue'
 import TabUI from '@/components/TabUI.vue'
 import TextBox from '@/components/TextBox.vue'
 
@@ -82,6 +83,60 @@ describe('RadioButtons', () => {
       (wrapper.find('input[type="radio"]').element as HTMLInputElement).name
 
     expect(nameOf(first)).not.toBe(nameOf(second))
+  })
+
+  // 修正前は !selectedValue.value で判定しており、数値の 0 が未選択扱いになって
+  // 選択済みでも必須エラーが出ていた（SelectValue は string | number）。
+  // RadioButtons は errorMessages を描画していないため（→ #18）、
+  // 描画結果ではなく検証結果そのものを見る
+  const errorMessagesOf = (wrapper: ReturnType<typeof mount>) =>
+    (wrapper.vm as unknown as { errorMessages: string[] }).errorMessages
+
+  it('数値の 0 を選んでも必須エラーにしない', async () => {
+    const wrapper = mount(RadioButtons, {
+      props: {
+        modelValue: '',
+        options: [
+          { label: 'なし', value: 0 },
+          { label: 'あり', value: 1 },
+        ],
+        isRequired: true,
+        // selectedValue は emit するだけの computed なので、
+        // 親が modelValue を返さないと watch が走らない
+        'onUpdate:modelValue': (value: string | number) => {
+          void wrapper.setProps({ modelValue: value })
+        },
+      },
+    })
+
+    const radios = wrapper.findAll('input[type="radio"]')
+
+    expect(radios).toHaveLength(2)
+
+    await radios[0].setValue()
+    await wrapper.vm.$nextTick()
+
+    expect(errorMessagesOf(wrapper)).toEqual([])
+  })
+
+  // このテストは今回の不具合では落ちない（修正前は immediate が false になり
+  // 検証自体が走らなかったため）。0 を初期値に持つ必須項目でエラーを出す方向の
+  // 退行を止めるために置いている
+  it('modelValue が 0 でも必須エラーを出さない', async () => {
+    const wrapper = mount(RadioButtons, {
+      props: {
+        modelValue: 0,
+        options: [
+          { label: 'なし', value: 0 },
+          { label: 'あり', value: 1 },
+        ],
+        isRequired: true,
+      },
+    })
+
+    await wrapper.vm.$nextTick()
+
+    expect(errorMessagesOf(wrapper)).toEqual([])
   })
 })
 
@@ -198,5 +253,56 @@ describe('TextBox のバリデーション', () => {
 
     // 呼び出し側の RegExp を変異させない
     expect(regex.lastIndex).toBe(0)
+  })
+})
+
+describe('SelectBox', () => {
+  // RadioButtons と同じ不具合。0 は正当な選択値なので未選択扱いにしない
+  it('数値の 0 を選んでも必須エラーにしない', async () => {
+    const wrapper = mount(SelectBox, {
+      props: {
+        name: 'count',
+        modelValue: '',
+        options: [
+          { label: '0 個', value: 0 },
+          { label: '1 個', value: 1 },
+        ],
+        isRequired: true,
+        // selectedValue は emit するだけの computed なので、
+        // 親が modelValue を返さないと watch が走らない
+        'onUpdate:modelValue': (value: string | number) => {
+          void wrapper.setProps({ modelValue: value })
+        },
+      },
+    })
+
+    const select = wrapper.find('select')
+
+    expect(select.exists()).toBe(true)
+
+    await select.setValue('0')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.props('modelValue')).toBe(0)
+    expect(wrapper.text()).not.toContain('必須項目です')
+  })
+
+  it('未選択のまま操作したら必須エラーを出す', async () => {
+    const wrapper = mount(SelectBox, {
+      props: {
+        name: 'count',
+        modelValue: '',
+        options: [
+          { label: '0 個', value: 0 },
+          { label: '1 個', value: 1 },
+        ],
+        isRequired: true,
+      },
+    })
+
+    await wrapper.find('select').trigger('blur')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('必須項目です')
   })
 })
