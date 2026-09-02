@@ -151,6 +151,27 @@ yarn release core react vue
 タグを push すると `.github/workflows/publish.yml` がタグから対象パッケージを判別して
 npm に publish します。
 
+#### どこからでも実行する
+
+`yarn release` はこのリポジトリの中でしか動かない（yarn がスクリプトを引けないため）。
+一度だけ次を実行すると、`geckou-release` がどのディレクトリからでも使える。
+
+```bash
+bash scripts/install-release-command.sh
+```
+
+リポジトリの絶対パスを `~/.config/geckou/release-repos` へ登録し、
+`scripts/geckou-release` を `~/.local/bin` へ置くだけ
+（場所は `XDG_CONFIG_HOME` / `XDG_BIN_HOME` に従う）。
+
+```bash
+geckou-release core vue
+```
+
+パッケージ名から、それを持つリポジトリを引いて `scripts/release.sh` に渡す。
+検査もタグ打ちも `release.sh` が行うので、動きは `yarn release` と変わらない。
+geckou の他のリポジトリでも同じように実行しておけば、1 つのコマンドで使い分けられる。
+
 **`yarn release` はタグを打つだけで、version は上げません。** `production` への直接 push は
 禁止しているため、version の変更は通常の PR で入れます。
 
