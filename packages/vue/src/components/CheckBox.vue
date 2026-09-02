@@ -74,6 +74,8 @@ const currentCssStyle = computed(() => {
 </template>
 
 <style lang="scss" module>
+@use '@/assets/scss/mixin' as *;
+
 @keyframes pop {
   0% {
     scale: 1;
@@ -105,7 +107,7 @@ const currentCssStyle = computed(() => {
   cursor: pointer;
 
   > input {
-    display: none;
+    @include visually-hidden;
   }
 
   &:has(input:disabled) {

@@ -109,6 +109,8 @@ watch(
 </template>
 
 <style lang="scss" module>
+@use '@/assets/scss/mixin' as *;
+
 @keyframes pop {
   0% {
     scale: 1;
@@ -172,7 +174,7 @@ watch(
   }
 
   > input {
-    display: none;
+    @include visually-hidden;
   }
 }
 </style>
