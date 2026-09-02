@@ -13,11 +13,18 @@ Mobile（Expo / NativeWind）では使えない（DOM 前提のため）。
 yarn add @geckou/ui-react
 ```
 
-ソースをそのまま配布しているため、利用側でトランスパイルの対象に含める。
+ビルド済みの JavaScript と型定義（`dist/`）を配布しています。トランスパイルの設定は要りません。
 
-1. `next.config.ts` の `transpilePackages` に `'@geckou/ui-react'` を追加
-2. `tailwind.config.ts` の `content` に `'./node_modules/@geckou/ui-react/src/**/*.{ts,tsx}'` を追加
-3. グローバル CSS に `@import '@geckou/ui-react/styles/tokens.css';` を追加（デザイントークン）
+1. グローバル CSS に `@import '@geckou/ui-react/styles/tokens.css';` を追加（デザイントークン）
+2. Tailwind を使う場合は `content` に `'./node_modules/@geckou/ui-react/dist/**/*.js'` を追加
+
+`'use client'` はビルド後も各ファイルの先頭に残るので、Next.js の App Router では
+Server Component から直接 import できます（状態を持つコンポーネントだけが Client Component になります）。
+
+> **0.1.1 以前から更新する場合**: ソース配布をやめたため、`next.config.ts` の
+> `transpilePackages` から `'@geckou/ui-react'` を外し、Tailwind の `content` を
+> `src/**/*.{ts,tsx}` から `dist/**/*.js` に変えてください。`transpilePackages` は
+> 残しても動きますが、`content` が `src` のままだとクラスが検出されずスタイルが当たりません。
 
 `tokens.css` は既定値です。上書きする変数の一覧はリポジトリの [README](../../README.md#design-tokens) を参照してください。
 

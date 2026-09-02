@@ -27,6 +27,7 @@
     "preview:demo": "vite preview",
     "release": "bash scripts/release.sh",
     "test": "yarn workspaces run test",
+    "test:api-diff": "bash scripts/test-api-diff.sh",
     "type-check": "yarn workspaces run type-check"
   },
   "devDependencies": {
