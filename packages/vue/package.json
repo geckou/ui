@@ -34,10 +34,12 @@
   },
   "scripts": {
     "build": "vite build",
-    "type-check": "vue-tsc --noEmit",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "prepublishOnly": "yarn build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "type-check": "vue-tsc --noEmit"
   },
   "exports": {
     ".": {

@@ -67,6 +67,8 @@ export function SlideDownUi({
     return () => document.removeEventListener('pointerdown', handleClickOutside)
   }, [isDisableClickOutside])
 
+  // 参照するのは ref と setState だけなので依存配列は空でよい。
+  // サイズ変化は ResizeObserver が検知する
   useEffect(() => {
     const contentsElement = contentsRef.current
     if (!contentsElement) {
@@ -80,7 +82,6 @@ export function SlideDownUi({
     const observer = new ResizeObserver(updateContentsHeight)
     observer.observe(contentsElement)
     return () => observer.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- サイズ変化は ResizeObserver が検知するため、マウント時の1回だけ登録する
   }, [])
 
   useEffect(() => {
