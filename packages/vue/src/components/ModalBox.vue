@@ -14,11 +14,18 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ (e: 'closeModal', state: boolean): void }>()
-const bodyElement = document.querySelector('body') as HTMLElement
+
+// setup は SSR でも走るため、document は参照した時点で解決する。
+// トップレベルで触ると Nuxt の SSR で「document is not defined」になる
+const getBodyElement = (): HTMLElement | null =>
+  typeof document === 'undefined' ? null : document.body
+
 // 複数のモーダルが重なっても解除順で壊れないよう、ロック数をカウントする
 let isLocked = false
 
 const toggleScrollLock = (shouldLock: boolean) => {
+  const bodyElement = getBodyElement()
+
   if (!bodyElement || isLocked === shouldLock) {
     return
   }
