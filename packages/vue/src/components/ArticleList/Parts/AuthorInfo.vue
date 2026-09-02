@@ -56,6 +56,19 @@ const srcset = computed(() => {
     .map((candidate) => `${candidate.url} ${candidate.width}`)
     .join(', ')
 })
+
+// srcset に対応しない環境と、96 が無いケースのためのフォールバック。
+// src が無いまま <img> を出すと壊れた画像になるので、
+// URL が 1 つも無ければ描画自体をやめる（テンプレートの v-if）
+const src = computed(() => {
+  const urls = props.avatarUrls
+
+  if (!urls) {
+    return undefined
+  }
+
+  return urls['96'] ?? urls['48']
+})
 </script>
 
 <template>
@@ -69,8 +82,8 @@ const srcset = computed(() => {
     }"
   >
     <img
-      v-if="avatarUrls"
-      :src="avatarUrls['96']"
+      v-if="src"
+      :src="src"
       :srcset="srcset"
       :alt="`${name} thumbnail`"
       loading="lazy"
