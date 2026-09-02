@@ -34,10 +34,12 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
-    "type-check": "tsc --noEmit",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "prepublishOnly": "yarn build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "yarn build"
+    "type-check": "tsc --noEmit"
   },
   "devDependencies": {
     "typescript": "^5.5.3",
