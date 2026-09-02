@@ -208,17 +208,21 @@ describe('SearchableSelectBox', () => {
     ).toBe(false)
   })
 
-  it('入力を空にすると選択肢が閉じる', () => {
-    renderBox('')
+  it("入力を空にすると選択肢が閉じ、onChange('') が呼ばれる", () => {
+    const onChange = vi.fn()
+    renderBox('', onChange)
     const input = container.querySelector(
       'input[name="fruit"]'
     ) as HTMLInputElement
 
     act(() => setInputValue(input, 'り'))
     expect(container.querySelectorAll('button').length).toBeGreaterThan(0)
+    expect(onChange).toHaveBeenLastCalledWith('り')
 
+    // 修正前は早期 return しており、空にしても親へ通知されなかった
     act(() => setInputValue(input, ''))
     expect(container.querySelectorAll('button').length).toBe(0)
+    expect(onChange).toHaveBeenLastCalledWith('')
   })
 })
 
