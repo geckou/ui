@@ -7,6 +7,7 @@ let groupSequence = 0
 <script setup lang="ts">
 import type { Option, RadioButtonStyleForEachStatus } from '@/types'
 import { ref, watch, computed } from 'vue'
+import { isEmptyValue } from '@geckou/ui-core'
 import { COLOR } from '@/const'
 
 type SelectValue = string | number
@@ -62,7 +63,9 @@ const currentCssStyle = computed(() => {
 
 const validateValue = () => {
   errorMessages.value = []
-  if (!selectedValue.value && props.isRequired) {
+  // 未選択の判定は truthy ではなく「空かどうか」で行う。
+  // SelectValue は string | number なので、0 は正当な選択値
+  if (isEmptyValue(selectedValue.value) && props.isRequired) {
     errorMessages.value.push('必須項目です')
   }
 }
@@ -70,7 +73,7 @@ const validateValue = () => {
 watch(
   () => selectedValue.value,
   () => validateValue(),
-  { immediate: !!props.modelValue }
+  { immediate: !isEmptyValue(props.modelValue) }
 )
 </script>
 

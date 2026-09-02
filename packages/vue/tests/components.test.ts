@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import DateSelector from '@/components/DateSelector.vue'
 import RadioButtons from '@/components/RadioButtons.vue'
+import SelectBox from '@/components/SelectBox.vue'
 import TabUI from '@/components/TabUI.vue'
 import TextBox from '@/components/TextBox.vue'
 
@@ -82,6 +83,44 @@ describe('RadioButtons', () => {
       (wrapper.find('input[type="radio"]').element as HTMLInputElement).name
 
     expect(nameOf(first)).not.toBe(nameOf(second))
+  })
+
+  // 修正前は !selectedValue.value で判定しており、数値の 0 が未選択扱いになって
+  // 選択済みでも必須エラーが出ていた（SelectValue は string | number）
+  it('数値の 0 を選んでも必須エラーにしない', async () => {
+    const wrapper = mount(RadioButtons, {
+      props: {
+        modelValue: '',
+        options: [
+          { label: 'なし', value: 0 },
+          { label: 'あり', value: 1 },
+        ],
+        isRequired: true,
+      },
+    })
+
+    // 0 を選ぶ。watch が走って検証される
+    await wrapper.findAll('input[type="radio"]')[0]?.setValue()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).not.toContain('必須項目です')
+  })
+
+  it('modelValue が 0 でも初期検証を行う', async () => {
+    const wrapper = mount(RadioButtons, {
+      props: {
+        modelValue: 0,
+        options: [
+          { label: 'なし', value: 0 },
+          { label: 'あり', value: 1 },
+        ],
+        isRequired: true,
+      },
+    })
+
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).not.toContain('必須項目です')
   })
 })
 
@@ -198,5 +237,28 @@ describe('TextBox のバリデーション', () => {
 
     // 呼び出し側の RegExp を変異させない
     expect(regex.lastIndex).toBe(0)
+  })
+})
+
+describe('SelectBox', () => {
+  // RadioButtons と同じ不具合。0 は正当な選択値なので未選択扱いにしない
+  it('数値の 0 を選んでも必須エラーにしない', async () => {
+    const wrapper = mount(SelectBox, {
+      props: {
+        name: 'count',
+        modelValue: '',
+        options: [
+          { label: '0 個', value: 0 },
+          { label: '1 個', value: 1 },
+        ],
+        isRequired: true,
+      },
+    })
+
+    // 0 を選ぶ。watch が走って検証される
+    await wrapper.find('select').setValue('0')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).not.toContain('必須項目です')
   })
 })

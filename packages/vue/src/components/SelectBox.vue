@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Option, InputBoxStyleForEachStatus } from '@/types'
 import { ref, computed, watch } from 'vue'
+import { isEmptyValue } from '@geckou/ui-core'
 import InputBox from '@/components/InputBox.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import KeyboardArrowDownIcon from '@/components/Icon/KeyboardArrowDownIcon.vue'
@@ -48,7 +49,9 @@ const isOption = (obj: unknown): obj is Option => {
 
 const validateValue = () => {
   errorMessages.value = []
-  if (!selectedValue.value && props.isRequired) {
+  // 未選択の判定は truthy ではなく「空かどうか」で行う。
+  // SelectValue は string | number なので、0 は正当な選択値
+  if (isEmptyValue(selectedValue.value) && props.isRequired) {
     errorMessages.value.push('必須項目です')
   }
 }
@@ -56,7 +59,7 @@ const validateValue = () => {
 watch(
   () => selectedValue.value,
   () => validateValue(),
-  { immediate: !!props.modelValue, flush: 'post' }
+  { immediate: !isEmptyValue(props.modelValue), flush: 'post' }
 )
 </script>
 
