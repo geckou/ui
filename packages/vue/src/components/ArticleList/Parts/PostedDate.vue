@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { format, parseISO } from 'date-fns'
 
-const props = withDefaults(defineProps<{
-  date: string
-  formatString?: string
-  color?: string
-  fontSize?: string
-  fontWeight?: string
-}>(), {
-  formatString: 'yyyy/mm/dd',
-  color       : 'var(--text-color)',
-  fontSize    : 'small',
-  fontWeight  : 'normal',
-})
+const props = withDefaults(
+  defineProps<{
+    date: string
+    formatString?: string
+    color?: string
+    fontSize?: string
+    fontWeight?: string
+  }>(),
+  {
+    formatString: 'yyyy/mm/dd',
+    color: 'var(--text-color)',
+    fontSize: 'small',
+    fontWeight: 'normal',
+  }
+)
 
 const parsedDate = parseISO(props.date)
 </script>
@@ -21,8 +24,8 @@ const parsedDate = parseISO(props.date)
   <time
     :class="$style.posted_date"
     :style="{
-      '--date-color' : color,
-      '--date-font-size' : fontSize,
+      '--date-color': color,
+      '--date-font-size': fontSize,
       '--date-font-weight': fontWeight,
     }"
   >
@@ -32,10 +35,10 @@ const parsedDate = parseISO(props.date)
 
 <style lang="scss" module>
 .posted_date {
-  display    : inline-flex;
+  display: inline-flex;
   align-items: flex-end;
-  color      : var(--date-color);
-  font-size  : var(--date-font-size);
+  color: var(--date-color);
+  font-size: var(--date-font-size);
   font-weight: var(--date-font-weight);
 }
 </style>

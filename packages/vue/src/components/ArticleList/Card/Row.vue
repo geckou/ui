@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { returnAuthor } from '@/scripts/utils'
-import type {
-  Article,
-  Category,
-  PostConfig,
-} from '@/types'
+import type { Article, Category, PostConfig } from '@/types'
 import CardContainer from '@/components/ArticleList/Parts/CardContainer.vue'
 import ThumbnailImage from '@/components/ArticleList/Parts/ThumbnailImage.vue'
 import AuthorInfo from '@/components/ArticleList/Parts/AuthorInfo.vue'
@@ -23,60 +19,56 @@ defineProps<{
 </script>
 
 <template>
-  <CardContainer
-    v-if="article"
-    :class="$style.container"
-    :path="path"
-  >
+  <CardContainer v-if="article" :class="$style.container" :path="path">
     <CategoryList
       v-if="postConfig.category && article.categories"
       :categoryIds="article.categories"
       :categoryData="categories"
       :label="{
-        color : 'var(--gray)',
-        fontSize : 'clamp(24px, 0.55rem + 2.99vw, 40px)',
+        color: 'var(--gray)',
+        fontSize: 'clamp(24px, 0.55rem + 2.99vw, 40px)',
       }"
       :class="$style.category"
-      style="grid-area: category;"
+      style="grid-area: category"
     />
     <ThumbnailImage
       :article="article"
       :aspectRatio="{
         desktop: '21/9',
-        tablet : '21/9',
-        mobile : '21/9',
+        tablet: '21/9',
+        mobile: '21/9',
       }"
       :class="$style.thumbnail"
-      style="grid-area: thumbnail;"
+      style="grid-area: thumbnail"
     />
     <PostedDate
       :date="article.date"
       formatString="yy.M.d"
       :class="$style.date"
       color="var(--gray)"
-      style="grid-area: date;"
+      style="grid-area: date"
     />
     <CardHeading
       :heading="article.title.rendered"
       :class="$style.heading"
-      style="grid-area: heading;"
+      style="grid-area: heading"
     />
     <ExcerptText
       :excerpt="article.excerpt.rendered"
       :class="$style.excerpt"
       fontSize="small"
-      style="grid-area: excerpt;"
+      style="grid-area: excerpt"
     />
     <TagList
       v-if="postConfig.tag"
       :article="article"
       :label="{
-        color : 'var(--text-color)',
+        color: 'var(--text-color)',
         fontSize: 'small',
       }"
       :class="$style.tag"
       delimiter="/"
-      style="grid-area: tag;"
+      style="grid-area: tag"
     />
     <AuthorInfo
       v-if="postConfig.author && returnAuthor(article)"
@@ -85,9 +77,9 @@ defineProps<{
       :class="$style.author"
       :text="{
         fontSize: 'small',
-        color : 'var(--gray)',
+        color: 'var(--gray)',
       }"
-      style="grid-area: author;"
+      style="grid-area: author"
     />
   </CardContainer>
 </template>
@@ -97,8 +89,8 @@ defineProps<{
 
 .container {
   grid-template-columns: 50% 1fr auto;
-  grid-template-rows   : auto auto auto 1fr auto;
-  grid-template-areas  :
+  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-areas:
     'category category category'
     'thumbnail date date'
     'thumbnail heading heading'
@@ -107,30 +99,30 @@ defineProps<{
   column-gap: var(--sp-large);
 
   &::before {
-    content         : '';
-    display         : block;
-    width           : calc(100% + var(--sp-medium));
-    height          : 100%;
+    content: '';
+    display: block;
+    width: calc(100% + var(--sp-medium));
+    height: 100%;
     background-color: var(--primary-color);
-    mix-blend-mode  : soft-light;
-    position        : absolute;
-    top             : var(--sp-small);
-    left            : calc(-1 * var(--sp-small));
-    transition      : opacity var(--animation-duration);
-    opacity         : 0;
-    pointer-events  : none;
+    mix-blend-mode: soft-light;
+    position: absolute;
+    top: var(--sp-small);
+    left: calc(-1 * var(--sp-small));
+    transition: opacity var(--animation-duration);
+    opacity: 0;
+    pointer-events: none;
   }
 
   &:hover {
     &::before {
-      opacity: .1;
+      opacity: 0.1;
     }
   }
 
   @include media('mobile') {
     grid-template-columns: 1fr auto;
-    grid-template-rows   : auto auto auto auto 1fr auto;
-    grid-template-areas  :
+    grid-template-rows: auto auto auto auto 1fr auto;
+    grid-template-areas:
       'category category'
       'thumbnail thumbnail'
       'date date'
@@ -155,7 +147,7 @@ defineProps<{
 
 .category {
   position: relative;
-  top     : var(--sp-small);
+  top: var(--sp-small);
 }
 
 .heading {

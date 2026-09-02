@@ -39,7 +39,7 @@ export function DateSelector({ name, value, onChange, isRequired }: Props) {
   const currentYear = today.getFullYear() - 14
   const yearsOptions = Array.from(
     { length: currentYear - maxYear + 1 },
-    (_, i) => (maxYear + i).toString(),
+    (_, i) => (maxYear + i).toString()
   ).map((year) => ({ label: year, value: year }))
 
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
@@ -59,9 +59,13 @@ export function DateSelector({ name, value, onChange, isRequired }: Props) {
 
   const emitBirthday = (next: Birthday) => {
     setBirthday(next)
-    if (!next.year && !next.month && !next.day) onChange?.('')
-    else if (!next.year || !next.month || !next.day) return
-    else onChange?.(`${next.year}-${next.month}-${next.day}`)
+    if (!next.year && !next.month && !next.day) {
+      onChange?.('')
+    } else if (!next.year || !next.month || !next.day) {
+      return
+    } else {
+      onChange?.(`${next.year}-${next.month}-${next.day}`)
+    }
   }
 
   const selectItem = (key: keyof Birthday, newValue: string) => {
@@ -70,7 +74,9 @@ export function DateSelector({ name, value, onChange, isRequired }: Props) {
     // 月・年を変えて日が存在しなくなった場合は、その月の末日に丸める
     if (key !== 'day' && next.day && next.month) {
       const maxDay = getDaysInMonth(next.year, next.month)
-      if (Number(next.day) > maxDay) next.day = String(maxDay).padStart(2, '0')
+      if (Number(next.day) > maxDay) {
+        next.day = String(maxDay).padStart(2, '0')
+      }
     }
 
     emitBirthday(next)
@@ -79,7 +85,9 @@ export function DateSelector({ name, value, onChange, isRequired }: Props) {
   const openDropdown = (event: MouseEvent<HTMLDivElement>) => {
     const target = event.currentTarget
     const select = target.firstElementChild as HTMLSelectElement | null
-    if (select) select.click()
+    if (select) {
+      select.click()
+    }
   }
 
   const wrapperClass = 'relative w-max [&:has(select:focus)>svg]:rotate-180'

@@ -33,19 +33,26 @@ export function InputBox({
   const updateState = useCallback(() => {
     const el = inputBoxRef.current?.querySelector('input, textarea, select')
 
-    if (!el) return setCurrentState('default')
-    if (el.matches(':disabled')) return setCurrentState('disabled')
-    if (el.matches(':focus')) return setCurrentState('focus')
+    if (!el) {
+      return setCurrentState('default')
+    }
+    if (el.matches(':disabled')) {
+      return setCurrentState('disabled')
+    }
+    if (el.matches(':focus')) {
+      return setCurrentState('focus')
+    }
 
     if (el.tagName.toLowerCase() === 'select') {
       const select = el as HTMLSelectElement
       return setCurrentState(
-        select.required && !select.value ? 'error' : 'valid',
+        select.required && !select.value ? 'error' : 'valid'
       )
     }
 
-    if (isErroredRef.current || el.matches(':invalid'))
-      {return setCurrentState('error')}
+    if (isErroredRef.current || el.matches(':invalid')) {
+      return setCurrentState('error')
+    }
 
     if (
       el.matches(':valid') &&
@@ -60,7 +67,9 @@ export function InputBox({
 
   useEffect(() => {
     const inputBox = inputBoxRef.current
-    if (!inputBox) return
+    if (!inputBox) {
+      return
+    }
 
     const observer = new MutationObserver(updateState)
     observer.observe(inputBox, { childList: true, subtree: true })
@@ -84,12 +93,15 @@ export function InputBox({
 
     if (isFirstRender.current) {
       isFirstRender.current = false
-      if (isDisabled) setCurrentState('disabled')
+      if (isDisabled) {
+        setCurrentState('disabled')
+      }
       return
     }
 
-    if (isDisabledChanged)
-      {return setCurrentState(isDisabled ? 'disabled' : 'default')}
+    if (isDisabledChanged) {
+      return setCurrentState(isDisabled ? 'disabled' : 'default')
+    }
 
     updateState()
   }, [isDisabled, isErrored, updateState])

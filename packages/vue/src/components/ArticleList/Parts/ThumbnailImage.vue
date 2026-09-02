@@ -1,28 +1,35 @@
 <script setup lang="ts">
-import type {
-  Article,
-} from '@/types'
+import type { Article } from '@/types'
 import { computed } from 'vue'
 import NoImage from '@/components/ArticleList/Parts/NoImage.vue'
 
-const props = withDefaults(defineProps<{
-  article: Article
-  aspectRatio?: {
-    desktop?: string
-    tablet?: string
-    mobile?: string
+const props = withDefaults(
+  defineProps<{
+    article: Article
+    aspectRatio?: {
+      desktop?: string
+      tablet?: string
+      mobile?: string
+    }
+  }>(),
+  {
+    aspectRatio: () => ({
+      desktop: '4/3',
+      tablet: '4/3',
+      mobile: '4/3',
+    }),
   }
-}>(), {
-  aspectRatio: () => ({
-    desktop: '4/3',
-    tablet : '4/3',
-    mobile : '4/3',
-  }),
-})
+)
 
-const thumbnailSrcset = computed(() => `${returnThumbnailSrc('full')} 1024w, ${returnThumbnailSrc('thumbnail')} 640w`)
-const articleMedia = computed(() => props.article?.['_embedded']?.['wp:featuredmedia']?.[0] || {})
-const returnThumbnailSrc = (type: 'full' | 'thumbnail') => articleMedia.value.media_details?.sizes?.[type].source_url ?? ''
+const thumbnailSrcset = computed(
+  () =>
+    `${returnThumbnailSrc('full')} 1024w, ${returnThumbnailSrc('thumbnail')} 640w`
+)
+const articleMedia = computed(
+  () => props.article?.['_embedded']?.['wp:featuredmedia']?.[0] || {}
+)
+const returnThumbnailSrc = (type: 'full' | 'thumbnail') =>
+  articleMedia.value.media_details?.sizes?.[type].source_url ?? ''
 </script>
 
 <template>
@@ -41,7 +48,7 @@ const returnThumbnailSrc = (type: 'full' | 'thumbnail') => articleMedia.value.me
       :alt="articleMedia?.alt_text ?? '記事サムネイル'"
       loading="lazy"
       :class="$style.image"
-    >
+    />
     <NoImage v-else />
   </div>
 </template>
@@ -65,8 +72,8 @@ const returnThumbnailSrc = (type: 'full' | 'thumbnail') => articleMedia.value.me
   }
 
   > img {
-    width     : 100%;
-    height    : 100%;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
 
     @include media('mobile') {

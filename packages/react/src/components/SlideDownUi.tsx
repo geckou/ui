@@ -46,16 +46,21 @@ export function SlideDownUi({
   }))
 
   useEffect(() => {
-    if (typeof isOpened === 'boolean') setIsOpenedContents(isOpened)
+    if (typeof isOpened === 'boolean') {
+      setIsOpenedContents(isOpened)
+    }
   }, [isOpened])
 
   useEffect(() => {
-    if (isDisableClickOutside) return
+    if (isDisableClickOutside) {
+      return
+    }
 
     const handleClickOutside = (event: PointerEvent) => {
       const root = rootRef.current
-      if (root && !root.contains(event.target as Node))
-        {setIsOpenedContents(false)}
+      if (root && !root.contains(event.target as Node)) {
+        setIsOpenedContents(false)
+      }
     }
 
     document.addEventListener('pointerdown', handleClickOutside)
@@ -64,7 +69,9 @@ export function SlideDownUi({
 
   useEffect(() => {
     const contentsElement = contentsRef.current
-    if (!contentsElement) return
+    if (!contentsElement) {
+      return
+    }
 
     const updateContentsHeight = () =>
       setContentsHeight(contentsElement.clientHeight)

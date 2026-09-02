@@ -15,7 +15,9 @@ describe('DateSelector', () => {
     })
 
     const selected = () =>
-      wrapper.findAll('select').map(select => (select.element as HTMLSelectElement).value)
+      wrapper
+        .findAll('select')
+        .map((select) => (select.element as HTMLSelectElement).value)
 
     expect(selected()).toEqual(['1990', '05', '20'])
 
@@ -32,7 +34,9 @@ describe('DateSelector', () => {
     await wrapper.setProps({ modelValue: '2000-12-31' })
 
     expect(
-      wrapper.findAll('select').map(select => (select.element as HTMLSelectElement).value)
+      wrapper
+        .findAll('select')
+        .map((select) => (select.element as HTMLSelectElement).value)
     ).toEqual(['2000', '12', '31'])
   })
 })
@@ -50,8 +54,9 @@ describe('RadioButtons', () => {
       props: { modelValue: '', options },
     })
 
-    const names = wrapper.findAll('input[type="radio"]')
-      .map(input => (input.element as HTMLInputElement).name)
+    const names = wrapper
+      .findAll('input[type="radio"]')
+      .map((input) => (input.element as HTMLInputElement).name)
 
     expect(new Set(names).size).toBe(1)
     expect(names[0]).toMatch(/^radio_group_\d+$/)
@@ -62,8 +67,9 @@ describe('RadioButtons', () => {
       props: { modelValue: '', options, name: 'contractType' },
     })
 
-    const names = wrapper.findAll('input[type="radio"]')
-      .map(input => (input.element as HTMLInputElement).name)
+    const names = wrapper
+      .findAll('input[type="radio"]')
+      .map((input) => (input.element as HTMLInputElement).name)
 
     expect(names).toEqual(['contractType', 'contractType'])
   })
@@ -86,8 +92,9 @@ describe('TabUI', () => {
   ]
 
   const selectedKey = (wrapper: ReturnType<typeof mount>) =>
-    wrapper.findAll('[role="tab"]')
-      .find(tab => tab.attributes('aria-selected') === 'true')
+    wrapper
+      .findAll('[role="tab"]')
+      .find((tab) => tab.attributes('aria-selected') === 'true')
       ?.attributes('id')
 
   // 修正前は window 全体に keydown を張っていたため、フォーカス位置と無関係に
@@ -107,7 +114,9 @@ describe('TabUI', () => {
   it('タブリスト上の矢印キーで切り替わる', async () => {
     const wrapper = mount(TabUI, { props: { tabs }, attachTo: document.body })
 
-    await wrapper.find('[role="tablist"]').trigger('keydown', { key: 'ArrowRight' })
+    await wrapper
+      .find('[role="tablist"]')
+      .trigger('keydown', { key: 'ArrowRight' })
 
     expect(selectedKey(wrapper)).toBe('tabB')
     wrapper.unmount()
@@ -119,7 +128,9 @@ describe('TabUI', () => {
       attachTo: document.body,
     })
 
-    await wrapper.find('[role="tablist"]').trigger('keydown', { key: 'ArrowRight' })
+    await wrapper
+      .find('[role="tablist"]')
+      .trigger('keydown', { key: 'ArrowRight' })
 
     expect(selectedKey(wrapper)).toBe('tabA')
     wrapper.unmount()
@@ -141,14 +152,22 @@ describe('TextBox のバリデーション', () => {
 
   // 修正前は !value 判定だったため、数値 0 が必須エラーになっていた
   it('数値 0 は必須エラーにならない', async () => {
-    const wrapper = mountTextBox({ name: 'amount', modelValue: 0, isRequired: true })
+    const wrapper = mountTextBox({
+      name: 'amount',
+      modelValue: 0,
+      isRequired: true,
+    })
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).not.toContain('必須項目です')
   })
 
   it('空文字は必須エラーになる', async () => {
-    const wrapper = mountTextBox({ name: 'amount', modelValue: 'a', isRequired: true })
+    const wrapper = mountTextBox({
+      name: 'amount',
+      modelValue: 'a',
+      isRequired: true,
+    })
 
     await wrapper.find('input').setValue('')
     await wrapper.vm.$nextTick()

@@ -9,16 +9,16 @@ import ArticleLists from '~demo/sections/ArticleLists.vue'
 
 const PAGES = [
   {
-    key      : 'getting-started',
-    label    : 'はじめに',
+    key: 'getting-started',
+    label: 'はじめに',
     component: GettingStarted,
-    links    : [],
+    links: [],
   },
   {
-    key      : 'form',
-    label    : 'フォーム UI',
+    key: 'form',
+    label: 'フォーム UI',
     component: FormComponents,
-    links    : [
+    links: [
       { hash: 'textbox', label: 'TextBox' },
       { hash: 'textarea', label: 'TextArea' },
       { hash: 'selectbox', label: 'SelectBox' },
@@ -40,10 +40,10 @@ const PAGES = [
     ],
   },
   {
-    key      : 'article-list',
-    label    : '記事一覧 UI',
+    key: 'article-list',
+    label: '記事一覧 UI',
     component: ArticleLists,
-    links    : [
+    links: [
       { hash: 'standard', label: 'StandardList' },
       { hash: 'rounded', label: 'RoundedList' },
       { hash: 'artistic', label: 'ArtisticList' },
@@ -61,7 +61,7 @@ const PAGES = [
 const parseHash = () => {
   const [page, anchor] = window.location.hash.replace(/^#\/?/, '').split('#')
   return {
-    page  : PAGES.some(item => item.key === page) ? page : PAGES[0].key,
+    page: PAGES.some((item) => item.key === page) ? page : PAGES[0].key,
     anchor: anchor ?? '',
   }
 }
@@ -69,7 +69,9 @@ const parseHash = () => {
 const currentPage = ref(parseHash().page)
 const isNavOpen = ref(false)
 
-const currentDefinition = computed(() => PAGES.find(page => page.key === currentPage.value) ?? PAGES[0])
+const currentDefinition = computed(
+  () => PAGES.find((page) => page.key === currentPage.value) ?? PAGES[0]
+)
 
 const scrollToAnchor = (anchor: string) => {
   if (!anchor) {
@@ -78,7 +80,9 @@ const scrollToAnchor = (anchor: string) => {
   }
 
   window.requestAnimationFrame(() => {
-    document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    document
+      .getElementById(anchor)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   })
 }
 
@@ -91,7 +95,9 @@ const applyHash = () => {
 const navigate = (pageKey: string, anchor = '') => {
   isNavOpen.value = false
   window.location.hash = anchor ? `#/${pageKey}#${anchor}` : `#/${pageKey}`
-  if (currentPage.value === pageKey) scrollToAnchor(anchor)
+  if (currentPage.value === pageKey) {
+    scrollToAnchor(anchor)
+  }
 }
 
 onMounted(() => {
@@ -107,14 +113,13 @@ onUnmounted(() => window.removeEventListener('hashchange', applyHash))
     <StarField />
 
     <header :class="$style.header">
-      <a
-        :class="$style.brand"
-        href="#/getting-started"
-      >
+      <a :class="$style.brand" href="#/getting-started">
         <GeckouLogo :class="$style.brandMark" />
         <span>
           <strong :class="$style.brandName">Geckou UI</strong>
-          <span :class="$style.brandSub">@geckou/ui-vue コンポーネントカタログ（core / vue / react）</span>
+          <span :class="$style.brandSub"
+            >@geckou/ui-vue コンポーネントカタログ（core / vue / react）</span
+          >
         </span>
       </a>
       <nav :class="$style.headerNav">
@@ -143,10 +148,7 @@ onUnmounted(() => window.removeEventListener('hashchange', applyHash))
               v-if="isNavOpen"
               d="M6.4 4.99 19.01 17.6l-1.41 1.41L4.99 6.4z M17.6 4.99 4.99 17.6l1.41 1.41L19.01 6.4z"
             />
-            <path
-              v-else
-              d="M3 5h18v2H3zM3 11h18v2H3zM3 17h18v2H3z"
-            />
+            <path v-else d="M3 5h18v2H3zM3 11h18v2H3zM3 17h18v2H3z" />
           </svg>
         </button>
       </nav>
@@ -155,14 +157,13 @@ onUnmounted(() => window.removeEventListener('hashchange', applyHash))
     <div :class="$style.body">
       <aside :class="[$style.sidebar, { [$style.open]: isNavOpen }]">
         <nav :class="$style.nav">
-          <div
-            v-for="page in PAGES"
-            :key="page.key"
-            :class="$style.navGroup"
-          >
+          <div v-for="page in PAGES" :key="page.key" :class="$style.navGroup">
             <button
               type="button"
-              :class="[$style.navPage, { [$style.current]: page.key === currentPage }]"
+              :class="[
+                $style.navPage,
+                { [$style.current]: page.key === currentPage },
+              ]"
               @click="navigate(page.key)"
             >
               {{ page.label }}
@@ -171,10 +172,7 @@ onUnmounted(() => window.removeEventListener('hashchange', applyHash))
               v-if="page.key === currentPage && page.links.length"
               :class="$style.navList"
             >
-              <li
-                v-for="link in page.links"
-                :key="link.hash"
-              >
+              <li v-for="link in page.links" :key="link.hash">
                 <button
                   type="button"
                   :class="$style.navLink"
@@ -200,35 +198,35 @@ onUnmounted(() => window.removeEventListener('hashchange', applyHash))
 
 <style lang="scss" module>
 .layout {
-  min-height    : 100vh;
-  display       : flex;
+  min-height: 100vh;
+  display: flex;
   flex-direction: column;
 }
 
 .header,
 .body {
   position: relative;
-  z-index : 1;
+  z-index: 1;
 }
 
 .header {
-  position        : sticky;
-  top             : 0;
-  z-index         : 50;
-  display         : flex;
-  align-items     : center;
-  gap             : 1rem;
-  padding         : var(--sp-medium) var(--sp-large);
-  border-bottom   : 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: var(--sp-medium) var(--sp-large);
+  border-bottom: 1px solid var(--border-color);
   background-color: color-mix(in srgb, var(--base-color) 88%, transparent);
-  backdrop-filter : blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 .brand {
-  display    : flex;
+  display: flex;
   align-items: center;
-  gap        : .6rem;
-  color      : var(--text-color);
+  gap: 0.6rem;
+  color: var(--text-color);
 }
 
 .brandMark {
@@ -242,115 +240,115 @@ onUnmounted(() => window.removeEventListener('hashchange', applyHash))
 }
 
 .brandName {
-  display       : block;
-  font-size     : var(--fs-medium);
-  font-weight   : 500;
+  display: block;
+  font-size: var(--fs-medium);
+  font-weight: 500;
   letter-spacing: var(--letter-spacing-normal);
-  line-height   : var(--line-height-tight);
+  line-height: var(--line-height-tight);
 }
 
 .brandSub {
-  display  : block;
-  color    : var(--gray);
+  display: block;
+  color: var(--gray);
   font-size: var(--fs-min);
   line-height: var(--line-height-narrow);
 }
 
 .headerNav {
-  display       : flex;
-  align-items   : center;
-  gap           : var(--sp-small);
-  margin-left   : auto;
-  font-size     : var(--fs-small);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-small);
+  margin-left: auto;
+  font-size: var(--fs-small);
   letter-spacing: var(--letter-spacing-normal);
 }
 
 .githubLink {
-  display        : inline-flex;
-  align-items    : center;
-  gap            : .4rem;
-  padding        : .3rem .8rem;
-  border         : 1px solid var(--border-color);
-  border-radius  : 999px;
-  color          : var(--text-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  color: var(--text-color);
 
   &:hover {
     border-color: var(--primary-color);
-    color       : var(--primary-color);
+    color: var(--primary-color);
   }
 }
 
 .githubIcon {
   inline-size: 1rem;
-  block-size : 1rem;
-  fill       : currentColor;
+  block-size: 1rem;
+  fill: currentColor;
 }
 
 .navToggle {
-  display         : none;
-  align-items     : center;
-  justify-content : center;
-  inline-size     : 2.25rem;
-  block-size      : 2.25rem;
-  padding         : 0;
-  border          : 1px solid var(--border-color);
-  border-radius   : 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
   background-color: transparent;
-  color           : var(--text-color);
-  cursor          : pointer;
+  color: var(--text-color);
+  cursor: pointer;
 
   &:hover {
     border-color: var(--primary-color);
-    color       : var(--primary-color);
+    color: var(--primary-color);
   }
 }
 
 .navToggleIcon {
   inline-size: 1.1rem;
-  block-size : 1.1rem;
-  fill       : currentColor;
+  block-size: 1.1rem;
+  fill: currentColor;
 }
 
 .body {
-  display : flex;
-  flex    : 1;
+  display: flex;
+  flex: 1;
   align-items: flex-start;
 }
 
 .sidebar {
-  position  : sticky;
-  top       : 4rem;
-  flex      : 0 0 var(--sidebar-width);
-  width     : var(--sidebar-width);
+  position: sticky;
+  top: 4rem;
+  flex: 0 0 var(--sidebar-width);
+  width: var(--sidebar-width);
   max-height: calc(100vh - 4rem);
   overflow-y: auto;
-  padding   : 1.5rem 1rem;
+  padding: 1.5rem 1rem;
 }
 
 .nav {
-  display       : flex;
+  display: flex;
   flex-direction: column;
-  gap           : 1rem;
+  gap: 1rem;
 }
 
 .navGroup {
-  display       : flex;
+  display: flex;
   flex-direction: column;
-  gap           : .35rem;
+  gap: 0.35rem;
 }
 
 .navPage {
-  padding         : .4rem .6rem;
-  border          : none;
-  border-radius   : var(--radius-size);
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: var(--radius-size);
   background-color: transparent;
-  color           : var(--text-color);
-  font-family     : inherit;
-  font-size       : var(--fs-small);
-  font-weight     : 500;
-  letter-spacing  : var(--letter-spacing-normal);
-  text-align      : left;
-  cursor          : pointer;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: var(--fs-small);
+  font-weight: 500;
+  letter-spacing: var(--letter-spacing-normal);
+  text-align: left;
+  cursor: pointer;
 
   &:hover {
     background-color: var(--sub-color);
@@ -358,50 +356,50 @@ onUnmounted(() => window.removeEventListener('hashchange', applyHash))
 
   &.current {
     background-color: var(--gk-blue);
-    color           : #fff;
+    color: #fff;
   }
 }
 
 .navList {
-  display       : flex;
+  display: flex;
   flex-direction: column;
-  gap           : .1rem;
-  padding-left  : .5rem;
+  gap: 0.1rem;
+  padding-left: 0.5rem;
 }
 
 .navLink {
-  width           : 100%;
-  padding         : .2rem .5rem;
-  border          : none;
-  border-left     : 2px solid var(--border-color);
-  border-radius   : 0;
+  width: 100%;
+  padding: 0.2rem 0.5rem;
+  border: none;
+  border-left: 2px solid var(--border-color);
+  border-radius: 0;
   background-color: transparent;
-  color           : var(--gray);
-  font-family     : inherit;
-  font-size       : var(--fs-smaller);
-  letter-spacing  : var(--letter-spacing-narrow);
-  text-align      : left;
-  cursor          : pointer;
+  color: var(--gray);
+  font-family: inherit;
+  font-size: var(--fs-smaller);
+  letter-spacing: var(--letter-spacing-narrow);
+  text-align: left;
+  cursor: pointer;
 
   &:hover {
     border-left-color: var(--primary-color);
-    color            : var(--primary-color);
+    color: var(--primary-color);
   }
 }
 
 .main {
-  flex     : 1;
+  flex: 1;
   min-width: 0;
   max-width: 72rem;
-  padding  : var(--sp-large) var(--sp-large) var(--sp-max);
+  padding: var(--sp-large) var(--sp-large) var(--sp-max);
 }
 
 .footer {
-  margin-top    : var(--sp-larger);
-  color         : var(--gray);
-  font-size     : var(--fs-min);
+  margin-top: var(--sp-larger);
+  color: var(--gray);
+  font-size: var(--fs-min);
   letter-spacing: var(--letter-spacing-normal);
-  text-align    : center;
+  text-align: center;
 }
 
 @media (max-width: 900px) {
@@ -413,14 +411,14 @@ onUnmounted(() => window.removeEventListener('hashchange', applyHash))
     display: none;
 
     &.open {
-      display         : block;
-      position        : fixed;
-      top             : 3.5rem;
-      left            : 0;
-      z-index         : 40;
-      width           : min(80vw, 20rem);
-      height          : calc(100vh - 3.5rem);
-      border-right    : 1px solid var(--border-color);
+      display: block;
+      position: fixed;
+      top: 3.5rem;
+      left: 0;
+      z-index: 40;
+      width: min(80vw, 20rem);
+      height: calc(100vh - 3.5rem);
+      border-right: 1px solid var(--border-color);
       background-color: var(--base-color);
     }
   }

@@ -2,36 +2,39 @@
 import FolderIcon from '@/components/Icon/Folder.vue'
 import TagIcon from '@/components/Icon/Tag.vue'
 
-const props = withDefaults(defineProps<{
-  metadata: string[]
-  icon?: {
-    name?: 'FolderIcon' | 'TagIcon' | null
-    color?: string
-    size?: 'small' | 'medium'
+const props = withDefaults(
+  defineProps<{
+    metadata: string[]
+    icon?: {
+      name?: 'FolderIcon' | 'TagIcon' | null
+      color?: string
+      size?: 'small' | 'medium'
+    }
+    label?: {
+      backgroundColor?: string
+      color?: string
+      fontSize?: string
+      fontWeight?: string
+      shape?: 'square' | 'rounded'
+    }
+    delimiter?: string
+  }>(),
+  {
+    icon: () => ({
+      name: null,
+      color: 'var(--disable-text-color)',
+      size: 'medium',
+    }),
+    label: () => ({
+      backgroundColor: 'transparent',
+      color: 'var(--text-color)',
+      fontSize: 'var(--fs-small)',
+      fontWeight: 'normal',
+      shape: 'square',
+    }),
+    delimiter: '',
   }
-  label?: {
-    backgroundColor?: string
-    color?: string
-    fontSize?: string
-    fontWeight?: string
-    shape?: | 'square' | 'rounded'
-  }
-  delimiter?: string
-}>(), {
-  icon: () => ({
-    name : null,
-    color: 'var(--disable-text-color)',
-    size : 'medium',
-  }),
-  label: () => ({
-    backgroundColor: 'transparent',
-    color          : 'var(--text-color)',
-    fontSize       : 'var(--fs-small)',
-    fontWeight     : 'normal',
-    shape          : 'square',
-  }),
-  delimiter: '',
-})
+)
 
 const iconName = props.icon.name === 'FolderIcon' ? FolderIcon : TagIcon
 </script>
@@ -48,7 +51,10 @@ const iconName = props.icon.name === 'FolderIcon' ? FolderIcon : TagIcon
       :class="$style.icon"
       :style="{
         '--icon-color': icon.color,
-        '--icon-size' : icon.size === 'small' ? 'var(--small-icon-size)' : 'var(--medium-icon-size)',
+        '--icon-size':
+          icon.size === 'small'
+            ? 'var(--small-icon-size)'
+            : 'var(--medium-icon-size)',
       }"
     />
     <ul :class="$style.list">
@@ -61,11 +67,14 @@ const iconName = props.icon.name === 'FolderIcon' ? FolderIcon : TagIcon
           { [$style.delimiter]: delimiter },
         ]"
         :style="{
-          '--label-padding' : !label.backgroundColor || label.backgroundColor === 'transparent' ? '0px': 'var(--sp-min) var(--sp-small)',
+          '--label-padding':
+            !label.backgroundColor || label.backgroundColor === 'transparent'
+              ? '0px'
+              : 'var(--sp-min) var(--sp-small)',
           '--label-background-color': label.backgroundColor ?? 'transparent',
-          '--label-color' : label.color ?? 'var(--text-color)',
-          '--label-font-size' : label.fontSize ?? 'var(--fs-small)',
-          '--label-font-weight' : label.fontWeight ?? 'normal',
+          '--label-color': label.color ?? 'var(--text-color)',
+          '--label-font-size': label.fontSize ?? 'var(--fs-small)',
+          '--label-font-weight': label.fontWeight ?? 'normal',
         }"
         :data-delimiter="delimiter"
       >
@@ -80,9 +89,9 @@ const iconName = props.icon.name === 'FolderIcon' ? FolderIcon : TagIcon
 
 .metadata_list {
   --icon-color: var(--disable-text-color);
-  display    : flex;
+  display: flex;
   align-items: center;
-  gap        :  var(--sp-small);
+  gap: var(--sp-small);
 }
 
 .icon {
@@ -91,22 +100,22 @@ const iconName = props.icon.name === 'FolderIcon' ? FolderIcon : TagIcon
 }
 
 .list {
-  display  : flex;
+  display: flex;
   flex-wrap: wrap;
-  gap      : var(--sp-small) var(--sp-medium);
+  gap: var(--sp-small) var(--sp-medium);
 
   .list_item {
-    line-height     : 1;
+    line-height: 1;
     background-color: var(--label-background-color);
-    padding         : var(--label-padding);
-    color           : var(--label-color);
-    font-size       : var(--label-font-size);
-    font-weight     : var(--label-font-weight);
-  
+    padding: var(--label-padding);
+    color: var(--label-color);
+    font-size: var(--label-font-size);
+    font-weight: var(--label-font-weight);
+
     &.rounded {
       border-radius: calc(var(--bv) / 2);
     }
-  
+
     &.delimiter {
       &:not(:last-child) {
         &::after {

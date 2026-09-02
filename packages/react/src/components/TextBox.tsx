@@ -59,7 +59,9 @@ export function TextBox({
   useEffect(() => {
     if (!hasChanged.current) {
       if (inputValue === initialValue.current) {
-        if (!isEmptyValue(inputValue)) validateValue()
+        if (!isEmptyValue(inputValue)) {
+          validateValue()
+        }
         return
       }
       hasChanged.current = true
@@ -95,7 +97,7 @@ export function TextBox({
           onChange?.(
             isComposing.current
               ? rawValue
-              : convertFullWidthToHalfWidth(rawValue),
+              : convertFullWidthToHalfWidth(rawValue)
           )
         }}
         onCompositionStart={() => {

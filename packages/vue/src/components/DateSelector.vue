@@ -14,29 +14,34 @@ type Date = {
   month: string
   day?: string
 }
-const props = withDefaults(defineProps<{
-  name: string
-  modelValue: string
-  isRequired?: boolean
-  formValidationManager?: FormValidationManager | null
-  type?: 'date' | 'month'
-}>(), {
-  formValidationManager: null,
-  type                 : 'date',
-})
+const props = withDefaults(
+  defineProps<{
+    name: string
+    modelValue: string
+    isRequired?: boolean
+    formValidationManager?: FormValidationManager | null
+    type?: 'date' | 'month'
+  }>(),
+  {
+    formValidationManager: null,
+    type: 'date',
+  }
+)
 
 const birthday: Ref<Date> = ref({
-  year : '',
+  year: '',
   month: '',
-  day  : '',
+  day: '',
 })
 
 const yearsOptions = computed(() => {
   const today = new Date()
   const maxYear = today.getFullYear() - 100
   const currentYear = today.getFullYear() - 14
-  const years = Array.from({ length: currentYear - maxYear + 1 }, (_, i) => (maxYear + i).toString())
-  return years.map(year => ({ label: year, value: year }))
+  const years = Array.from({ length: currentYear - maxYear + 1 }, (_, i) =>
+    (maxYear + i).toString()
+  )
+  return years.map((year) => ({ label: year, value: year }))
 })
 
 const monthOptions = computed(() => {
@@ -51,7 +56,9 @@ const monthOptions = computed(() => {
 
 const daysInSelectedMonth = computed(() => {
   const month = Number(birthday.value?.month)
-  if (!month) return 31
+  if (!month) {
+    return 31
+  }
 
   // 年が未選択のときは閏年を含む最大日数になるよう 2000 年を使う
   const year = Number(birthday.value?.year) || 2000
@@ -67,7 +74,7 @@ const dayOptions = computed(() => {
     days.push(dayString)
   }
 
-  return days.map(day => ({
+  return days.map((day) => ({
     label: day,
     value: String(day).padStart(2, '0'),
   }))
@@ -88,9 +95,11 @@ const selectItem = (event: Event, key: 'year' | 'day' | 'month') => {
 }
 
 // 月や年を変えて日が存在しなくなった場合は、その月の末日に丸める
-watch(daysInSelectedMonth, days => {
+watch(daysInSelectedMonth, (days) => {
   const day = Number(birthday.value.day)
-  if (day && day > days) birthday.value = { ...birthday.value, day: String(days).padStart(2, '0') }
+  if (day && day > days) {
+    birthday.value = { ...birthday.value, day: String(days).padStart(2, '0') }
+  }
 })
 
 const EMPTY_BIRTHDAY = { year: '', month: '', day: '' }
@@ -103,26 +112,39 @@ watchEffect(() => {
 })
 
 const setValid = (isValid: boolean): void => {
-  if (props.formValidationManager) props.formValidationManager.setValid(props.name, isValid)
+  if (props.formValidationManager) {
+    props.formValidationManager.setValid(props.name, isValid)
+  }
 }
 
 setValid(!props.isRequired)
 
-watch(() => birthday.value, newValue => {
-  const isFilled = Boolean(newValue.year && newValue.month && (props.type === 'month' || newValue.day))
-  const isEmpty = !newValue.year && !newValue.month && !newValue.day
+watch(
+  () => birthday.value,
+  (newValue) => {
+    const isFilled = Boolean(
+      newValue.year &&
+      newValue.month &&
+      (props.type === 'month' || newValue.day)
+    )
+    const isEmpty = !newValue.year && !newValue.month && !newValue.day
 
-  setValid(props.isRequired ? isFilled : isFilled || isEmpty)
+    setValid(props.isRequired ? isFilled : isFilled || isEmpty)
 
-  if (isEmpty) emit('update:modelValue', '')
-  else if (!isFilled) return
-  else {
-    const parts = props.type === 'month'
-      ? [newValue.year, newValue.month]
-      : [newValue.year, newValue.month, newValue.day]
-    emit('update:modelValue', parts.filter(Boolean).join('-'))
-  }
-}, { deep: true })
+    if (isEmpty) {
+      emit('update:modelValue', '')
+    } else if (!isFilled) {
+      return
+    } else {
+      const parts =
+        props.type === 'month'
+          ? [newValue.year, newValue.month]
+          : [newValue.year, newValue.month, newValue.day]
+      emit('update:modelValue', parts.filter(Boolean).join('-'))
+    }
+  },
+  { deep: true }
+)
 
 // アンマウント後も無効判定が残らないように登録を解除する
 onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
@@ -130,22 +152,13 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
 
 <template>
   <InputBox :class="$style.date_selector">
-    <div
-      :class="[$style.selector_wrapper]"
-      @click="openDropdown($event)"
-    >
+    <div :class="[$style.selector_wrapper]" @click="openDropdown($event)">
       <select
         :value="birthday.year"
         :class="$style.year"
         @change="selectItem($event, 'year')"
       >
-        <option
-          disabled
-          selected
-          value=""
-        >
-          年
-        </option>
+        <option disabled selected value="">年</option>
         <option
           v-for="year in yearsOptions"
           :key="year.value"
@@ -156,21 +169,9 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       </select>
       <KeyboardArrowDownIcon />
     </div>
-    <div
-      :class="[$style.selector_wrapper]"
-      @click="openDropdown($event)"
-    >
-      <select
-        :value="birthday.month"
-        @change="selectItem($event, 'month')"
-      >
-        <option
-          disabled
-          selected
-          value=""
-        >
-          月
-        </option>
+    <div :class="[$style.selector_wrapper]" @click="openDropdown($event)">
+      <select :value="birthday.month" @change="selectItem($event, 'month')">
+        <option disabled selected value="">月</option>
         <option
           v-for="month in monthOptions"
           :key="month.value"
@@ -186,22 +187,9 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       :class="[$style.selector_wrapper]"
       @click="openDropdown($event)"
     >
-      <select
-        :value="birthday.day"
-        @change="selectItem($event, 'day')"
-      >
-        <option
-          disabled
-          selected
-          value=""
-        >
-          日
-        </option>
-        <option
-          v-for="day in dayOptions"
-          :key="day.value"
-          :value="day.value"
-        >
+      <select :value="birthday.day" @change="selectItem($event, 'day')">
+        <option disabled selected value="">日</option>
+        <option v-for="day in dayOptions" :key="day.value" :value="day.value">
           {{ day.label }}
         </option>
       </select>
@@ -220,10 +208,10 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
 @use '@/assets/scss/mixin' as *;
 
 .date_selector {
-  width      : max-content;
-  display    : flex;
+  width: max-content;
+  display: flex;
   align-items: center;
-  position   : relative;
+  position: relative;
 
   > * {
     &:not(:last-of-type) {
@@ -236,15 +224,15 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
 
 .selector_wrapper {
   position: relative;
-  width   : max-content;
+  width: max-content;
 
   > svg {
     @include icon($color: var(--link-color));
-    position      : absolute;
-    margin        : auto;
-    top           : 0;
-    right         : var(--sp-small);
-    bottom        : 0;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    right: var(--sp-small);
+    bottom: 0;
     pointer-events: none;
   }
 
@@ -255,10 +243,10 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
   }
 
   > select {
-    width             : calc(3ch + (var(--sp-medium) * 2) + var(--icon-medium));
-    padding           : var(--sp-medium);
+    width: calc(3ch + (var(--sp-medium) * 2) + var(--icon-medium));
+    padding: var(--sp-medium);
     padding-inline-end: calc((var(--sp-small) * 2) + var(--icon-medium));
-    cursor            : pointer;
+    cursor: pointer;
 
     &.year {
       width: calc(5ch + (var(--sp-medium) * 2) + var(--icon-medium));
@@ -268,6 +256,6 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
 
 .delete_button {
   margin-inline: var(--sp-medium);
-  font-size    : var(--fs-small);
+  font-size: var(--fs-small);
 }
 </style>

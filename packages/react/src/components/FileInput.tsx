@@ -15,7 +15,9 @@ export function FileInput({ value, onChange, accept = '' }: Props) {
   const uploadFiles = value ?? []
 
   const addFiles = (newFiles: FileList | null) => {
-    if (!newFiles || !newFiles.length) return
+    if (!newFiles || !newFiles.length) {
+      return
+    }
     onChange?.([...uploadFiles, ...Array.from(newFiles)])
   }
 

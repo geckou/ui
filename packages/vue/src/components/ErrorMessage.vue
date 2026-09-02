@@ -20,10 +20,7 @@ defineProps<{
       '--error-background-color': cssStyle?.backgroundColor || cautionColor,
     }"
   >
-    <span
-      v-for="message in errorMessages"
-      :key="message"
-    >
+    <span v-for="message in errorMessages" :key="message">
       {{ message }}
     </span>
   </div>
@@ -34,28 +31,28 @@ defineProps<{
   inline-size: max-content;
   display: flex;
   flex-direction: column;
-  gap: .5rem;
-  padding: .5rem .75rem;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
   font-size: small;
   color: var(--error-text-color);
   background-color: var(--error-background-color);
-  box-shadow: 0 0 .5rem .25rem #33333322;
-  border-radius: .25rem;
+  box-shadow: 0 0 0.5rem 0.25rem #33333322;
+  border-radius: 0.25rem;
   line-height: 1;
   position: absolute;
-  inset-block-start: calc(100% + .25rem);
+  inset-block-start: calc(100% + 0.25rem);
 
   &::before {
-    --tail-size: .85rem;
+    --tail-size: 0.85rem;
     content: '';
     display: block;
     background-color: var(--error-background-color);
     inline-size: var(--tail-size);
-    block-size: calc(var(--tail-size) * .625);
+    block-size: calc(var(--tail-size) * 0.625);
     clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
     position: absolute;
     bottom: calc(100% - 1px);
-    inset-inline-start: .85rem;
+    inset-inline-start: 0.85rem;
   }
 }
 </style>

@@ -1,33 +1,34 @@
 @mixin textEllipsis($line: 1) {
   display: -webkit-box;
   -webkit-line-clamp: $line;
-  -webkit-box-orient: vertical;  
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 @mixin icon($size: var(--medium-icon-size), $color: var(--text-color)) {
-  width     : 100%;
-  height    : 100%;
-  max-width : $size;
+  width: 100%;
+  height: 100%;
+  max-width: $size;
   max-height: $size;
-  fill      : $color;
+  fill: $color;
 }
 
-$tabletLowerWidth : 576px;
+$tabletLowerWidth: 576px;
 $desktopLowerWidth: 992px;
-$contentsMaxWidth : 1200px;
+$contentsMaxWidth: 1200px;
 
 @mixin media($range) {
   @if $range == 'mobile' {
-    @container (width <= #{$tabletLowerWidth}) { @content; }
+    @container (width <= #{$tabletLowerWidth}) {
+      @content;
+    }
   } @else if $range == 'tablet' {
-    @container (#{$tabletLowerWidth} <= width) { @content; }
+    @container (#{$tabletLowerWidth} <= width) {
+      @content;
+    }
   } @else if $range == 'desktop' {
-    @container (#{$desktopLowerWidth} <= width) { @content; }
+    @container (#{$desktopLowerWidth} <= width) {
+      @content;
+    }
   }
 }
-
-
-
-
-

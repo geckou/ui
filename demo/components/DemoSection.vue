@@ -9,43 +9,37 @@ type Source = {
   path: string
 }
 
-withDefaults(defineProps<{
-  id?: string
-  title: string
-  description?: string
-  code?: string
-  contained?: boolean
-  /** GitHub 上のソースへのリンク */
-  sources?: Source[]
-}>(), {
-  id         : undefined,
-  description: '',
-  code       : '',
-  contained  : false,
-  sources    : () => [],
-})
+withDefaults(
+  defineProps<{
+    id?: string
+    title: string
+    description?: string
+    code?: string
+    contained?: boolean
+    /** GitHub 上のソースへのリンク */
+    sources?: Source[]
+  }>(),
+  {
+    id: undefined,
+    description: '',
+    code: '',
+    contained: false,
+    sources: () => [],
+  }
+)
 
 const isCodeOpen = ref(false)
 </script>
 
 <template>
-  <section
-    :id="id"
-    :class="$style.section"
-  >
+  <section :id="id" :class="$style.section">
     <header :class="$style.header">
       <div :class="$style.headline">
         <h3 :class="$style.title">
           {{ title }}
         </h3>
-        <ul
-          v-if="sources.length"
-          :class="$style.sources"
-        >
-          <li
-            v-for="source in sources"
-            :key="source.path"
-          >
+        <ul v-if="sources.length" :class="$style.sources">
+          <li v-for="source in sources" :key="source.path">
             <a
               :class="$style.sourceLink"
               :href="sourceUrl(source.path)"
@@ -58,15 +52,18 @@ const isCodeOpen = ref(false)
           </li>
         </ul>
       </div>
-      <p
-        v-if="description"
-        :class="$style.description"
-      >
+      <p v-if="description" :class="$style.description">
         {{ description }}
       </p>
     </header>
 
-    <div :class="['demo-preview', $style.preview, { [$style.contained]: contained }]">
+    <div
+      :class="[
+        'demo-preview',
+        $style.preview,
+        { [$style.contained]: contained },
+      ]"
+    >
       <slot />
     </div>
 
@@ -78,88 +75,85 @@ const isCodeOpen = ref(false)
       >
         {{ isCodeOpen ? 'コードを隠す' : 'コードを見る' }}
       </button>
-      <CodeBlock
-        v-if="isCodeOpen"
-        :code="code"
-      />
+      <CodeBlock v-if="isCodeOpen" :code="code" />
     </div>
   </section>
 </template>
 
 <style lang="scss" module>
 .section {
-  display         : flex;
-  flex-direction  : column;
-  gap             : 1rem;
-  padding         : var(--sp-large);
-  border          : 1px solid var(--border-color);
-  border-radius   : var(--radius-size);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: var(--sp-large);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-size);
   background-color: var(--surface-color);
   scroll-margin-top: 5rem;
 }
 
 .header {
-  display       : flex;
+  display: flex;
   flex-direction: column;
-  gap           : .25rem;
+  gap: 0.25rem;
 }
 
 .headline {
-  display        : flex;
-  align-items    : center;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  flex-wrap      : wrap;
-  gap            : var(--sp-small) var(--sp-medium);
+  flex-wrap: wrap;
+  gap: var(--sp-small) var(--sp-medium);
 }
 
 .sources {
-  display    : flex;
+  display: flex;
   align-items: center;
-  flex-wrap  : wrap;
-  gap        : var(--sp-small);
+  flex-wrap: wrap;
+  gap: var(--sp-small);
 }
 
 .sourceLink {
-  display      : inline-flex;
-  align-items  : center;
-  gap          : .3rem;
-  padding      : .15rem .6rem;
-  border       : 1px solid var(--border-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--border-color);
   border-radius: 999px;
-  color        : var(--gray);
-  font-size    : var(--fs-min);
+  color: var(--gray);
+  font-size: var(--fs-min);
 
   &:hover {
     border-color: var(--primary-color);
-    color       : var(--primary-color);
+    color: var(--primary-color);
   }
 }
 
 .sourceIcon {
-  inline-size: .8rem;
-  block-size : .8rem;
-  fill       : currentColor;
+  inline-size: 0.8rem;
+  block-size: 0.8rem;
+  fill: currentColor;
 }
 
 .title {
-  margin        : 0;
-  font-size     : var(--fs-large);
-  font-weight   : 500;
+  margin: 0;
+  font-size: var(--fs-large);
+  font-weight: 500;
   letter-spacing: var(--letter-spacing-normal);
-  line-height   : var(--line-height-narrow);
+  line-height: var(--line-height-narrow);
 }
 
 .description {
-  margin     : 0;
-  color      : var(--gray);
-  font-size  : var(--fs-small);
+  margin: 0;
+  color: var(--gray);
+  font-size: var(--fs-small);
   line-height: var(--line-height-narrow);
 }
 
 .preview {
-  padding         : var(--sp-large);
-  border          : 1px solid var(--light-border-color);
-  border-radius   : var(--radius-size);
+  padding: var(--sp-large);
+  border: 1px solid var(--light-border-color);
+  border-radius: var(--radius-size);
   background-color: var(--surface-muted);
 
   &.contained {
@@ -168,20 +162,20 @@ const isCodeOpen = ref(false)
 }
 
 .toggle {
-  margin-bottom   : .5rem;
-  padding         : .35rem .9rem;
-  border          : 1px solid var(--border-color);
-  border-radius   : 999px;
+  margin-bottom: 0.5rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
   background-color: transparent;
-  color           : var(--text-color);
-  font-family     : inherit;
-  font-size       : var(--fs-smaller);
-  letter-spacing  : var(--letter-spacing-narrow);
-  cursor          : pointer;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: var(--fs-smaller);
+  letter-spacing: var(--letter-spacing-narrow);
+  cursor: pointer;
 
   &:hover {
     border-color: var(--primary-color);
-    color       : var(--primary-color);
+    color: var(--primary-color);
   }
 }
 </style>

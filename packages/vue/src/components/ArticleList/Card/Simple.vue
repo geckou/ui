@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { returnAuthor } from '@/scripts/utils'
-import type {
-  Article,
-  Category,
-  PostConfig,
-} from '@/types'
+import type { Article, Category, PostConfig } from '@/types'
 import CardContainer from '@/components/ArticleList/Parts/CardContainer.vue'
 import ThumbnailImage from '@/components/ArticleList/Parts/ThumbnailImage.vue'
 import AuthorInfo from '@/components/ArticleList/Parts/AuthorInfo.vue'
@@ -26,69 +22,69 @@ defineProps<{
 <template>
   <CardContainer
     v-if="article"
-    :class="[$style.container, { [$style.pickup]: isPickUpItem} ]"
+    :class="[$style.container, { [$style.pickup]: isPickUpItem }]"
     :path="path"
   >
     <ThumbnailImage
       :article="article"
       :aspectRatio="{
         desktop: isPickUpItem ? '21/9' : '4/3',
-        tablet : isPickUpItem ? '21/9' : '4/3',
-        mobile : '4/3',
+        tablet: isPickUpItem ? '21/9' : '4/3',
+        mobile: '4/3',
       }"
       :class="$style.thumbnail"
-      style="grid-area: thumbnail;"
+      style="grid-area: thumbnail"
     />
     <CardHeading
       :heading="article.title.rendered"
       :class="$style.heading"
       color="var(--text-color)"
-      style="grid-area: heading;"
+      style="grid-area: heading"
     />
     <AuthorInfo
       v-if="postConfig.author && returnAuthor(article)"
       :name="returnAuthor(article)?.name"
       :class="$style.author"
       :text="{
-        color : 'var(--gray)',
+        color: 'var(--gray)',
         preposition: 'by',
       }"
-      style="grid-area: author;"
+      style="grid-area: author"
     />
     <CategoryList
       v-if="postConfig.category && article.categories"
       :categoryIds="article.categories"
       :categoryData="categories"
       :label="{
-        color : 'var(--gray)',
-        fontSize : 'small',
+        color: 'var(--gray)',
+        fontSize: 'small',
         fontWeight: 'bold',
       }"
       :class="$style.category"
-      style="grid-area: category;"
+      style="grid-area: category"
     />
     <TagList
       v-if="postConfig.tag"
       :article="article"
       :label="{
-        color : 'var(--gray)',
-        fontSize : 'small',
+        color: 'var(--gray)',
+        fontSize: 'small',
         fontWeight: 'bold',
       }"
       :class="$style.tag"
-      style="grid-area: tag;"
+      style="grid-area: tag"
     />
     <PostedDate
       :date="article.date"
       formatString="yy.M.d"
       color="var(--gray)"
       :class="$style.date"
-      style="grid-area: date;"
+      style="grid-area: date"
     />
     <ExcerptText
       :excerpt="article.excerpt.rendered"
       :class="$style.excerpt"
-      style="grid-area: excerpt;"
+      style="grid-area: excerpt"
     />
   </CardContainer>
 </template>
@@ -98,14 +94,14 @@ defineProps<{
 
 .container {
   grid-template-columns: auto 1fr;
-  grid-template-rows   : fit-content(62%) auto auto auto 1fr auto;
-  grid-template-areas  :
+  grid-template-rows: fit-content(62%) auto auto auto 1fr auto;
+  grid-template-areas:
     'thumbnail thumbnail'
     'category tag'
     'heading heading'
     'excerpt excerpt'
     'author date';
-  gap   : var(--sp-small);
+  gap: var(--sp-small);
   height: 100%;
 
   &:hover {
@@ -119,41 +115,40 @@ defineProps<{
   &.pickup {
     @include media('tablet') {
       grid-template-columns: 1fr;
-      grid-template-rows   : 0 1fr auto;
-      grid-template-areas  : 
+      grid-template-rows: 0 1fr auto;
+      grid-template-areas:
         'thumbnail'
         'heading'
         'date';
-      gap         : 0;
+      gap: 0;
       aspect-ratio: 21/9;
 
       .thumbnail {
         position: absolute;
-        top     : 0;
-        left    : 0;
+        top: 0;
+        left: 0;
 
         &::before {
-          content         : '';
-          display         : block;
-          width           : 100%;
-          height          : 100%;
+          content: '';
+          display: block;
+          width: 100%;
+          height: 100%;
           background-color: var(--gray);
-          mix-blend-mode  : multiply;
-          position        : absolute;
-          top             : 0;
-          left            : 0;
-          z-index         : 1;
-          transition      : opacity var(--animation-duration);
-          opacity         : .3;
-          pointer-events  : none;
+          mix-blend-mode: multiply;
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: 1;
+          transition: opacity var(--animation-duration);
+          opacity: 0.3;
+          pointer-events: none;
         }
       }
 
       &:hover {
         .thumbnail {
-
           &::before {
-            opacity: .1;
+            opacity: 0.1;
           }
         }
       }
@@ -161,26 +156,26 @@ defineProps<{
       .heading,
       .date {
         position: relative;
-        z-index : 2;
+        z-index: 2;
       }
 
       .heading {
-        display           : flex;
-        justify-content   : flex-start;
-        align-items       : flex-end;
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-end;
         margin-block-start: var(--sp-medium);
-        margin-inline     : var(--sp-large);
-        font-size         : xx-large;
+        margin-inline: var(--sp-large);
+        font-size: xx-large;
       }
 
       .date {
-        display        : flex;
+        display: flex;
         justify-content: flex-start;
-        align-items    : flex-end;
-        margin-block   : var(--sp-medium) var(--sp-large);
-        margin-inline  : var(--sp-large);
-        font-size      : medium;
-        color          : var(--text-color);
+        align-items: flex-end;
+        margin-block: var(--sp-medium) var(--sp-large);
+        margin-inline: var(--sp-large);
+        font-size: medium;
+        color: var(--text-color);
       }
 
       .excerpt,
@@ -195,12 +190,12 @@ defineProps<{
   .thumbnail {
     img {
       transition: filter var(--animation-duration);
-      filter    : grayscale(90%);
+      filter: grayscale(90%);
     }
   }
 
   .tag {
-    grid-column       : 1 / 3;
+    grid-column: 1 / 3;
     margin-block-start: var(--sp-small);
   }
 
@@ -211,8 +206,8 @@ defineProps<{
       grid-column: 2 / 3;
 
       &::before {
-        content  : '/';
-        color    : var(--gray);
+        content: '/';
+        color: var(--gray);
         font-size: small;
       }
     }

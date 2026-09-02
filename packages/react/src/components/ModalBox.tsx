@@ -45,8 +45,11 @@ export function ModalBox({
   const dialogRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (isShown) document.body.style.overflow = 'hidden'
-    else document.body.style.overflow = ''
+    if (isShown) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
 
     return () => {
       document.body.style.overflow = ''
@@ -54,7 +57,9 @@ export function ModalBox({
   }, [isShown])
 
   useEffect(() => {
-    if (isShown) dialogRef.current?.focus()
+    if (isShown) {
+      dialogRef.current?.focus()
+    }
   }, [isShown])
 
   return (
@@ -67,7 +72,9 @@ export function ModalBox({
       aria-hidden={!isShown}
       inert={!isShown}
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose()
+        if (event.target === event.currentTarget) {
+          onClose()
+        }
       }}
     >
       <div

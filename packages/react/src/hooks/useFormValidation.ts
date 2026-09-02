@@ -37,7 +37,7 @@ export function useFormValidation(): UseFormValidationResult {
     store.subscribe,
     store.getSnapshot,
     // SSR 時は登録がまだ無いので、すべて有効なスナップショットを返す
-    store.getSnapshot,
+    store.getSnapshot
   )
 
   return {
@@ -57,7 +57,7 @@ export function useFormValidation(): UseFormValidationResult {
 export function useRegisterValidation(
   store: FormValidationStore | null | undefined,
   name: string,
-  isValid: boolean,
+  isValid: boolean
 ): void {
   useEffect(() => {
     store?.setValid(name, isValid)

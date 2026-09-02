@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { isEmptyValue, runValidates, validateInputValue } from '../src/validation.js'
+import {
+  isEmptyValue,
+  runValidates,
+  validateInputValue,
+} from '../src/validation.js'
 import { MESSAGES } from '../src/constants.js'
 
 describe('isEmptyValue', () => {
@@ -22,7 +26,9 @@ describe('validateInputValue', () => {
   })
 
   it('必須かつ空文字のとき必須エラー', () => {
-    expect(validateInputValue('', { isRequired: true })).toEqual([MESSAGES.required])
+    expect(validateInputValue('', { isRequired: true })).toEqual([
+      MESSAGES.required,
+    ])
   })
 
   it('未入力かつ任意なら validates を走らせない', () => {

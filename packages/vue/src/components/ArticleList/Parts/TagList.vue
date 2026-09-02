@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type {
-  Article,
-} from '@/types'
+import type { Article } from '@/types'
 import type { ComputedRef } from 'vue'
 import { computed } from 'vue'
 import MetadataList from '@/components/ArticleList/Parts/MetadataList.vue'
@@ -18,7 +16,7 @@ const props = defineProps<{
     color?: string
     fontSize?: string
     fontWeight?: string
-    shape?: | 'square' | 'rounded'
+    shape?: 'square' | 'rounded'
   }
   delimiter?: string
 }>()
@@ -31,9 +29,9 @@ const tags: ComputedRef<string[]> = computed(() => returnTagList(props.article))
     v-if="tags.length"
     :metadata="tags"
     :icon="{
-      name : icon?.color ? 'TagIcon' : null,
+      name: icon?.color ? 'TagIcon' : null,
       color: icon?.color,
-      size : icon?.size,
+      size: icon?.size,
     }"
     :label="label"
     :delimiter="delimiter"

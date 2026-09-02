@@ -2,24 +2,29 @@
 import type { Ref } from 'vue'
 import { ref, onMounted, onUpdated, watch } from 'vue'
 import IconChevronDown from '@/components/Icon/KeyboardArrowDownIcon.vue'
-const props = withDefaults(defineProps<{
-  isOpened?: boolean | null
-  isHiddenArrow?: boolean
-  isDisabled?: boolean
-  isDisableClickOutside?: boolean
-  duration?: number
-}>(), {
-  isOpened: null,
-  duration: .3,
-})
+const props = withDefaults(
+  defineProps<{
+    isOpened?: boolean | null
+    isHiddenArrow?: boolean
+    isDisabled?: boolean
+    isDisableClickOutside?: boolean
+    duration?: number
+  }>(),
+  {
+    isOpened: null,
+    duration: 0.3,
+  }
+)
 
 const isOpenedContents = ref(props.isOpened || false)
 const contents: Ref<HTMLElement | null> = ref(null)
 const contentsHeight = ref(0)
-const toggleBox = () => isOpenedContents.value = !isOpenedContents.value
+const toggleBox = () => (isOpenedContents.value = !isOpenedContents.value)
 
 const closeDropDown = () => {
-  if (!props.isDisableClickOutside) isOpenedContents.value = false
+  if (!props.isDisableClickOutside) {
+    isOpenedContents.value = false
+  }
 }
 
 const updateContentsHeight = () => {
@@ -29,11 +34,16 @@ const updateContentsHeight = () => {
   }
 }
 
-onMounted(()=> updateContentsHeight())
+onMounted(() => updateContentsHeight())
 onUpdated(() => updateContentsHeight())
-watch(() => props.isOpened, newValue => {
-  if (typeof newValue === 'boolean') isOpenedContents.value = newValue
-})
+watch(
+  () => props.isOpened,
+  (newValue) => {
+    if (typeof newValue === 'boolean') {
+      isOpenedContents.value = newValue
+    }
+  }
+)
 defineExpose({ isOpenedContents })
 </script>
 
@@ -52,19 +62,13 @@ defineExpose({ isOpenedContents })
       <div class="width:100% text-align:left">
         <slot name="trigger" />
       </div>
-      <IconChevronDown
-        v-if="!isHiddenArrow"
-        :class="$style.icon"
-      />
+      <IconChevronDown v-if="!isHiddenArrow" :class="$style.icon" />
     </button>
-    <div 
+    <div
       :style="{ height: isOpenedContents ? `${contentsHeight}px` : 0 }"
       :class="$style.contents"
     >
-      <div
-        ref="contents"
-        :class="$style.container"
-      >
+      <div ref="contents" :class="$style.container">
         <slot />
       </div>
     </div>
@@ -89,25 +93,25 @@ defineExpose({ isOpenedContents })
 }
 
 .trigger {
-  display              : grid;
+  display: grid;
   grid-template-columns: 1fr auto;
-  align-items          : center;
-  inline-size          : 100%;
-  justify-items        : start;
-  cursor               : pointer;
-  position             : relative;
-  color                : var(--link-color);
+  align-items: center;
+  inline-size: 100%;
+  justify-items: start;
+  cursor: pointer;
+  position: relative;
+  color: var(--link-color);
 }
 
 .icon {
   @include icon($color: var(--link-color));
-  flex      : 0 0 auto;
-  transition: all .1s;
+  flex: 0 0 auto;
+  transition: all 0.1s;
 }
 
 .contents {
   transition: height var(--accordion-toggle-duration);
-  overflow  : hidden;
+  overflow: hidden;
 }
 
 .opened {
@@ -116,7 +120,7 @@ defineExpose({ isOpenedContents })
   }
 
   .contents {
-    animation          : overflow var(--accordion-toggle-duration);
+    animation: overflow var(--accordion-toggle-duration);
     animation-fill-mode: forwards;
   }
 }

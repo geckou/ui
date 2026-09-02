@@ -9,23 +9,23 @@
 
 .input_group {
   display: inline-flex;
-  gap    : 1px;
+  gap: 1px;
 
   @include media('mobile') {
     flex-wrap: wrap;
   }
 
   @mixin childItem {
-    flex         : 1 1 auto;
+    flex: 1 1 auto;
     border-radius: 0;
-    
+
     &:first-child:not(:only-child) {
-      border-top-left-radius   : var(--radius-small);
+      border-top-left-radius: var(--radius-small);
       border-bottom-left-radius: var(--radius-small);
     }
-  
+
     &:last-child:not(:only-child) {
-      border-top-right-radius   : var(--radius-small);
+      border-top-right-radius: var(--radius-small);
       border-bottom-right-radius: var(--radius-small);
     }
   }

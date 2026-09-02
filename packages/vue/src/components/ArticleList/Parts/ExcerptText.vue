@@ -1,14 +1,17 @@
 <script setup lang="ts">
-withDefaults(defineProps<{
-  excerpt: string
-  color?: string
-  fontSize?: string
-  row?: number
-}>(), {
-  color   : 'var(--text-color)',
-  fontSize: 'medium',
-  row     : 3,
-})
+withDefaults(
+  defineProps<{
+    excerpt: string
+    color?: string
+    fontSize?: string
+    row?: number
+  }>(),
+  {
+    color: 'var(--text-color)',
+    fontSize: 'medium',
+    row: 3,
+  }
+)
 </script>
 
 <template>
@@ -28,7 +31,7 @@ withDefaults(defineProps<{
 @use '@/assets/scss/mixin' as *;
 
 .excerpt {
-  color    : var(--excerpt-color);
+  color: var(--excerpt-color);
   font-size: var(--excerpt-font-size);
 
   > * {

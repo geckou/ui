@@ -51,7 +51,9 @@ export function CheckButton({
           checked={isChecked}
           disabled={isDisabled}
           onChange={(event) => {
-            if (!isDisabled) onChange?.(event.target.checked)
+            if (!isDisabled) {
+              onChange?.(event.target.checked)
+            }
           }}
           className="sr-only"
         />

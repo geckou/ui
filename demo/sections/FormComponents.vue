@@ -31,7 +31,7 @@ const SELECT_BOX_OPTIONS = [
   { label: 'デザイン', value: 'design' },
   { label: 'エンジニアリング', value: 'engineering' },
   {
-    'その他': [
+    その他: [
       { label: '採用について', value: 'recruit' },
       { label: '取材について', value: 'press' },
     ],
@@ -71,7 +71,9 @@ const isModalShown = ref(false)
 
 const submit = () => {
   isLoading.value = true
-  window.setTimeout(() => { isLoading.value = false }, 1200)
+  window.setTimeout(() => {
+    isLoading.value = false
+  }, 1200)
 }
 
 const CODE = {
@@ -198,16 +200,21 @@ const CODE = {
 </span>`,
 }
 
-const formState = () => JSON.stringify({
-  text        : text.value,
-  textarea    : textarea.value,
-  select      : select.value,
-  check       : check.value,
-  labeledCheck: labeledCheck.value,
-  checks      : checks.value,
-  radios      : radios.value,
-  toggle      : toggle.value,
-}, null, 2)
+const formState = () =>
+  JSON.stringify(
+    {
+      text: text.value,
+      textarea: textarea.value,
+      select: select.value,
+      check: check.value,
+      labeledCheck: labeledCheck.value,
+      checks: checks.value,
+      radios: radios.value,
+      toggle: toggle.value,
+    },
+    null,
+    2
+  )
 </script>
 
 <template>
@@ -268,25 +275,23 @@ const formState = () => JSON.stringify({
 
     <DemoSection
       id="checkbox"
-      :sources="[{ label: 'CheckBox', path: componentSource('CheckBox') }, { label: 'LabeledCheckbox', path: componentSource('LabeledCheckbox') }, { label: 'CheckButton', path: componentSource('CheckButton') }]"
+      :sources="[
+        { label: 'CheckBox', path: componentSource('CheckBox') },
+        { label: 'LabeledCheckbox', path: componentSource('LabeledCheckbox') },
+        { label: 'CheckButton', path: componentSource('CheckButton') },
+      ]"
       title="CheckBox / LabeledCheckbox / CheckButton"
       description="単体のチェックボックス、ラベル付き、ボタン型の 3 種類。"
       :code="CODE.checkBox"
     >
       <div :class="$style.row">
-        <CheckBox
-          v-model="check"
-          name="checkbox"
-        />
+        <CheckBox v-model="check" name="checkbox" />
         <LabeledCheckbox
           v-model="labeledCheck"
           name="labeledCheckbox"
           label="規約に同意する"
         />
-        <CheckButton
-          v-model="checkButton"
-          name="checkButton"
-        />
+        <CheckButton v-model="checkButton" name="checkButton" />
       </div>
     </DemoSection>
 
@@ -306,19 +311,20 @@ const formState = () => JSON.stringify({
 
     <DemoSection
       id="radiobuttons"
-      :sources="[{ label: 'RadioButtons', path: componentSource('RadioButtons') }]"
+      :sources="[
+        { label: 'RadioButtons', path: componentSource('RadioButtons') },
+      ]"
       title="RadioButtons"
       :code="CODE.radio"
     >
-      <RadioButtons
-        v-model="radios"
-        :options="RADIO_OPTIONS"
-      />
+      <RadioButtons v-model="radios" :options="RADIO_OPTIONS" />
     </DemoSection>
 
     <DemoSection
       id="togglebutton"
-      :sources="[{ label: 'ToggleButton', path: componentSource('ToggleButton') }]"
+      :sources="[
+        { label: 'ToggleButton', path: componentSource('ToggleButton') },
+      ]"
       title="ToggleButton"
       description="on / off それぞれのラベルを指定できる。"
       :code="CODE.toggle"
@@ -332,37 +338,31 @@ const formState = () => JSON.stringify({
 
     <DemoSection
       id="basicbutton"
-      :sources="[{ label: 'BasicButton', path: componentSource('BasicButton') }]"
+      :sources="[
+        { label: 'BasicButton', path: componentSource('BasicButton') },
+      ]"
       title="BasicButton"
       description="isLoading でスピナー表示に切り替わる（クリックで 1.2 秒間ローディング）。"
       :code="CODE.button"
     >
-      <BasicButton
-        buttonType="button"
-        :isLoading="isLoading"
-        @click="submit"
-      >
+      <BasicButton buttonType="button" :isLoading="isLoading" @click="submit">
         送信
       </BasicButton>
     </DemoSection>
 
     <DemoSection
       id="labeledfieldset"
-      :sources="[{ label: 'LabeledFieldset', path: componentSource('LabeledFieldset') }]"
+      :sources="[
+        { label: 'LabeledFieldset', path: componentSource('LabeledFieldset') },
+      ]"
       title="LabeledFieldset"
       description="label スロットと入力欄をまとめて配置するためのラッパー。"
       :code="CODE.fieldset"
     >
       <div :class="$style.narrow">
         <LabeledFieldset>
-          <template #label>
-            お問い合わせ内容
-          </template>
-          <TextArea
-            v-model="textarea"
-            name="fieldsetTextarea"
-            :rows="2"
-          />
+          <template #label> お問い合わせ内容 </template>
+          <TextArea v-model="textarea" name="fieldsetTextarea" :rows="2" />
         </LabeledFieldset>
       </div>
     </DemoSection>
@@ -382,12 +382,30 @@ const formState = () => JSON.stringify({
       >
         <template #tabAContents>
           <dl :class="$style.state">
-            <div><dt>TextBox</dt><dd>{{ text || '—' }}</dd></div>
-            <div><dt>TextArea</dt><dd>{{ textarea || '—' }}</dd></div>
-            <div><dt>SelectBox</dt><dd>{{ select || '—' }}</dd></div>
-            <div><dt>CheckBoxes</dt><dd>{{ checks.join(', ') || '—' }}</dd></div>
-            <div><dt>RadioButtons</dt><dd>{{ radios }}</dd></div>
-            <div><dt>ToggleButton</dt><dd>{{ toggle }}</dd></div>
+            <div>
+              <dt>TextBox</dt>
+              <dd>{{ text || '—' }}</dd>
+            </div>
+            <div>
+              <dt>TextArea</dt>
+              <dd>{{ textarea || '—' }}</dd>
+            </div>
+            <div>
+              <dt>SelectBox</dt>
+              <dd>{{ select || '—' }}</dd>
+            </div>
+            <div>
+              <dt>CheckBoxes</dt>
+              <dd>{{ checks.join(', ') || '—' }}</dd>
+            </div>
+            <div>
+              <dt>RadioButtons</dt>
+              <dd>{{ radios }}</dd>
+            </div>
+            <div>
+              <dt>ToggleButton</dt>
+              <dd>{{ toggle }}</dd>
+            </div>
           </dl>
         </template>
         <template #tabBContents>
@@ -398,18 +416,19 @@ const formState = () => JSON.stringify({
 
     <DemoSection
       id="slidedownui"
-      :sources="[{ label: 'SlideDownUi', path: componentSource('SlideDownUi') }]"
+      :sources="[
+        { label: 'SlideDownUi', path: componentSource('SlideDownUi') },
+      ]"
       title="SlideDownUi"
       description="アコーディオン。summary スロットが見出し、デフォルトスロットが中身。"
       :code="CODE.slideDown"
     >
       <div :class="$style.narrow">
         <SlideDownUi>
-          <template #trigger>
-            配送について
-          </template>
+          <template #trigger> 配送について </template>
           <p :class="$style.plain">
-            ご注文から 3 営業日以内に発送します。離島の場合は追加で日数をいただきます。
+            ご注文から 3
+            営業日以内に発送します。離島の場合は追加で日数をいただきます。
           </p>
         </SlideDownUi>
       </div>
@@ -422,13 +441,8 @@ const formState = () => JSON.stringify({
       description="トリガーをクリックすると中身を表示する。contentAlignment で表示位置を調整。"
       :code="CODE.dropdown"
     >
-      <DropdownUi
-        contentAlignment="left"
-        contentsWidth="16rem"
-      >
-        <template #trigger>
-          メニュー
-        </template>
+      <DropdownUi contentAlignment="left" contentsWidth="16rem">
+        <template #trigger> メニュー </template>
         <template #contents>
           <ul :class="$style.menu">
             <li>プロフィール</li>
@@ -446,10 +460,7 @@ const formState = () => JSON.stringify({
       description="isShown で表示を制御し、closeModal イベントで閉じる。表示中は背面のスクロールをロック。"
       :code="CODE.modal"
     >
-      <BasicButton
-        buttonType="button"
-        @click="isModalShown = true"
-      >
+      <BasicButton buttonType="button" @click="isModalShown = true">
         モーダルを開く
       </BasicButton>
       <ModalBox
@@ -458,18 +469,11 @@ const formState = () => JSON.stringify({
         @closeModal="isModalShown = false"
       >
         <template #header>
-          <h4 :class="$style.modalHeading">
-            確認
-          </h4>
+          <h4 :class="$style.modalHeading">確認</h4>
         </template>
-        <p :class="$style.plain">
-          この内容で送信します。よろしいですか？
-        </p>
+        <p :class="$style.plain">この内容で送信します。よろしいですか？</p>
         <template #footer>
-          <BasicButton
-            buttonType="button"
-            @click="isModalShown = false"
-          >
+          <BasicButton buttonType="button" @click="isModalShown = false">
             閉じる
           </BasicButton>
         </template>
@@ -491,23 +495,22 @@ const formState = () => JSON.stringify({
           isRequired
         />
         <p :class="$style.note">
-          modelValue: {{ date || '—' }} / フォーム全体の有効状態: {{ validationManager.isAllValid.value }}
+          modelValue: {{ date || '—' }} / フォーム全体の有効状態:
+          {{ validationManager.isAllValid.value }}
         </p>
       </div>
     </DemoSection>
 
     <DemoSection
       id="daterangepicker"
-      :sources="[{ label: 'DateRangePicker', path: componentSource('DateRangePicker') }]"
+      :sources="[
+        { label: 'DateRangePicker', path: componentSource('DateRangePicker') },
+      ]"
       title="DateRangePicker"
       description="開始日と終了日の組。互いの min / max が自動で連動する。"
       :code="CODE.dateRange"
     >
-      <DateRangePicker
-        v-model="dateRange"
-        name="period"
-        size="small"
-      />
+      <DateRangePicker v-model="dateRange" name="period" size="small" />
       <p :class="$style.note">
         modelValue: {{ dateRange.start || '—' }} 〜 {{ dateRange.end || '—' }}
       </p>
@@ -515,7 +518,9 @@ const formState = () => JSON.stringify({
 
     <DemoSection
       id="dateselector"
-      :sources="[{ label: 'DateSelector', path: componentSource('DateSelector') }]"
+      :sources="[
+        { label: 'DateSelector', path: componentSource('DateSelector') },
+      ]"
       title="DateSelector"
       description="年 / 月 / 日をプルダウンで選ぶ形式。生年月日など過去日の入力向け。"
       :code="CODE.dateSelector"
@@ -526,9 +531,7 @@ const formState = () => JSON.stringify({
         :formValidationManager="validationManager"
         isRequired
       />
-      <p :class="$style.note">
-        modelValue: {{ birthday || '—' }}
-      </p>
+      <p :class="$style.note">modelValue: {{ birthday || '—' }}</p>
     </DemoSection>
 
     <DemoSection
@@ -543,25 +546,33 @@ const formState = () => JSON.stringify({
         <TextButton
           text="削除"
           variant="caution"
-          @click="() => { date = ''; birthday = ''; dateRange = { start: '', end: '' } }"
+          @click="
+            () => {
+              date = ''
+              birthday = ''
+              dateRange = { start: '', end: '' }
+            }
+          "
         />
-        <TextButton
-          text="無効"
-          isDisabled
-        />
+        <TextButton text="無効" isDisabled />
       </div>
     </DemoSection>
 
     <DemoSection
       id="misc"
-      :sources="[{ label: 'ErrorMessage', path: componentSource('ErrorMessage') }, { label: 'LoadingSpinner', path: componentSource('LoadingSpinner') }]"
+      :sources="[
+        { label: 'ErrorMessage', path: componentSource('ErrorMessage') },
+        { label: 'LoadingSpinner', path: componentSource('LoadingSpinner') },
+      ]"
       title="ErrorMessage / LoadingSpinner"
       description="ErrorMessage は position: absolute の吹き出しなので position: relative な親の中に置く。LoadingSpinner はサイズを持たない SVG なので、親要素で大きさと色を指定する。"
       :code="CODE.misc"
     >
       <div :class="$style.row">
         <div :class="$style.errorAnchor">
-          <ErrorMessage :errorMessages="['必須項目です', '半角英字で入力してください']" />
+          <ErrorMessage
+            :errorMessages="['必須項目です', '半角英字で入力してください']"
+          />
         </div>
         <span :class="$style.spinner">
           <LoadingSpinner />
@@ -573,9 +584,9 @@ const formState = () => JSON.stringify({
 
 <style lang="scss" module>
 .page {
-  display       : flex;
+  display: flex;
   flex-direction: column;
-  gap           : 1.5rem;
+  gap: 1.5rem;
 }
 
 .narrow {
@@ -583,37 +594,37 @@ const formState = () => JSON.stringify({
 }
 
 .errorAnchor {
-  position         : relative;
-  inline-size      : 18rem;
-  block-size       : 1.5rem;
-  margin-block-end : 3.5rem;
+  position: relative;
+  inline-size: 18rem;
+  block-size: 1.5rem;
+  margin-block-end: 3.5rem;
 }
 
 .spinner {
-  display    : block;
+  display: block;
   inline-size: 2rem;
-  block-size : 2rem;
-  fill       : var(--primary-color);
+  block-size: 2rem;
+  fill: var(--primary-color);
 }
 
 .row {
-  display    : flex;
+  display: flex;
   align-items: center;
-  flex-wrap  : wrap;
-  gap        : 1.5rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
 }
 
 .state {
-  display       : flex;
+  display: flex;
   flex-direction: column;
-  gap           : .25rem;
-  margin        : 0;
-  font-size     : var(--fs-small);
+  gap: 0.25rem;
+  margin: 0;
+  font-size: var(--fs-small);
 
   > div {
-    display              : grid;
+    display: grid;
     grid-template-columns: 10rem 1fr;
-    gap                  : .5rem;
+    gap: 0.5rem;
   }
 
   dt {
@@ -621,38 +632,38 @@ const formState = () => JSON.stringify({
   }
 
   dd {
-    margin    : 0;
+    margin: 0;
     word-break: break-word;
   }
 }
 
 .json {
-  overflow        : auto;
-  margin          : 0;
-  padding         : .75rem;
-  border-radius   : var(--radius-size);
+  overflow: auto;
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: var(--radius-size);
   background-color: var(--code-background);
-  color           : var(--code-text);
-  font-size       : var(--fs-smaller);
+  color: var(--code-text);
+  font-size: var(--fs-smaller);
 }
 
 .plain {
-  margin   : 0;
+  margin: 0;
   font-size: var(--fs-small);
 }
 
 .note {
-  margin   : var(--sp-medium) 0 0;
-  color    : var(--gray);
+  margin: var(--sp-medium) 0 0;
+  color: var(--gray);
   font-size: var(--fs-smaller);
 }
 
 .menu {
-  padding: .5rem 0;
+  padding: 0.5rem 0;
 
   > li {
-    padding: .4rem .75rem;
-    cursor : pointer;
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
 
     &:hover {
       background-color: var(--sub-color);
@@ -661,7 +672,7 @@ const formState = () => JSON.stringify({
 }
 
 .modalHeading {
-  margin   : 0;
+  margin: 0;
   font-size: 1rem;
 }
 </style>

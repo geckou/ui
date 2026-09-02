@@ -46,7 +46,9 @@ export function DropdownUi({
   useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
       const root = rootRef.current
-      if (root && !root.contains(event.target as Node)) closeDropDown()
+      if (root && !root.contains(event.target as Node)) {
+        closeDropDown()
+      }
     }
 
     document.addEventListener('pointerdown', handleClickOutside)
@@ -55,7 +57,9 @@ export function DropdownUi({
 
   useEffect(() => {
     const contentsElement = contentsRef.current
-    if (!contentsElement) return
+    if (!contentsElement) {
+      return
+    }
 
     const updateContentsHeight = () =>
       setContentsHeight(contentsElement.clientHeight)

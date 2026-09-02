@@ -1,26 +1,31 @@
 <script setup lang="ts">
-import type {
-  StateVariation,
-  BaseStyle,
-} from '@/types'
+import type { StateVariation, BaseStyle } from '@/types'
 import { computed } from 'vue'
 import { COLOR } from '@/const'
 
-const emit = defineEmits<{ (e: 'update:modelValue', newValue: boolean): void }>()
+const emit = defineEmits<{
+  (e: 'update:modelValue', newValue: boolean): void
+}>()
 
-const props = withDefaults(defineProps<{
-  name: string
-  label?: Record<'on' | 'off', string>
-  modelValue?: boolean
-  isDisabled?: boolean
-  cssStyle?: Record<StateVariation, {
-    on: BaseStyle
-    off: BaseStyle
-  }>
-}>(), {
-  label   : () => ({ on: 'ON', off: 'OFF' }),
-  cssStyle: undefined,
-})
+const props = withDefaults(
+  defineProps<{
+    name: string
+    label?: Record<'on' | 'off', string>
+    modelValue?: boolean
+    isDisabled?: boolean
+    cssStyle?: Record<
+      StateVariation,
+      {
+        on: BaseStyle
+        off: BaseStyle
+      }
+    >
+  }>(),
+  {
+    label: () => ({ on: 'ON', off: 'OFF' }),
+    cssStyle: undefined,
+  }
+)
 
 const isChecked = computed<boolean>({
   get: () => props.modelValue ?? false,
@@ -35,16 +40,18 @@ const maxTextLength = computed<number>(() => {
 })
 
 const currentCssStyle = computed(() => {
-  const cssStyle = props.isDisabled ? props.cssStyle?.disabled : props.cssStyle?.default
+  const cssStyle = props.isDisabled
+    ? props.cssStyle?.disabled
+    : props.cssStyle?.default
 
   return {
     on: {
       ...{
-        textColor      : props.isDisabled ? COLOR.lightGray : COLOR.white,
+        textColor: props.isDisabled ? COLOR.lightGray : COLOR.white,
         backgroundColor: props.isDisabled ? COLOR.gray : COLOR.blue,
-        border         : {
-          color : props.isDisabled ? COLOR.gray : COLOR.blue,
-          size  : '1px',
+        border: {
+          color: props.isDisabled ? COLOR.gray : COLOR.blue,
+          size: '1px',
           radius: '.25rem',
         },
         boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
@@ -53,11 +60,11 @@ const currentCssStyle = computed(() => {
     },
     off: {
       ...{
-        textColor      : props.isDisabled ? COLOR.gray : COLOR.white,
+        textColor: props.isDisabled ? COLOR.gray : COLOR.white,
         backgroundColor: props.isDisabled ? COLOR.lightGray : COLOR.darkGray,
-        border         : {
-          color : props.isDisabled ? COLOR.gray : COLOR.darkGray,
-          size  : '1px',
+        border: {
+          color: props.isDisabled ? COLOR.gray : COLOR.darkGray,
+          size: '1px',
           radius: '.25rem',
         },
         boxShadow: '0 0 0 0 rgba(0, 0, 0, 0)',
@@ -74,7 +81,7 @@ const currentCssStyle = computed(() => {
     :style="{
       '--text-color': currentCssStyle?.textColor,
       '--border-color': currentCssStyle?.border?.color,
-      '--border-size' : currentCssStyle?.border?.size,
+      '--border-size': currentCssStyle?.border?.size,
       '--radius-size': currentCssStyle?.border?.radius,
       '--background-color': currentCssStyle?.backgroundColor,
       '--box-shadow': currentCssStyle?.boxShadow,
@@ -82,16 +89,16 @@ const currentCssStyle = computed(() => {
     }"
     type="button"
     :disabled="isDisabled"
-    @click.stop="!isDisabled ? isChecked = !isChecked : null"
+    @click.stop="!isDisabled ? (isChecked = !isChecked) : null"
   >
-    <input 
+    <input
       v-model="isChecked"
       type="checkbox"
       :name="name"
       :disabled="isDisabled"
-    >
+    />
     <div
-      :class="[$style.text, {[$style.on]: isChecked}]"
+      :class="[$style.text, { [$style.on]: isChecked }]"
       :data-on="label.on"
       :data-off="label.off"
     />
@@ -103,16 +110,17 @@ const currentCssStyle = computed(() => {
 :is(.toggle_button) {
   --handle-size: 1.5rem;
   --padding-size: calc(var(--border-size) + 2px);
-  --duration: .15s;
-  inline-size: calc(var(--inline-size) + var(--handle-size) + (var(--padding-size) * 2));
+  --duration: 0.15s;
+  inline-size: calc(
+    var(--inline-size) + var(--handle-size) + (var(--padding-size) * 2)
+  );
   position: relative;
   display: inline-block;
   padding: var(--padding-size);
   background-color: var(--background-color);
   box-shadow:
     0 0 0 var(--border-size) var(--border-color) inset,
-    var(--box-shadow)
-  ;
+    var(--box-shadow);
   border: none;
   border-radius: var(--radius-size);
   cursor: pointer;
@@ -156,8 +164,12 @@ const currentCssStyle = computed(() => {
   }
 
   &.on {
-    &:before { opacity: 0; }
-    &:after { opacity: 1; }
+    &:before {
+      opacity: 0;
+    }
+    &:after {
+      opacity: 1;
+    }
 
     + .handle {
       left: calc(100% - var(--handle-size));

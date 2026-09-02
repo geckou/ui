@@ -30,7 +30,7 @@ export function TabUI({
   panelSlots,
 }: Props) {
   const [activeTab, setActiveTab] = useState(
-    () => tabs[initialIndex]?.key ?? tabs[0]?.key ?? '',
+    () => tabs[initialIndex]?.key ?? tabs[0]?.key ?? ''
   )
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
   // 複数インスタンス設置時の DOM id 重複を避ける
@@ -49,10 +49,14 @@ export function TabUI({
   // 無関係にタブが切り替わり複数設置時に競合した。タブリストにフォーカスが
   // あるときだけ矢印キーで移動する（WAI-ARIA Tabs パターン）
   const handleKeydown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+      return
+    }
 
     const currentIndex = tabs.findIndex((tab) => tab.key === activeTab)
-    if (currentIndex === -1) return
+    if (currentIndex === -1) {
+      return
+    }
 
     event.preventDefault()
     const lastIndex = tabs.length - 1

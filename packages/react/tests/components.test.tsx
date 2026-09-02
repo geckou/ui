@@ -672,7 +672,12 @@ describe('DatePicker のタイムゾーン', () => {
     const dateInput = () =>
       (container.querySelector('input[type="date"]') as HTMLInputElement).value
 
-    for (const value of ['2026-08-25', '2026-01-01', '2026-12-31', '2024-02-29']) {
+    for (const value of [
+      '2026-08-25',
+      '2026-01-01',
+      '2026-12-31',
+      '2024-02-29',
+    ]) {
       act(() => {
         root.render(<DatePicker name="date" value={value} />)
       })

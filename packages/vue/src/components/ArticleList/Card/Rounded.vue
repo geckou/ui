@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { returnAuthor } from '@/scripts/utils'
-import type {
-  Article,
-  Category,
-  PostConfig,
-} from '@/types'
+import type { Article, Category, PostConfig } from '@/types'
 import CardContainer from '@/components/ArticleList/Parts/CardContainer.vue'
 import ThumbnailImage from '@/components/ArticleList/Parts/ThumbnailImage.vue'
 import AuthorInfo from '@/components/ArticleList/Parts/AuthorInfo.vue'
@@ -27,19 +23,19 @@ defineProps<{
   <CardContainer
     v-if="article"
     :path="path"
-    :class="[$style.container, {[$style.pickup]: isPickUpItem}]"
+    :class="[$style.container, { [$style.pickup]: isPickUpItem }]"
   >
     <ThumbnailImage
       :article="article"
       :class="$style.thumbnail"
-      style="grid-area: thumbnail;"
+      style="grid-area: thumbnail"
     />
     <PostedDate
       :date="article.date"
       formatString="yy.M.d"
       color="var(--gray)"
       :class="$style.date"
-      style="grid-area: date;"
+      style="grid-area: date"
     />
     <AuthorInfo
       v-if="postConfig.author && returnAuthor(article)"
@@ -49,12 +45,12 @@ defineProps<{
       }"
       :class="$style.author"
       direction="row-reverse"
-      style="grid-area: author;"
+      style="grid-area: author"
     />
     <CardHeading
       :heading="article.title.rendered"
       :class="$style.heading"
-      style="grid-area: heading;"
+      style="grid-area: heading"
     />
     <CategoryList
       v-if="postConfig.category && article.categories"
@@ -63,12 +59,12 @@ defineProps<{
       :icon="{ color: 'var(--main-color)' }"
       :label="{
         backgroundColor: 'var(--main-color)',
-        color : 'var(--white)',
-        fontSize : 'small',
-        shape : 'rounded',
+        color: 'var(--white)',
+        fontSize: 'small',
+        shape: 'rounded',
       }"
       :class="$style.category"
-      style="grid-area: category;"
+      style="grid-area: category"
     />
     <TagList
       v-if="postConfig.tag"
@@ -76,17 +72,17 @@ defineProps<{
       :icon="{ color: 'var(--sub-color)' }"
       :label="{
         backgroundColor: 'var(--sub-color)',
-        color : 'var(--white)',
-        fontSize : 'smaller',
-        shape : 'rounded',
+        color: 'var(--white)',
+        fontSize: 'smaller',
+        shape: 'rounded',
       }"
       :class="$style.tag"
-      style="grid-area: tag;"
+      style="grid-area: tag"
     />
     <ExcerptText
       :excerpt="article.excerpt.rendered"
       :class="$style.excerpt"
-      style="grid-area: excerpt;"
+      style="grid-area: excerpt"
     />
   </CardContainer>
 </template>
@@ -96,8 +92,8 @@ defineProps<{
 
 .container {
   grid-template-columns: auto auto;
-  grid-template-rows   : auto auto auto auto auto 1fr;
-  grid-template-areas  : 
+  grid-template-rows: auto auto auto auto auto 1fr;
+  grid-template-areas:
     'thumbnail thumbnail'
     'date author'
     'heading heading'
@@ -108,15 +104,15 @@ defineProps<{
 
   &:hover {
     .thumbnail {
-      opacity: .8;
+      opacity: 0.8;
     }
   }
 
   &.pickup {
     @include media('tablet') {
       grid-template-columns: calc((100% - var(--sp-larger) * 2) / 3) auto auto;
-      grid-template-rows   : auto auto auto auto 1fr;
-      grid-template-areas  : 
+      grid-template-rows: auto auto auto auto 1fr;
+      grid-template-areas:
         'thumbnail date author'
         'thumbnail heading heading'
         'thumbnail category category'
@@ -141,9 +137,9 @@ defineProps<{
 }
 
 .thumbnail {
-  transition      : opacity var(--animation-duration);
+  transition: opacity var(--animation-duration);
   margin-block-end: var(--sp-small);
-  
+
   > * {
     border-radius: var(--bv);
   }

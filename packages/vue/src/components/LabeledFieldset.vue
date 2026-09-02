@@ -5,10 +5,7 @@ defineProps<{ isDisabled?: boolean }>()
 <template>
   <div :class="$style.fieldset">
     <fieldset :disabled="isDisabled">
-      <legend
-        v-if="$slots.label"
-        :class="$style.legend"
-      >
+      <legend v-if="$slots.label" :class="$style.legend">
         <slot name="label" />
       </legend>
       <div :class="$style.input">
@@ -21,7 +18,7 @@ defineProps<{ isDisabled?: boolean }>()
 <style lang="scss" module>
 :is(.fieldset) {
   display: grid;
-  gap: .5rem;
+  gap: 0.5rem;
 
   > fieldset {
     display: contents;

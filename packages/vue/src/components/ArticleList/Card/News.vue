@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { returnAuthor } from '@/scripts/utils'
-import type {
-  Article,
-  Category,
-  PostConfig,
-} from '@/types'
+import type { Article, Category, PostConfig } from '@/types'
 import CardContainer from '@/components/ArticleList/Parts/CardContainer.vue'
 import ThumbnailImage from '@/components/ArticleList/Parts/ThumbnailImage.vue'
 import AuthorInfo from '@/components/ArticleList/Parts/AuthorInfo.vue'
@@ -23,69 +19,65 @@ defineProps<{
 </script>
 
 <template>
-  <CardContainer
-    v-if="article"
-    :class="$style.container"
-    :path="path"
-  >
+  <CardContainer v-if="article" :class="$style.container" :path="path">
     <ThumbnailImage
       :article="article"
       :aspectRatio="{
         desktop: '16/9',
-        tablet : '4/3',
-        mobile : '1/1',
+        tablet: '4/3',
+        mobile: '1/1',
       }"
       :class="$style.thumbnail"
-      style="grid-area: thumbnail;"
+      style="grid-area: thumbnail"
     />
     <PostedDate
       :date="article.date"
       :class="$style.date"
       formatString="yyyy.M.d"
       fontWeight="bold"
-      style="grid-area: date;"
+      style="grid-area: date"
     />
     <CategoryList
       v-if="postConfig.category && article.categories"
       :categoryIds="article.categories"
       :categoryData="categories"
       :label="{
-        color : 'var(--main-color)',
+        color: 'var(--main-color)',
         fontSize: 'small',
       }"
       :class="$style.category"
-      style="grid-area: category;"
+      style="grid-area: category"
     />
     <CardHeading
       :heading="article.title.rendered"
       :class="$style.heading"
-      style="grid-area: heading;"
+      style="grid-area: heading"
     />
     <ExcerptText
       :excerpt="article.excerpt.rendered"
       :class="$style.excerpt"
-      style="grid-area: excerpt;"
+      style="grid-area: excerpt"
     />
     <TagList
       v-if="postConfig.tag"
       :article="article"
       :label="{
-        color : 'var(--gray)',
+        color: 'var(--gray)',
         fontSize: 'small',
       }"
       :class="$style.tag"
-      style="grid-area: tag;"
+      style="grid-area: tag"
     />
     <AuthorInfo
       v-if="postConfig.author && returnAuthor(article)"
       :name="returnAuthor(article)?.name"
       :class="$style.author"
       :text="{
-        color : 'var(--gray)',
+        color: 'var(--gray)',
         preposition: 'by',
       }"
       fontSize="small"
-      style="grid-area: author;"
+      style="grid-area: author"
     />
   </CardContainer>
 </template>
@@ -94,24 +86,24 @@ defineProps<{
 @use '@/assets/scss/mixin' as *;
 
 .container {
-  grid-template-columns  : 28% auto auto;
-  grid-template-rows     : auto auto 1fr auto;
-  grid-template-areas    : 
+  grid-template-columns: 28% auto auto;
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
     'thumbnail date category'
     'thumbnail heading heading'
     'thumbnail excerpt excerpt'
     'thumbnail tag author';
-  row-gap   : var(--sp-small);
+  row-gap: var(--sp-small);
   column-gap: var(--sp-large);
 
   @include media('mobile') {
     grid-template-columns: 33% auto auto;
-    column-gap           : var(--sp-medium);
+    column-gap: var(--sp-medium);
   }
 
   &:hover {
     .thumbnail {
-      opacity: .8;
+      opacity: 0.8;
     }
   }
 }

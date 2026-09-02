@@ -19,15 +19,20 @@ export function isEmptyValue(value: InputValue): boolean {
  * 毎回同じ source / flags のクローンを作って判定する。
  * 新規インスタンスは lastIndex = 0 なので、sticky の意味を保ったまま結果が安定する。
  */
-export function runValidates(value: InputValue, validates: Validates): string[] {
-  if (isEmptyValue(value)) return []
+export function runValidates(
+  value: InputValue,
+  validates: Validates
+): string[] {
+  if (isEmptyValue(value)) {
+    return []
+  }
 
   return validates
-    .filter(validate => {
+    .filter((validate) => {
       const regex = new RegExp(validate.regex.source, validate.regex.flags)
       return !regex.test(String(value))
     })
-    .map(validate => validate.message)
+    .map((validate) => validate.message)
 }
 
 /**
@@ -36,11 +41,13 @@ export function runValidates(value: InputValue, validates: Validates): string[] 
  */
 export function validateInputValue(
   value: InputValue,
-  options: { isRequired?: boolean; validates?: Validates } = {},
+  options: { isRequired?: boolean; validates?: Validates } = {}
 ): string[] {
   const { isRequired = false, validates = [] } = options
 
-  if (isEmptyValue(value)) return isRequired ? [MESSAGES.required] : []
+  if (isEmptyValue(value)) {
+    return isRequired ? [MESSAGES.required] : []
+  }
 
   return runValidates(value, validates)
 }
