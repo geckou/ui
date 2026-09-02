@@ -41,8 +41,9 @@ yarn add @geckou/ui-vue
 yarn add @geckou/ui-react
 ```
 
-ソースをそのまま配布しているため、`next.config.ts` の `transpilePackages` に
-`'@geckou/ui-react'` を追加する。詳細は [パッケージの README](packages/react)。
+ビルド済みの JavaScript と型定義（`dist/`）を配布しているため、`transpilePackages` は要らない。
+Tailwind CSS は **v4 が必須**（コンポーネントが v4 の記法を直書きしている）。
+詳細は [パッケージの README](packages/react)。
 
 ### core を単体で使う
 

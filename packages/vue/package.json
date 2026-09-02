@@ -1,6 +1,6 @@
 {
   "name": "@geckou/ui-vue",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A set of reusable Vue UI components (forms & article lists) by Geckou",
   "main": "dist/index.js",
   "module": "dist/index.js",
