@@ -5,13 +5,20 @@ let previousOverflow = ''
 </script>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, watch } from 'vue'
+import { nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import IconClose from '@/components/Icon/CloseIcon.vue'
+import { nextUniqueId } from '@/scripts/unique-id'
 
 const props = defineProps<{
   isShown: boolean
   size?: 'small' | 'medium' | 'large'
+  /** header スロットを使わない場合のダイアログ名 */
+  ariaLabel?: string
 }>()
+
+// React 版（ModalBox.tsx）と揃える。header があればそれを名前にする
+const headerId = nextUniqueId('modal_header')
+const dialog = ref<HTMLElement | null>(null)
 
 const emit = defineEmits<{ (e: 'closeModal', state: boolean): void }>()
 
@@ -58,6 +65,18 @@ watch(
   }
 )
 
+// 開いたらダイアログへフォーカスを移す（背後の要素は inert で触れなくする）
+watch(
+  () => props.isShown,
+  async (newVal) => {
+    if (!newVal) {
+      return
+    }
+    await nextTick()
+    dialog.value?.focus()
+  }
+)
+
 onMounted(() => toggleScrollLock(props.isShown))
 onBeforeUnmount(() => closeModal())
 </script>
@@ -65,10 +84,20 @@ onBeforeUnmount(() => closeModal())
 <template>
   <div
     :class="[$style.overlay, { [$style.display]: isShown }]"
+    :aria-hidden="!isShown"
+    :inert="!isShown"
     @click.self="closeModal"
   >
-    <div :class="[$style.container, $style[size ?? 'medium']]">
-      <header v-if="$slots.header" :class="$style.header">
+    <div
+      ref="dialog"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="$slots.header ? headerId : undefined"
+      :aria-label="$slots.header ? undefined : (ariaLabel ?? 'ダイアログ')"
+      :tabindex="-1"
+      :class="[$style.container, $style[size ?? 'medium']]"
+    >
+      <header v-if="$slots.header" :id="headerId" :class="$style.header">
         <slot name="header" />
       </header>
       <div :class="$style.contents">

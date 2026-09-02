@@ -168,11 +168,13 @@ describe('TabUI', () => {
     { key: 'tabB', label: 'B' },
   ]
 
+  // DOM id はインスタンスごとの接頭辞付き（`<uid>_tab_<key>`）
   const selectedKey = (wrapper: ReturnType<typeof mount>) =>
     wrapper
       .findAll('[role="tab"]')
       .find((tab) => tab.attributes('aria-selected') === 'true')
       ?.attributes('id')
+      ?.replace(/^.*_tab_/, '')
 
   // 修正前は window 全体に keydown を張っていたため、フォーカス位置と無関係に
   // タブが切り替わり、1 画面に複数設置すると互いに競合した

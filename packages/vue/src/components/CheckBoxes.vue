@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Option, SelectValue, CheckBoxStyleForEachStatus } from '@/types'
 import { computed, ref, watch } from 'vue'
+import { MESSAGES } from '@geckou/ui-core'
 import LabeledCheckbox from '@/components/LabeledCheckbox.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import { COLOR } from '@/const'
@@ -40,7 +41,9 @@ const checkedValues = computed<SelectValue[]>(() =>
 const errorMessage = ref('')
 const validateInput = () =>
   (errorMessage.value =
-    props.isRequired && checkedValues.value.length === 0 ? '必須項目です' : '')
+    props.isRequired && checkedValues.value.length === 0
+      ? MESSAGES.required
+      : '')
 
 watch(
   checkedValues,
@@ -89,10 +92,13 @@ const errorColor = {
 
 <template>
   <div :class="$style.check_boxes">
-    <template v-for="(checkBox, index) in checkBoxes" :key="checkBox.label">
+    <!-- key / name にラベルを使うとラベル重複で衝突する。
+         name はグループ共通にし、区別は value で行う（ネイティブ送信の作法） -->
+    <template v-for="(checkBox, index) in checkBoxes" :key="checkBox.value">
       <LabeledCheckbox
         v-model="checkBoxes[index].checked"
-        :name="checkBox.label"
+        :name="name"
+        :value="checkBox.value"
         :label="checkBox.label"
         :isDisabled="props.isDisabled"
         :cssStyle="props.cssStyle"

@@ -1,14 +1,9 @@
-<script lang="ts">
-// name を省略したときの既定値に使う連番。
-// <script setup> の中はインスタンスごとに実行されるため、モジュールスコープはこちらに置く
-let groupSequence = 0
-</script>
-
 <script setup lang="ts">
 import type { Option, RadioButtonStyleForEachStatus } from '@/types'
 import { ref, watch, computed } from 'vue'
-import { isEmptyValue } from '@geckou/ui-core'
+import { isEmptyValue, MESSAGES } from '@geckou/ui-core'
 import { COLOR } from '@/const'
+import { nextUniqueId } from '@/scripts/unique-id'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 
 type SelectValue = string | number
@@ -33,9 +28,8 @@ const props = withDefaults(
   }
 )
 
-// name を省略したときの一意な既定値。
-// vue 3.5 の useId は peerDependencies（^3.0.0）を満たさないため使わない
-const groupName = props.name ?? `radio_group_${++groupSequence}`
+// name を省略したときの一意な既定値
+const groupName = props.name ?? nextUniqueId('radio_group')
 
 const errorMessages = ref<Array<string>>([])
 
@@ -67,7 +61,7 @@ const validateValue = () => {
   // 未選択の判定は truthy ではなく「空かどうか」で行う。
   // SelectValue は string | number なので、0 は正当な選択値
   if (isEmptyValue(selectedValue.value) && props.isRequired) {
-    errorMessages.value.push('必須項目です')
+    errorMessages.value.push(MESSAGES.required)
   }
 }
 

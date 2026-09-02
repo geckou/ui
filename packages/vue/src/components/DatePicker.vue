@@ -163,6 +163,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
     <input
       v-model="dateObject.year"
       placeholder="年"
+      :aria-label="`${name}の年`"
       maxlength="4"
       type="text"
       :disabled="isDisabled"
@@ -171,6 +172,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
     <input
       v-model="dateObject.month"
       placeholder="月"
+      :aria-label="`${name}の月`"
       maxlength="2"
       type="text"
       :disabled="isDisabled"
@@ -180,6 +182,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       v-if="type === 'date'"
       v-model="dateObject.day"
       placeholder="日"
+      :aria-label="`${name}の日`"
       maxlength="2"
       type="text"
       :disabled="isDisabled"

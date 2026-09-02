@@ -11,12 +11,15 @@ const emit = defineEmits<{
 const props = withDefaults(
   defineProps<{
     name: string
+    /** ネイティブ送信で使う値。同じ name のグループで区別するために渡す */
+    value?: string | number
     modelValue?: boolean
     isDisabled?: boolean
     cssStyle?: CheckBoxStyleForEachStatus
     isDisableAnimation?: boolean
   }>(),
   {
+    value: undefined,
     cssStyle: undefined,
   }
 )
@@ -64,6 +67,7 @@ const currentCssStyle = computed(() => {
       v-model="isChecked"
       type="checkbox"
       :name="name"
+      :value="value"
       :disabled="isDisabled"
     />
     <div :class="$style.check_container">

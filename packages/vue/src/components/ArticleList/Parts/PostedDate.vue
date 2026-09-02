@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { format, parseISO } from 'date-fns'
 
 const props = withDefaults(
@@ -10,14 +11,16 @@ const props = withDefaults(
     fontWeight?: string
   }>(),
   {
-    formatString: 'yyyy/mm/dd',
+    // date-fns の mm は「分」。日付の書式は MM（月）
+    formatString: 'yyyy/MM/dd',
     color: 'var(--text-color)',
     fontSize: 'small',
     fontWeight: 'normal',
   }
 )
 
-const parsedDate = parseISO(props.date)
+// date が差し替わったら追従させる
+const parsedDate = computed(() => parseISO(props.date))
 </script>
 
 <template>

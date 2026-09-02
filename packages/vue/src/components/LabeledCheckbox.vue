@@ -12,12 +12,15 @@ const props = withDefaults(
   defineProps<{
     name: string
     label: string
+    /** ネイティブ送信で使う値（CheckBox へそのまま渡す） */
+    value?: string | number
     modelValue?: boolean
     isDisabled?: boolean
     cssStyle?: CheckBoxStyleForEachStatus
     isDisableAnimation?: boolean
   }>(),
   {
+    value: undefined,
     cssStyle: undefined,
   }
 )
@@ -47,6 +50,7 @@ const currentCssStyle = computed(() => {
     <CheckBox
       v-model="isChecked"
       :name="name"
+      :value="value"
       :isDisabled="isDisabled"
       :cssStyle="cssStyle"
       :isDisableAnimation="isDisableAnimation"

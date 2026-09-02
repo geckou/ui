@@ -137,6 +137,7 @@ export function DatePicker({
       <input
         value={dateObject.year}
         placeholder="年"
+        aria-label={`${name}の年`}
         maxLength={4}
         type="text"
         disabled={isDisabled}
@@ -147,6 +148,7 @@ export function DatePicker({
       <input
         value={dateObject.month}
         placeholder="月"
+        aria-label={`${name}の月`}
         maxLength={2}
         type="text"
         disabled={isDisabled}
@@ -158,6 +160,7 @@ export function DatePicker({
         <input
           value={dateObject.day}
           placeholder="日"
+          aria-label={`${name}の日`}
           maxLength={2}
           type="text"
           disabled={isDisabled}
