@@ -144,7 +144,7 @@ onBeforeUnmount(() => {
   background-color: var(--white);
   border-radius: var(--radius-small);
   cursor: auto;
-  filter: drop-shadow(0 0 6px var(--shadow-color));
+  filter: drop-shadow(0 0 6px var(--shadow-color, rgba(21, 20, 58, 0.12)));
   position: relative;
 
   &.small {
@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
   }
 
   &.large {
-    max-inline-size: var(--contents-max-width);
+    max-inline-size: var(--contents-max-width, 1440px);
   }
 }
 
@@ -219,14 +219,14 @@ onBeforeUnmount(() => {
   inline-size: 100dvw;
   block-size: 100dvh;
   padding: var(--sp-larger);
-  background: var(--overlay-color);
+  background: var(--overlay-color, rgba(0, 8, 26, 0.5));
   background-blend-mode: multiply;
   backdrop-filter: blur(4px);
   opacity: 0;
   transition: opacity 0.1s linear;
   pointer-events: none;
   position: fixed;
-  z-index: var(--z-index-overlay);
+  z-index: var(--z-index-overlay, 90);
   top: 0;
   left: 0;
   cursor: pointer;
@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
   &.display {
     opacity: 1;
     pointer-events: auto;
-    z-index: calc(var(--z-index-nav) + 1);
+    z-index: calc(var(--z-index-nav, 70) + 1);
   }
 }
 </style>

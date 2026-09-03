@@ -92,7 +92,7 @@ const CODE = {
         { label: 'SlideDownUi', path: componentSource('SlideDownUi') },
       ]"
       title="SlideDownUi"
-      description="アコーディオン。summary スロットが見出し、デフォルトスロットが中身。"
+      description="アコーディオン。trigger スロットが見出し、デフォルトスロットが中身。"
       :code="CODE.slideDown"
     >
       <div :class="$style.narrow">

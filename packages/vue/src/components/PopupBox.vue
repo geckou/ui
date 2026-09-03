@@ -60,11 +60,17 @@ defineExpose({
 <style lang="scss" module>
 .x {
   &-left {
-    left: max(calc((100vw - var(--contents-max-width)) / 2), var(--sp-medium));
+    left: max(
+      calc((100vw - var(--contents-max-width, 1440px)) / 2),
+      var(--sp-medium)
+    );
   }
 
   &-right {
-    right: max(calc((100vw - var(--contents-max-width)) / 2), var(--sp-medium));
+    right: max(
+      calc((100vw - var(--contents-max-width, 1440px)) / 2),
+      var(--sp-medium)
+    );
   }
 
   &-center {
@@ -75,7 +81,7 @@ defineExpose({
 
 .y {
   &-top {
-    top: calc(var(--global-header-height) - var(--sp-small));
+    top: calc(var(--global-header-height, 0px) - var(--sp-small));
   }
 
   &-bottom {
@@ -101,7 +107,7 @@ defineExpose({
   transition: transform, opacity;
   transition-duration: var(--transition-duration);
   pointer-events: none;
-  z-index: var(--z-index-overlay);
+  z-index: var(--z-index-overlay, 90);
 
   &.show {
     opacity: 1;

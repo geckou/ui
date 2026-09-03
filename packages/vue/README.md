@@ -14,7 +14,8 @@ Vue 3 用の再利用可能な UI コンポーネント集。
 yarn add @geckou/ui-vue
 ```
 
-Vue 本体は同梱していません。プロジェクト側の Vue 3.0 以上を使います（`peerDependencies`）。
+Vue 本体は同梱していません。プロジェクト側の Vue 3.5 以上を使います（`peerDependencies`）。
+3.5 未満では `onScopeDispose(fn, true)` と `useId()` が無いため動きません。
 
 ## Usage
 
@@ -247,13 +248,33 @@ const articles = ref<any[]>([])
 | `modelValue`       | `string \| number`          | ✅       | -                  | テキストボックスの値                           |
 | `name`             | `string`                    | ✅       | -                  | `name`属性                                     |
 | `cssStyle`         | `InputBoxStyleForEachStatus`| ❌       | -                  | テキストボックスのスタイル                     |
-| `type`             | `string`                    | ❌       | `text`             | テキストボックスのタイプ                       |
+| `inputType`        | `string`                    | ❌       | `text`             | `input` の `type` 属性                         |
 | `isDisabled`       | `boolean`                   | ❌       | `false`            | テキストボックスの活性/非活性                  |
 | `isRequired`       | `boolean`                   | ❌       | `false`            | 必須項目かどうか                               |
 | `maxLength`        | `number`                    | ❌       | `30`               | 最大入力文字数                                 |
 | `autocomplete`     | `string`                    | ❌       | `off`              | `autocomplete`属性                             |
 | `validates`        | `Validates[]`               | ❌       | `[]`               | バリデーションの設定                           |
 
+
+## Design tokens
+
+コンポーネントは以下の CSS カスタムプロパティを読む。**すべてフォールバック付き**なので、
+定義しなくても壊れないが、プロジェクトの配色・余白に合わせるなら `:root` で定義する。
+
+| トークン | 既定値 | 使う場所 |
+|---|---|---|
+| `--overlay-color` | `rgba(0, 8, 26, 0.5)` | ModalBox の背面 |
+| `--shadow-color` | `rgba(21, 20, 58, 0.12)` | ModalBox の drop-shadow |
+| `--z-index-overlay` | `90` | ModalBox / PopupBox の重なり |
+| `--z-index-nav` | `70` | ModalBox の閉じるボタン（+1 で重ねる） |
+| `--contents-max-width` | `1440px` | ModalBox の最大幅、PopupBox の左右位置 |
+| `--global-header-height` | `0px` | PopupBox の上端 |
+| `--mobile-lower-width` | `430px` | PopupBox の最大幅 |
+| `--small-icon-size` | `0.9375rem` | ArticleList のアイコン |
+| `--medium-icon-size` | `1.125rem` | アイコン全般（`mixin.scss` の既定） |
+
+配色・余白（`--primary-color` / `--text-color` / `--sp-*` / `--bv` 等）は
+デモの `demo/styles/base.scss` を参照。
 
 ## License
 

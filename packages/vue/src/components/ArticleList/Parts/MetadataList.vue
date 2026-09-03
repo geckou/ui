@@ -53,8 +53,8 @@ const iconName = props.icon.name === 'FolderIcon' ? FolderIcon : TagIcon
         '--icon-color': icon.color,
         '--icon-size':
           icon.size === 'small'
-            ? 'var(--small-icon-size)'
-            : 'var(--medium-icon-size)',
+            ? 'var(--small-icon-size, 0.9375rem)'
+            : 'var(--medium-icon-size, 1.125rem)',
       }"
     />
     <ul :class="$style.list">
