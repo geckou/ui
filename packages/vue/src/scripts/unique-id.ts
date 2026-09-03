@@ -15,7 +15,9 @@ let sequence = 0
 export function nextUniqueId(prefix: string): string {
   const id = useId()
 
-  if (id) return `${prefix}_${id}`
+  if (id) {
+    return `${prefix}_${id}`
+  }
 
   sequence += 1
 
