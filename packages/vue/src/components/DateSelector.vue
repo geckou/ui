@@ -22,10 +22,15 @@ const props = withDefaults(
     isRequired?: boolean
     formValidationManager?: FormValidationManager | null
     type?: 'date' | 'month'
+    /** 選べる年の下限・上限。既定は「今年 -100 〜 今年 -14」（生年月日向け） */
+    minYear?: number
+    maxYear?: number
   }>(),
   {
     formValidationManager: null,
     type: 'date',
+    minYear: undefined,
+    maxYear: undefined,
   }
 )
 
@@ -36,12 +41,13 @@ const birthday: Ref<DateParts> = ref({
 })
 
 const yearsOptions = computed(() => {
-  const today = new Date()
-  const maxYear = today.getFullYear() - 100
-  const currentYear = today.getFullYear() - 14
-  const years = Array.from({ length: currentYear - maxYear + 1 }, (_, i) =>
-    (maxYear + i).toString()
-  )
+  // 範囲を固定にすると、外れた value を渡されたとき select が空表示になる
+  const thisYear = new Date().getFullYear()
+  const from = props.minYear ?? thisYear - 100
+  const to = props.maxYear ?? thisYear - 14
+  const length = Math.max(to - from + 1, 0)
+  const years = Array.from({ length }, (_, i) => (from + i).toString())
+
   return years.map((year) => ({ label: year, value: year }))
 })
 

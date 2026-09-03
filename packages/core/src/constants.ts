@@ -79,4 +79,5 @@ export const MESSAGES = {
   monthOutOfRange: '月は01から12の間で入力してください',
   dayOutOfRange: (maxDay: number) =>
     `日は01から${maxDay}の間で入力してください`,
+  startAfterEnd: '開始日は終了日より前にしてください',
 }

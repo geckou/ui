@@ -4,6 +4,8 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import CheckBoxes from '@/components/CheckBoxes.vue'
 import CheckButton from '@/components/CheckButton.vue'
+import DatePicker from '@/components/DatePicker.vue'
+import DateRangePicker from '@/components/DateRangePicker.vue'
 import DateSelector from '@/components/DateSelector.vue'
 import InputBox from '@/components/InputBox.vue'
 import ModalBox from '@/components/ModalBox.vue'
@@ -48,6 +50,24 @@ describe('DateSelector', () => {
         .findAll('select')
         .map((select) => (select.element as HTMLSelectElement).value)
     ).toEqual(['2000', '12', '31'])
+  })
+
+  // 回帰: 年の範囲が「今年-100 〜 今年-14」固定で、外れた value を渡すと
+  // select が空表示になっていた
+  it('minYear / maxYear で年の範囲を変えられる', () => {
+    const wrapper = mount(DateSelector, {
+      props: {
+        name: 'publishedOn',
+        modelValue: '2026-05-20',
+        minYear: 2020,
+        maxYear: 2030,
+      },
+    })
+
+    const yearSelect = wrapper.find('select').element as HTMLSelectElement
+
+    expect(yearSelect.value).toBe('2026')
+    expect(yearSelect.options.length).toBe(12)
   })
 
   // 回帰: name / required が DOM に出ておらず、ネイティブ送信で値が送られなかった
@@ -721,5 +741,131 @@ describe('閉じた開閉コンテンツはキーボードで触れない', () =
     await wrapper.find('button').trigger('click')
 
     expect(wrapper.find('button').attributes('aria-expanded')).toBe('true')
+  })
+})
+
+describe('DatePicker', () => {
+  const byLabel = (wrapper: ReturnType<typeof mount>, label: string) =>
+    wrapper.find(`input[aria-label="${label}"]`)
+
+  it('年月日欄の不正な値をエラーとして出し、manager にも無効を伝える', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DatePicker, {
+      props: {
+        name: 'startedOn',
+        modelValue: '',
+        formValidationManager: manager,
+      },
+    })
+
+    await byLabel(wrapper, 'startedOnの年').setValue('2024')
+    await byLabel(wrapper, 'startedOnの月').setValue('13')
+    await byLabel(wrapper, 'startedOnの日').setValue('01')
+
+    expect(wrapper.text()).toContain('月は01から12の間で入力してください')
+    expect(manager.isAllValid.value).toBe(false)
+  })
+
+  it('正しい値に直すと有効に戻る', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DatePicker, {
+      props: {
+        name: 'startedOn',
+        modelValue: '',
+        formValidationManager: manager,
+      },
+    })
+
+    await byLabel(wrapper, 'startedOnの年').setValue('2024')
+    await byLabel(wrapper, 'startedOnの月').setValue('13')
+    await byLabel(wrapper, 'startedOnの日').setValue('01')
+    expect(manager.isAllValid.value).toBe(false)
+
+    await byLabel(wrapper, 'startedOnの月').setValue('12')
+
+    expect(manager.isAllValid.value).toBe(true)
+  })
+
+  it('必須で空なら無効', async () => {
+    const manager = new FormValidationManager()
+    mount(DatePicker, {
+      props: {
+        name: 'startedOn',
+        modelValue: '',
+        isRequired: true,
+        formValidationManager: manager,
+      },
+    })
+
+    await nextTick()
+
+    expect(manager.isAllValid.value).toBe(false)
+  })
+
+  it('min / max をネイティブ入力へ渡す', () => {
+    const wrapper = mount(DatePicker, {
+      props: {
+        name: 'startedOn',
+        modelValue: '',
+        minDate: '2024-01-01',
+        maxDate: '2024-12-31',
+      },
+    })
+
+    const native = wrapper.find('input[type="date"]')
+
+    expect(native.attributes('min')).toBe('2024-01-01')
+    expect(native.attributes('max')).toBe('2024-12-31')
+  })
+})
+
+describe('DateRangePicker', () => {
+  // 回帰: min / max はネイティブ入力にしか効かず、年月日欄から
+  // 開始 > 終了 を入力しても検証されなかった
+  it('開始 > 終了ならエラーを出し、manager にも無効を伝える', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DateRangePicker, {
+      props: {
+        name: 'period',
+        modelValue: { start: '2024-05-01', end: '2024-04-01' },
+        formValidationManager: manager,
+      },
+    })
+
+    await nextTick()
+
+    expect(wrapper.text()).toContain('開始日は終了日より前にしてください')
+    expect(manager.isAllValid.value).toBe(false)
+  })
+
+  it('開始 <= 終了なら有効', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DateRangePicker, {
+      props: {
+        name: 'period',
+        modelValue: { start: '2024-04-01', end: '2024-05-01' },
+        formValidationManager: manager,
+      },
+    })
+
+    await nextTick()
+
+    expect(wrapper.text()).not.toContain('開始日は終了日より前にしてください')
+    expect(manager.isAllValid.value).toBe(true)
+  })
+
+  it('片方だけならエラーにしない', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DateRangePicker, {
+      props: {
+        name: 'period',
+        modelValue: { start: '2024-05-01', end: '' },
+        formValidationManager: manager,
+      },
+    })
+
+    await nextTick()
+
+    expect(wrapper.text()).not.toContain('開始日は終了日より前にしてください')
   })
 })

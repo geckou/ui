@@ -106,6 +106,12 @@ export function composeDateValue(
     return ''
   }
 
+  // 数字でない入力（'ab' 等）を pad(Number(part)) に通すと '2024-NaN-01' のような
+  // 日付でない文字列ができる。組み立てられないなら空文字を返す
+  if (parts.some((part) => !Number.isFinite(Number(part)))) {
+    return ''
+  }
+
   const [yearPart, ...rest] = parts
 
   return [yearPart, ...rest.map((part) => pad(Number(part)))].join('-')

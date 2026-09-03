@@ -2,7 +2,10 @@
 
 import type { CSSProperties } from 'react'
 import type { FormValidationStore } from '@geckou/ui-core'
+import { MESSAGES } from '@geckou/ui-core'
 import { DatePicker } from './DatePicker'
+import { ErrorMessage } from './ErrorMessage'
+import { useRegisterValidation } from '../hooks/useFormValidation'
 import { COLOR } from '../constants'
 
 export type DateRange = {
@@ -43,6 +46,12 @@ export function DateRangePicker({
   size = 'medium',
   type = 'date',
 }: Props) {
+  // min / max はネイティブの入力にしか効かないので、年月日欄から
+  // 開始 > 終了 を入力しても弾かれない。ここで範囲そのものを検証する
+  const isRangeValid = !(value.start && value.end && value.start > value.end)
+
+  useRegisterValidation(formValidationStore, `${name}Range`, isRangeValid)
+
   const handleStartChange = (newValue: string) =>
     onChange?.({ start: newValue, end: value.end })
 
@@ -57,7 +66,7 @@ export function DateRangePicker({
   return (
     <div
       style={style}
-      className="flex bg-(--range-background-color) [&>*]:flex-auto [&>*]:rounded-none! [&>*:first-child]:rounded-s-[calc(var(--bv,0.375rem)/2)]! [&>*:last-child]:rounded-e-[calc(var(--bv,0.375rem)/2)]! [&>*:not(:last-child)]:border-e [&>*:not(:last-child)]:border-(--range-border-color)"
+      className="relative flex bg-(--range-background-color) [&>*]:flex-auto [&>*]:rounded-none! [&>*:first-child]:rounded-s-[calc(var(--bv,0.375rem)/2)]! [&>*:last-child]:rounded-e-[calc(var(--bv,0.375rem)/2)]! [&>*:not(:last-child)]:border-e [&>*:not(:last-child)]:border-(--range-border-color)"
     >
       <DatePicker
         name={`${name}Start`}
@@ -87,6 +96,9 @@ export function DateRangePicker({
         size={size}
         type={type}
         onChange={handleEndChange}
+      />
+      <ErrorMessage
+        errorMessages={isRangeValid ? undefined : [MESSAGES.startAfterEnd]}
       />
     </div>
   )

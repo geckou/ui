@@ -912,6 +912,58 @@ describe('formValidationStore との接続', () => {
 })
 
 describe('Vue 版との API 統一', () => {
+  // 回帰: min / max はネイティブ入力にしか効かず、年月日欄から
+  // 開始 > 終了 を入力しても検証されなかった
+  it('DateRangePicker: 開始 > 終了なら範囲エラーを出す', () => {
+    act(() => {
+      root.render(
+        <DateRangePicker
+          name="period"
+          value={{ start: '2024-05-01', end: '2024-04-01' }}
+        />
+      )
+    })
+
+    expect(container.textContent).toContain(
+      '開始日は終了日より前にしてください'
+    )
+
+    act(() => {
+      root.render(
+        <DateRangePicker
+          name="period"
+          value={{ start: '2024-04-01', end: '2024-05-01' }}
+        />
+      )
+    })
+
+    expect(container.textContent).not.toContain(
+      '開始日は終了日より前にしてください'
+    )
+  })
+
+  // 回帰: 年の範囲が「今年-100 〜 今年-14」固定で、外れた value を渡すと
+  // select が空表示になっていた
+  it('DateSelector: minYear / maxYear で年の範囲を変えられる', () => {
+    act(() => {
+      root.render(
+        <DateSelector
+          name="publishedOn"
+          value="2026-05-20"
+          minYear={2020}
+          maxYear={2030}
+        />
+      )
+    })
+
+    const yearSelect = container.querySelector<HTMLSelectElement>(
+      'select[name="publishedOn-year"]'
+    )!
+
+    expect(yearSelect.value).toBe('2026')
+    expect(yearSelect.options.length).toBe(12)
+  })
+
   // 回帰: isRequired が required 属性を付けるだけで、Vue 版が出す
   // 「必須項目です」の ErrorMessage が無かった
   it('RadioButtons: 必須で未選択なら必須エラーを出す', () => {
