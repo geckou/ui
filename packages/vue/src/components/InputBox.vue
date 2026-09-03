@@ -4,7 +4,7 @@ import type {
   InputBoxStyle,
   InputBoxStyleForEachStatus,
 } from '@/types'
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import { INPUT_BOX_DEFAULT_STYLES } from '@/const'
 
 const props = defineProps<{
@@ -27,51 +27,63 @@ const currentCssStyle = computed<InputBoxStyle>(
 )
 const currentState = ref<StateVariation>('default')
 
-const checkElementState = (el: Element | null | undefined) => {
-  if (!el) {
+type FormControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+
+// 最初の 1 要素だけで判定すると、複数のコントロールを持つ入力
+// （DatePicker の隠し date input + 年月日欄、DateSelector の 3 つの select）で
+// 配色が誤る。全てのコントロールを集めて判定する
+const checkElementState = (controls: FormControl[]) => {
+  if (controls.length === 0) {
     return (currentState.value = 'default')
   }
-  if (el.matches(':disabled')) {
+  if (controls.every((control) => control.matches(':disabled'))) {
     return (currentState.value = 'disabled')
   }
-  if (el.matches(':focus')) {
+  if (controls.some((control) => control.matches(':focus'))) {
     return (currentState.value = 'focus')
   }
-  if (el.tagName.toLowerCase() === 'select') {
-    return (currentState.value =
-      (el as HTMLSelectElement).required && !(el as HTMLSelectElement).value
-        ? 'error'
-        : 'valid')
-  }
-  if (props.isErrored || el.matches(':invalid')) {
+  if (
+    props.isErrored ||
+    controls.some((control) => control.matches(':invalid'))
+  ) {
     return (currentState.value = 'error')
   }
-  if (
-    el.matches(':valid') &&
-    el.matches(':not(:placeholder-shown)') &&
-    el.matches(':not(:invalid)')
-  ) {
+  // 充足の判定に :placeholder-shown は使えない（date / select は
+  // placeholder を持たないため、空でも「入力済み」と見なされる）
+  if (controls.every((control) => control.value !== '')) {
     return (currentState.value = 'valid')
   }
   return (currentState.value = 'default')
 }
 
 const updateState = () => {
-  const el = inputBox.value?.querySelector('input, textarea, select')
-  checkElementState(el)
+  checkElementState(
+    Array.from(
+      inputBox.value?.querySelectorAll<FormControl>(
+        'input, textarea, select'
+      ) ?? []
+    )
+  )
 }
+
+let observer: MutationObserver | null = null
 
 onMounted(() => {
   if (!inputBox.value) {
     return
   }
-  const observer = new MutationObserver(updateState)
+  observer = new MutationObserver(updateState)
   observer.observe(inputBox.value, { childList: true, subtree: true })
   inputBox.value.addEventListener('focusin', updateState, true)
   inputBox.value.addEventListener('blur', updateState, true)
 })
 
-onUnmounted(() => {
+// onUnmounted の時点では inputBox.value が null で解除が走らない。
+// observer も disconnect していなかったので、onBeforeUnmount で確実に片付ける
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  observer = null
+
   if (!inputBox.value) {
     return
   }

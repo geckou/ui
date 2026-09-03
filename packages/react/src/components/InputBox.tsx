@@ -30,35 +30,35 @@ export function InputBox({
   const isErroredRef = useRef(isErrored)
   isErroredRef.current = isErrored
 
+  // 最初の 1 要素だけで判定すると、複数のコントロールを持つ入力
+  // （DatePicker の隠し date input + 年月日欄、DateSelector の 3 つの select）で
+  // 配色が誤る。全てのコントロールを集めて判定する
   const updateState = useCallback(() => {
-    const el = inputBoxRef.current?.querySelector('input, textarea, select')
+    const controls = Array.from(
+      inputBoxRef.current?.querySelectorAll<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >('input, textarea, select') ?? []
+    )
 
-    if (!el) {
+    if (controls.length === 0) {
       return setCurrentState('default')
     }
-    if (el.matches(':disabled')) {
+    if (controls.every((control) => control.matches(':disabled'))) {
       return setCurrentState('disabled')
     }
-    if (el.matches(':focus')) {
+    if (controls.some((control) => control.matches(':focus'))) {
       return setCurrentState('focus')
     }
-
-    if (el.tagName.toLowerCase() === 'select') {
-      const select = el as HTMLSelectElement
-      return setCurrentState(
-        select.required && !select.value ? 'error' : 'valid'
-      )
-    }
-
-    if (isErroredRef.current || el.matches(':invalid')) {
+    if (
+      isErroredRef.current ||
+      controls.some((control) => control.matches(':invalid'))
+    ) {
       return setCurrentState('error')
     }
 
-    if (
-      el.matches(':valid') &&
-      el.matches(':not(:placeholder-shown)') &&
-      el.matches(':not(:invalid)')
-    ) {
+    // 充足の判定に :placeholder-shown は使えない（date / select は
+    // placeholder を持たないため、空でも「入力済み」と見なされる）
+    if (controls.every((control) => control.value !== '')) {
       return setCurrentState('valid')
     }
 

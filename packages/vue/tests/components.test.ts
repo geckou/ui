@@ -5,6 +5,7 @@ import { nextTick } from 'vue'
 import CheckBoxes from '@/components/CheckBoxes.vue'
 import CheckButton from '@/components/CheckButton.vue'
 import DateSelector from '@/components/DateSelector.vue'
+import InputBox from '@/components/InputBox.vue'
 import PostedDate from '@/components/ArticleList/Parts/PostedDate.vue'
 import DropdownUi from '@/components/DropdownUi.vue'
 import RadioButtons from '@/components/RadioButtons.vue'
@@ -552,5 +553,67 @@ describe('PostedDate', () => {
     const wrapper = mount(PostedDate, { props: { date: '2026-08-17' } })
 
     expect(wrapper.text()).toBe('2026/08/17')
+  })
+})
+
+describe('InputBox の状態判定', () => {
+  // 回帰: 最初の 1 要素だけを見ていたため、DatePicker のように
+  // 「隠しの date input + 年月日欄」を持つ入力で配色が誤っていた
+  const twoControls = {
+    slots: {
+      default: '<input type="date" /><input type="text" placeholder="年" />',
+    },
+    attachTo: document.body,
+  }
+
+  const stateOf = (wrapper: ReturnType<typeof mount>) =>
+    wrapper.attributes('style') ?? ''
+
+  it('2 つ目のコントロールにフォーカスしても focus 配色になる', async () => {
+    const wrapper = mount(InputBox, twoControls)
+    const before = stateOf(wrapper)
+
+    const text = wrapper.findAll('input')[1].element as HTMLInputElement
+    text.focus()
+    await wrapper.trigger('focusin')
+    await nextTick()
+
+    expect(stateOf(wrapper)).not.toBe(before)
+
+    wrapper.unmount()
+  })
+
+  it('空のまま blur しても valid 配色にしない', async () => {
+    const wrapper = mount(InputBox, twoControls)
+    const before = stateOf(wrapper)
+
+    const text = wrapper.findAll('input')[1].element as HTMLInputElement
+    text.focus()
+    await wrapper.trigger('focusin')
+    text.blur()
+    await wrapper.trigger('blur')
+    await nextTick()
+
+    expect(stateOf(wrapper)).toBe(before)
+
+    wrapper.unmount()
+  })
+
+  it('全て埋まったら valid 配色になる', async () => {
+    const wrapper = mount(InputBox, twoControls)
+    const before = stateOf(wrapper)
+
+    const [date, text] = wrapper
+      .findAll('input')
+      .map((input) => input.element as HTMLInputElement)
+    date.value = '2026-08-17'
+    text.value = '2026'
+
+    await wrapper.trigger('blur')
+    await nextTick()
+
+    expect(stateOf(wrapper)).not.toBe(before)
+
+    wrapper.unmount()
   })
 })
