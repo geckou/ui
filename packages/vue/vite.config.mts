@@ -36,12 +36,17 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['es'],
-      fileName: () => 'index.js',
     },
     rollupOptions: {
       // 利用側が持つものはバンドルしない
       external: ['vue', 'date-fns', /^@geckou\/ui-core/],
       output: {
+        // 単一バンドルだと、名前付き import でも全コンポーネントが利用側の
+        // バンドルに入る。ファイル構造を保って tree-shaking を効かせる
+        // （React 版と同じ方針）
+        preserveModules: true,
+        preserveModulesRoot: resolve(__dirname, 'src'),
+        entryFileNames: '[name].js',
         assetFileNames: 'style.css',
       },
     },

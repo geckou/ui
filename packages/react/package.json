@@ -47,7 +47,7 @@
     "prepublishOnly": "yarn build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit && tsc -p tsconfig.test.json"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

@@ -115,7 +115,7 @@ describe('TabUI', () => {
 })
 
 describe('DateSelector', () => {
-  it('月の変更で選択済みの日が範囲外になったらクランプされる', () => {
+  it('月の変更で選択済みの日が範囲外になったらクランプされる', async () => {
     const onChange = vi.fn()
     act(() => {
       root.render(<DateSelector name="birthday" onChange={onChange} />)
@@ -134,6 +134,8 @@ describe('DateSelector', () => {
     // 2000年はうるう年なので 02/29 にクランプ
     expect(selects()[2].value).toBe('29')
     expect(onChange).toHaveBeenLastCalledWith('2000-02-29')
+
+    await flushEffects()
   })
 
   it('親が value を空に戻すとリセットされる', () => {
@@ -152,6 +154,13 @@ describe('DateSelector', () => {
     expect(selects().map((s) => s.value)).toEqual(['', '', ''])
   })
 })
+
+// InputBox は MutationObserver / focusin で状態を更新するため、act() の
+// 同期ブロックを抜けたあと（マイクロタスク）に setState が走る。
+// テストの最後にここで流し込まないと「not wrapped in act」の警告が出る
+async function flushEffects() {
+  await act(async () => {})
+}
 
 function setInputValue(input: HTMLInputElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(
@@ -280,7 +289,7 @@ describe('TextBox のバリデーション', () => {
     expect(container.textContent).not.toContain('必須項目です')
   })
 
-  it('数値 0 でも validates が実行される', () => {
+  it('数値 0 でも validates が実行される', async () => {
     act(() => {
       root.render(
         <TextBox
@@ -292,6 +301,8 @@ describe('TextBox のバリデーション', () => {
     })
 
     expect(container.textContent).toContain('1以上を入力')
+
+    await flushEffects()
   })
 
   it('g フラグ付き RegExp でも連続検証の結果が安定する', () => {
@@ -338,13 +349,15 @@ describe('TextBox のバリデーション', () => {
     expect(container.textContent).toContain('先頭が foo ではありません')
   })
 
-  it('空文字は必須エラーになる', () => {
+  it('空文字は必須エラーになる', async () => {
     act(() => {
       root.render(<TextBox name="quantity" value="" isRequired />)
     })
 
     blur(container.querySelector('input')!)
     expect(container.textContent).toContain('必須項目です')
+
+    await flushEffects()
   })
 })
 
@@ -393,7 +406,7 @@ describe('SelectBox のバリデーション', () => {
     expect(onChange).toHaveBeenLastCalledWith(0)
   })
 
-  it('未選択は必須エラーになる', () => {
+  it('未選択は必須エラーになる', async () => {
     act(() => {
       root.render(
         <SelectBox name="count" options={options} value="" isRequired />
@@ -402,6 +415,8 @@ describe('SelectBox のバリデーション', () => {
 
     blur(container.querySelector('select')!)
     expect(container.textContent).toContain('必須項目です')
+
+    await flushEffects()
   })
 })
 
@@ -835,7 +850,7 @@ describe('formValidationStore との接続', () => {
     expect(valid()).toBe('false')
   })
 
-  it('年月日欄を正しい値に直すと isAllValid が true に戻る', () => {
+  it('年月日欄を正しい値に直すと isAllValid が true に戻る', async () => {
     act(() => {
       root.render(<Form isRequired={false} />)
     })
@@ -851,6 +866,8 @@ describe('formValidationStore との接続', () => {
     act(() => setInputValue(byLabel('startedOnの月'), '12'))
 
     expect(valid()).toBe('true')
+
+    await flushEffects()
   })
 
   it('必須でなければ空でも有効', () => {

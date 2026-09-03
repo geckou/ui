@@ -263,14 +263,18 @@ describe('TabUI', () => {
 
 describe('TextBox のバリデーション', () => {
   // v-model 相当。emit を受けて modelValue を戻さないと内部の値が更新されない
-  const mountTextBox = (props: Record<string, unknown>) => {
-    const wrapper = mount(TextBox, {
+  const mountTextBox = (props: { name: string } & Record<string, unknown>) => {
+    let wrapper: ReturnType<typeof mount<typeof TextBox>>
+
+    wrapper = mount(TextBox, {
       props: {
         ...props,
-        'onUpdate:modelValue': (newValue: unknown) =>
-          wrapper.setProps({ modelValue: newValue }),
+        'onUpdate:modelValue': (newValue: string | number): void => {
+          void wrapper.setProps({ modelValue: newValue })
+        },
       },
     })
+
     return wrapper
   }
 
