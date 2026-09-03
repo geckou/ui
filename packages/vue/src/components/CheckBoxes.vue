@@ -78,6 +78,24 @@ watch(
   }
 )
 
+// options を初期化時に一度だけ読むと、API から取ってから渡す形（後から差し替わる）で
+// 何も描画されない。差し替わったら作り直し、checked は現在の選択から引き直す
+watch(
+  () => props.options,
+  (newOptions) => {
+    const checked = new Set(checkedValues.value)
+
+    checkBoxes.value = newOptions.map((option) => ({
+      value: option.value,
+      label: option.label,
+      checked: props.modelValue
+        ? props.modelValue.includes(option.value)
+        : checked.has(option.value),
+    }))
+  },
+  { deep: true }
+)
+
 const errorColor = {
   ...(props.cssStyle?.error ?? {}),
   textColor: COLOR.white,

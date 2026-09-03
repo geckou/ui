@@ -63,7 +63,7 @@ defineExpose({ isOpenedContents })
       type="button"
       @click.prevent="toggleBox"
     >
-      <div class="width:100% text-align:left">
+      <div :class="$style.trigger_content">
         <slot name="trigger" />
       </div>
       <IconChevronDown v-if="!isHiddenArrow" :class="$style.icon" />
@@ -94,6 +94,11 @@ defineExpose({ isOpenedContents })
   100% {
     overflow: visible;
   }
+}
+
+.trigger_content {
+  inline-size: 100%;
+  text-align: start;
 }
 
 .trigger {

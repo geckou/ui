@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { format, parseISO } from 'date-fns'
+import { format, isValid, parseISO } from 'date-fns'
 
 const props = withDefaults(
   defineProps<{
@@ -21,6 +21,12 @@ const props = withDefaults(
 
 // date が差し替わったら追従させる
 const parsedDate = computed(() => parseISO(props.date))
+
+// 無効な date（空文字や取得元の欠損）を format に渡すと date-fns が
+// RangeError を投げ、一覧全体が描画されなくなる
+const formattedDate = computed(() =>
+  isValid(parsedDate.value) ? format(parsedDate.value, props.formatString) : ''
+)
 </script>
 
 <template>
@@ -32,7 +38,7 @@ const parsedDate = computed(() => parseISO(props.date))
       '--date-font-weight': fontWeight,
     }"
   >
-    {{ format(parsedDate, formatString) }}
+    {{ formattedDate }}
   </time>
 </template>
 

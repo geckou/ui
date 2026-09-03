@@ -2,8 +2,10 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
+import CheckBoxes from '@/components/CheckBoxes.vue'
 import CheckButton from '@/components/CheckButton.vue'
 import DateSelector from '@/components/DateSelector.vue'
+import PostedDate from '@/components/ArticleList/Parts/PostedDate.vue'
 import DropdownUi from '@/components/DropdownUi.vue'
 import RadioButtons from '@/components/RadioButtons.vue'
 import SelectBox from '@/components/SelectBox.vue'
@@ -496,5 +498,59 @@ describe('CheckButton', () => {
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([true])
 
     wrapper.unmount()
+  })
+})
+
+describe('CheckBoxes', () => {
+  const options = [
+    { label: '個人', value: 'personal' },
+    { label: '法人', value: 'corporate' },
+  ]
+
+  // 回帰: options を初期化時に一度しか読んでおらず、API から取ってから渡す形で
+  // 何も描画されなかった
+  it('options が後から渡されても描画に追従する', async () => {
+    const wrapper = mount(CheckBoxes, {
+      props: { name: 'kind', options: [] },
+    })
+
+    expect(wrapper.findAll('input[type="checkbox"]')).toHaveLength(0)
+
+    await wrapper.setProps({ options })
+
+    expect(wrapper.findAll('input[type="checkbox"]')).toHaveLength(2)
+    expect(wrapper.text()).toContain('法人')
+  })
+
+  it('options が差し替わっても選択状態は modelValue から引き直す', async () => {
+    const wrapper = mount(CheckBoxes, {
+      props: { name: 'kind', options, modelValue: ['corporate'] },
+    })
+
+    await wrapper.setProps({
+      options: [...options, { label: '団体', value: 'group' }],
+    })
+
+    const checked = wrapper
+      .findAll('input[type="checkbox"]')
+      .map((input) => (input.element as HTMLInputElement).checked)
+
+    expect(checked).toEqual([false, true, false])
+  })
+})
+
+describe('PostedDate', () => {
+  // 回帰: 無効な date を format に渡すと date-fns が RangeError を投げ、
+  // 一覧全体が描画されなくなっていた
+  it('無効な date でも throw せず空になる', () => {
+    const wrapper = mount(PostedDate, { props: { date: '' } })
+
+    expect(wrapper.text()).toBe('')
+  })
+
+  it('有効な date は書式どおりに描画する', () => {
+    const wrapper = mount(PostedDate, { props: { date: '2026-08-17' } })
+
+    expect(wrapper.text()).toBe('2026/08/17')
   })
 })

@@ -95,7 +95,7 @@ defineExpose({
   padding: var(--sp-medium);
   border-radius: var(--radius-small);
   inline-size: max-content;
-  max-inline-size: calc(var(--lower-mobile-size) / 2);
+  max-inline-size: calc(var(--mobile-lower-width, 430px) / 2);
   block-size: max-content;
   opacity: 0;
   transition: transform, opacity;
