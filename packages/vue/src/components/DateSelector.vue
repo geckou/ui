@@ -9,7 +9,8 @@ import TextButton from '@/components/TextButton.vue'
 
 const emit = defineEmits<{ (e: 'update:modelValue', newValue: string): void }>()
 
-type Date = {
+// グローバルの Date を型空間で隠さないよう DateParts にする
+type DateParts = {
   year: string
   month: string
   day?: string
@@ -28,7 +29,7 @@ const props = withDefaults(
   }
 )
 
-const birthday: Ref<Date> = ref({
+const birthday: Ref<DateParts> = ref({
   year: '',
   month: '',
   day: '',
@@ -119,7 +120,7 @@ const setValid = (isValid: boolean): void => {
 
 // 初期値の判定にも使う。watch だけに置くと、登録の時点（初回）は発火せず、
 // 初期値の入った必須項目が「無効」のまま残っていた
-const judgeValid = (value: Date): boolean => {
+const judgeValid = (value: DateParts): boolean => {
   const isFilled = Boolean(
     value.year && value.month && (props.type === 'month' || value.day)
   )

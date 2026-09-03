@@ -14,20 +14,10 @@ const props = withDefaults(
       background: string
       text: string
     }
-    cssStyle?: {
-      textColor: string
-      backgroundColor: string
-      border: {
-        color: string
-        size: string
-        radius: string
-      }
-    }
     initialIndex?: number
   }>(),
   {
     color: undefined,
-    cssStyle: undefined,
     initialIndex: 0,
   }
 )
@@ -81,6 +71,7 @@ const handleKeydown = (event: KeyboardEvent) => {
       :style="{
         '--active-color': color?.active || COLOR.blue,
         '--background-color': color?.background || 'transparent',
+        '--text-color': color?.text || 'inherit',
       }"
       role="tablist"
       @keydown="handleKeydown"
@@ -129,11 +120,13 @@ const handleKeydown = (event: KeyboardEvent) => {
     &[role='tab'] {
       border: none;
       background-color: transparent;
+      color: var(--text-color);
       font-size: 1rem;
       padding: 0.5rem 1rem;
       cursor: pointer;
 
       &.active {
+        color: var(--active-color);
         cursor: auto;
       }
     }

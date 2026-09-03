@@ -6,7 +6,9 @@ import type {
   RadioButtonStyleForEachStatus,
   SelectValue,
 } from '../types'
-import { useId } from 'react'
+import { useId, useState } from 'react'
+import { isEmptyValue, MESSAGES } from '@geckou/ui-core'
+import { ErrorMessage } from './ErrorMessage'
 import { COLOR } from '../constants'
 
 type Props = {
@@ -31,6 +33,13 @@ export function RadioButtons({
   isDisableAnimation,
 }: Props) {
   const selectedValue = value ?? ''
+  // Vue 版（RadioButtons.vue）と揃えて必須エラーを出す。
+  // Vue 側は watch なので、初回描画では出さず選択が動いてから判定する
+  const [isTouched, setIsTouched] = useState(false)
+  const errorMessages =
+    isTouched && isRequired && isEmptyValue(selectedValue)
+      ? [MESSAGES.required]
+      : undefined
   // Vue 版（@geckou/ui-vue）は option ごとに別の name を振っていたため、
   // ラジオグループとして機能しなかった（フォーム送信・キーボード操作）
   const generatedName = useId()
@@ -56,7 +65,7 @@ export function RadioButtons({
   } as CSSProperties
 
   return (
-    <div className="flex flex-wrap items-center gap-4">
+    <div className="relative flex flex-wrap items-center gap-4">
       <style>
         {
           '@keyframes uiRadioPop{0%{scale:1}10%{scale:.8}50%{scale:1.2}100%{scale:1}}'
@@ -82,13 +91,17 @@ export function RadioButtons({
               disabled={isDisabled}
               required={isRequired}
               checked={isChecked}
-              onChange={() => onChange?.(option.value)}
+              onChange={() => {
+                setIsTouched(true)
+                onChange?.(option.value)
+              }}
               className="sr-only"
             />
             <span>{option.label}</span>
           </label>
         )
       })}
+      <ErrorMessage errorMessages={errorMessages} />
     </div>
   )
 }

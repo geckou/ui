@@ -35,7 +35,8 @@ useClickOutside(root, () => closeDropDown())
 
 onMounted(() => updateContentsHeight())
 onUpdated(() => updateContentsHeight())
-defineExpose({ isContentsOpened })
+// React 版（DropdownUiHandle）と揃えて close も公開する
+defineExpose({ isContentsOpened, close: closeDropDown })
 </script>
 
 <template>

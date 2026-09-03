@@ -895,6 +895,32 @@ describe('formValidationStore との接続', () => {
 })
 
 describe('Vue 版との API 統一', () => {
+  // 回帰: isRequired が required 属性を付けるだけで、Vue 版が出す
+  // 「必須項目です」の ErrorMessage が無かった
+  it('RadioButtons: 必須で未選択なら必須エラーを出す', () => {
+    const options = [
+      { label: '個人', value: 'personal' },
+      { label: '法人', value: 'corporate' },
+    ]
+
+    act(() => {
+      root.render(<RadioButtons value="" options={options} isRequired />)
+    })
+
+    // 初回描画では出さない（Vue 版は watch で判定するため）
+    expect(container.textContent).not.toContain('必須項目です')
+
+    const radio = container.querySelectorAll<HTMLInputElement>(
+      'input[type="radio"]'
+    )[0]
+    act(() => radio.click())
+    act(() => {
+      root.render(<RadioButtons value="" options={options} isRequired />)
+    })
+
+    expect(container.textContent).toContain('必須項目です')
+  })
+
   it('DateRangePicker: value が {start, end}、name は <name>Start / <name>End', () => {
     const onChange = vi.fn()
 
