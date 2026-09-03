@@ -61,11 +61,15 @@ const currentCssStyle = computed(() => {
       '--duration': isDisableAnimation ? '0s' : '.3s',
     }"
     type="button"
+    :aria-label="name"
+    :aria-pressed="isChecked"
     @click.stop="!isDisabled ? (isChecked = !isChecked) : null"
   >
+    <!-- 値の送信専用。フォーカスできると Tab の停止がボタンと二重になるので外す -->
     <input
       v-model="isChecked"
       type="checkbox"
+      tabindex="-1"
       :name="name"
       :value="value"
       :disabled="isDisabled"

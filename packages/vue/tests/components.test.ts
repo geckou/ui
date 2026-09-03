@@ -6,6 +6,7 @@ import CheckBoxes from '@/components/CheckBoxes.vue'
 import CheckButton from '@/components/CheckButton.vue'
 import DateSelector from '@/components/DateSelector.vue'
 import InputBox from '@/components/InputBox.vue'
+import ModalBox from '@/components/ModalBox.vue'
 import PostedDate from '@/components/ArticleList/Parts/PostedDate.vue'
 import DropdownUi from '@/components/DropdownUi.vue'
 import RadioButtons from '@/components/RadioButtons.vue'
@@ -627,5 +628,94 @@ describe('InputBox の状態判定', () => {
     expect(stateOf(wrapper)).not.toBe(before)
 
     wrapper.unmount()
+  })
+})
+
+describe('ModalBox', () => {
+  // 回帰: 親が isShown=false にしたときと unmount 時にも emit しており、
+  // 親のハンドラが再入していた
+  it('自発的に閉じたときだけ close を emit する', async () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: true },
+      attachTo: document.body,
+    })
+
+    await wrapper.setProps({ isShown: false })
+    expect(wrapper.emitted('close')).toBeUndefined()
+
+    await wrapper.setProps({ isShown: true })
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.emitted('close')).toHaveLength(1)
+
+    // unmount 後は emitted() を取れないので、件数は解除前に控えておく
+    const emittedBeforeUnmount = wrapper.emitted('close')!.length
+    wrapper.unmount()
+    expect(emittedBeforeUnmount).toBe(1)
+  })
+
+  it('Escape で close を emit する', async () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: true },
+      attachTo: document.body,
+    })
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await nextTick()
+
+    expect(wrapper.emitted('close')).toHaveLength(1)
+
+    wrapper.unmount()
+  })
+
+  it('閉じたら開く前の要素へフォーカスを戻す', async () => {
+    const trigger = document.createElement('button')
+    document.body.appendChild(trigger)
+    trigger.focus()
+
+    const wrapper = mount(ModalBox, {
+      props: { isShown: false },
+      attachTo: document.body,
+    })
+
+    await wrapper.setProps({ isShown: true })
+    await nextTick()
+    expect(document.activeElement).not.toBe(trigger)
+
+    await wrapper.setProps({ isShown: false })
+    expect(document.activeElement).toBe(trigger)
+
+    wrapper.unmount()
+    trigger.remove()
+  })
+})
+
+describe('閉じた開閉コンテンツはキーボードで触れない', () => {
+  it('DropdownUi は閉状態で inert を付ける', async () => {
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'メニュー', contents: '<a href="#x">リンク</a>' },
+    })
+
+    const contents = wrapper.findAll('div').at(-2)!
+
+    expect(wrapper.find('button').attributes('aria-expanded')).toBe('false')
+    expect(wrapper.html()).toContain('inert')
+
+    await wrapper.find('button').trigger('click')
+
+    expect(wrapper.find('button').attributes('aria-expanded')).toBe('true')
+    expect(contents).toBeTruthy()
+  })
+
+  it('SlideDownUi は閉状態で inert を付ける', async () => {
+    const wrapper = mount(SlideDownUi, {
+      slots: { trigger: '開く', default: '<a href="#x">リンク</a>' },
+    })
+
+    expect(wrapper.find('button').attributes('aria-expanded')).toBe('false')
+    expect(wrapper.html()).toContain('inert')
+
+    await wrapper.find('button').trigger('click')
+
+    expect(wrapper.find('button').attributes('aria-expanded')).toBe('true')
   })
 })

@@ -167,6 +167,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       <select
         :value="birthday.year"
         :name="`${name}-year`"
+        :aria-label="`${name}の年`"
         :required="isRequired"
         :class="$style.year"
         @change="selectItem($event, 'year')"
@@ -186,6 +187,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       <select
         :value="birthday.month"
         :name="`${name}-month`"
+        :aria-label="`${name}の月`"
         :required="isRequired"
         @change="selectItem($event, 'month')"
       >
@@ -208,6 +210,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       <select
         :value="birthday.day"
         :name="`${name}-day`"
+        :aria-label="`${name}の日`"
         :required="isRequired"
         @change="selectItem($event, 'day')"
       >

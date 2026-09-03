@@ -56,11 +56,38 @@ export function ModalBox({
     }
   }, [isShown])
 
+  // 開く前にフォーカスしていた要素。閉じたらここへ戻す
+  // （戻さないとフォーカスが body に落ち、キーボード操作の位置を見失う）
+  const lastFocused = useRef<HTMLElement | null>(null)
+
   useEffect(() => {
     if (isShown) {
+      lastFocused.current = document.activeElement as HTMLElement | null
       dialogRef.current?.focus()
+
+      return
     }
+
+    lastFocused.current?.focus()
+    lastFocused.current = null
   }, [isShown])
+
+  // Escape で閉じる（role="dialog" は自前で実装する必要がある）
+  useEffect(() => {
+    if (!isShown) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isShown, onClose])
 
   return (
     <div

@@ -43,6 +43,7 @@ defineExpose({ isContentsOpened })
     <button
       :class="$style.button"
       :disabled="isDisabled"
+      :aria-expanded="isContentsOpened"
       type="button"
       :style="{
         '--trigger-color':
@@ -62,6 +63,7 @@ defineExpose({ isContentsOpened })
     <div
       v-if="$slots.contents"
       :class="$style.contents"
+      :inert="!isContentsOpened"
       :style="{
         boxShadow: isContentsOpened ? 'var(--box-shadow)' : 'none',
         blockSize: isContentsOpened ? `${contentsHeight}px` : 0,

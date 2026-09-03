@@ -34,7 +34,7 @@ const CODE = {
   modal: `<ModalBox
   :isShown="isModalShown"
   size="small"
-  @closeModal="isModalShown = false"
+  @close="isModalShown = false"
 >
   <template #header><h4>確認</h4></template>
   <p>この内容で送信します。</p>
@@ -129,7 +129,7 @@ const CODE = {
       id="modalbox"
       :sources="[{ label: 'ModalBox', path: componentSource('ModalBox') }]"
       title="ModalBox"
-      description="isShown で表示を制御し、closeModal イベントで閉じる。表示中は背面のスクロールをロック。"
+      description="isShown で表示を制御し、close イベントで閉じる。表示中は背面のスクロールをロック。"
       :code="CODE.modal"
     >
       <BasicButton buttonType="button" @click="isModalShown = true">
@@ -138,7 +138,7 @@ const CODE = {
       <ModalBox
         :isShown="isModalShown"
         size="small"
-        @closeModal="isModalShown = false"
+        @close="isModalShown = false"
       >
         <template #header>
           <h4 :class="$style.modalHeading">確認</h4>

@@ -520,6 +520,38 @@ describe('キーボードアクセシビリティ', () => {
     expect(button().getAttribute('aria-pressed')).toBe('true')
   })
 
+  it('ModalBox: Escape で閉じ、閉じたらトリガーへフォーカスが戻る', () => {
+    const onClose = vi.fn()
+    const trigger = document.createElement('button')
+    document.body.appendChild(trigger)
+    trigger.focus()
+
+    function renderModal(isShown: boolean) {
+      act(() => {
+        root.render(
+          <ModalBox isShown={isShown} onClose={onClose}>
+            <p>本文</p>
+          </ModalBox>
+        )
+      })
+    }
+
+    renderModal(false)
+    renderModal(true)
+
+    expect(document.activeElement).not.toBe(trigger)
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    })
+    expect(onClose).toHaveBeenCalledTimes(1)
+
+    renderModal(false)
+    expect(document.activeElement).toBe(trigger)
+
+    trigger.remove()
+  })
+
   it('ModalBox: 非表示時は inert、閉じるボタンにアクセシブル名がある', () => {
     function renderModal(isShown: boolean) {
       act(() => {

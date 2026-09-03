@@ -20,7 +20,8 @@ const props = defineProps<{
 const headerId = nextUniqueId('modal_header')
 const dialog = ref<HTMLElement | null>(null)
 
-const emit = defineEmits<{ (e: 'closeModal', state: boolean): void }>()
+// React 版（ModalBox.tsx の onClose）と揃える
+const emit = defineEmits<{ (e: 'close'): void }>()
 
 // setup は SSR でも走るため、document は参照した時点で解決する。
 // トップレベルで触ると Nuxt の SSR で「document is not defined」になる
@@ -49,36 +50,54 @@ const toggleScrollLock = (shouldLock: boolean) => {
   }
 }
 
-const closeModal = () => {
-  toggleScrollLock(false)
-  emit('closeModal', false)
-}
+// 自発的に閉じたときだけ emit する。親が isShown=false にしたときや unmount 時に
+// emit すると、親のハンドラが再入する
+const requestClose = () => emit('close')
 
+// スクロールロックは isShown の変化に追従させる（emit とは切り離す）
 watch(
   () => props.isShown,
-  (newVal) => {
-    if (newVal) {
-      toggleScrollLock(true)
-    } else {
-      closeModal()
-    }
-  }
+  (newVal) => toggleScrollLock(newVal)
 )
 
-// 開いたらダイアログへフォーカスを移す（背後の要素は inert で触れなくする）
+// 開いたらダイアログへフォーカスを移し、閉じたら開く前の要素へ戻す
+// （戻さないとフォーカスが body に落ち、キーボード操作の位置を見失う）
+let lastFocused: HTMLElement | null = null
+
 watch(
   () => props.isShown,
   async (newVal) => {
     if (!newVal) {
+      lastFocused?.focus()
+      lastFocused = null
       return
     }
+
+    lastFocused =
+      typeof document === 'undefined'
+        ? null
+        : (document.activeElement as HTMLElement | null)
     await nextTick()
     dialog.value?.focus()
   }
 )
 
-onMounted(() => toggleScrollLock(props.isShown))
-onBeforeUnmount(() => closeModal())
+// Escape で閉じる（role="dialog" は自前で実装する必要がある）
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (props.isShown && event.key === 'Escape') {
+    requestClose()
+  }
+}
+
+onMounted(() => {
+  toggleScrollLock(props.isShown)
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onBeforeUnmount(() => {
+  toggleScrollLock(false)
+  document.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <template>
@@ -86,7 +105,7 @@ onBeforeUnmount(() => closeModal())
     :class="[$style.overlay, { [$style.display]: isShown }]"
     :aria-hidden="!isShown"
     :inert="!isShown"
-    @click.self="closeModal"
+    @click.self="requestClose"
   >
     <div
       ref="dialog"
@@ -106,7 +125,7 @@ onBeforeUnmount(() => closeModal())
       <footer v-if="$slots.footer" :class="$style.footer">
         <slot name="footer" />
       </footer>
-      <button type="button" :class="$style.close_button" @click="closeModal">
+      <button type="button" :class="$style.close_button" @click="requestClose">
         <IconClose />
       </button>
     </div>

@@ -14,6 +14,7 @@ defineProps<{
 <template>
   <div
     v-show="errorMessages && errorMessages.length"
+    role="alert"
     :class="$style.error_messages"
     :style="{
       '--error-text-color': cssStyle?.textColor || '#fff',

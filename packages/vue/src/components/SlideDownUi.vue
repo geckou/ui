@@ -60,6 +60,7 @@ defineExpose({ isOpenedContents })
     <button
       :class="$style.trigger"
       :disabled="isDisabled"
+      :aria-expanded="isOpenedContents"
       type="button"
       @click.prevent="toggleBox"
     >
@@ -71,6 +72,7 @@ defineExpose({ isOpenedContents })
     <div
       :style="{ height: isOpenedContents ? `${contentsHeight}px` : 0 }"
       :class="$style.contents"
+      :inert="!isOpenedContents"
     >
       <div ref="contents" :class="$style.container">
         <slot />

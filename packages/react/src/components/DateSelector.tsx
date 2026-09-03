@@ -136,6 +136,7 @@ export function DateSelector({
         <select
           value={birthday.year}
           name={`${name}-year`}
+          aria-label={`${name}の年`}
           required={isRequired}
           onChange={(event) => selectItem('year', event.target.value)}
           className="w-[calc(5ch+var(--sp-medium,0.75rem)*2+var(--icon-medium,1.125rem))]! cursor-pointer p-[var(--sp-medium,0.75rem)]! pe-[calc(var(--sp-small,0.375rem)*2+var(--icon-medium,1.125rem))]!"
@@ -155,6 +156,7 @@ export function DateSelector({
         <select
           value={birthday.month}
           name={`${name}-month`}
+          aria-label={`${name}の月`}
           required={isRequired}
           onChange={(event) => selectItem('month', event.target.value)}
           className={selectClass}
@@ -179,6 +181,7 @@ export function DateSelector({
           <select
             value={birthday.day}
             name={`${name}-day`}
+            aria-label={`${name}の日`}
             required={isRequired}
             onChange={(event) => selectItem('day', event.target.value)}
             className={selectClass}
