@@ -45,6 +45,35 @@ describe('DateSelector', () => {
         .map((select) => (select.element as HTMLSelectElement).value)
     ).toEqual(['2000', '12', '31'])
   })
+
+  // 回帰: name / required が DOM に出ておらず、ネイティブ送信で値が送られなかった
+  it('各 select に name と required が出る', () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'birthday', modelValue: '', isRequired: true },
+    })
+
+    const selects = wrapper.findAll('select')
+
+    expect(selects.map((select) => select.attributes('name'))).toEqual([
+      'birthday-year',
+      'birthday-month',
+      'birthday-day',
+    ])
+
+    for (const select of selects) {
+      expect(select.attributes('required')).toBeDefined()
+    }
+  })
+
+  it('isRequired が false なら required は出ない', () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'birthday', modelValue: '' },
+    })
+
+    for (const select of wrapper.findAll('select')) {
+      expect(select.attributes('required')).toBeUndefined()
+    }
+  })
 })
 
 describe('RadioButtons', () => {
@@ -282,6 +311,19 @@ describe('TextBox のバリデーション', () => {
 
 describe('SelectBox', () => {
   // RadioButtons と同じ不具合。0 は正当な選択値なので未選択扱いにしない
+  // 回帰: :name が無く、必須 prop の name が DOM に出ていなかった
+  it('select に name が出る', () => {
+    const wrapper = mount(SelectBox, {
+      props: {
+        name: 'count',
+        modelValue: '',
+        options: [{ label: '1 個', value: 1 }],
+      },
+    })
+
+    expect(wrapper.find('select').attributes('name')).toBe('count')
+  })
+
   it('数値の 0 を選んでも必須エラーにしない', async () => {
     const wrapper = mount(SelectBox, {
       props: {

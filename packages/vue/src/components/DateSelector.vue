@@ -166,6 +166,8 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
     <div :class="[$style.selector_wrapper]" @click="openDropdown($event)">
       <select
         :value="birthday.year"
+        :name="`${name}-year`"
+        :required="isRequired"
         :class="$style.year"
         @change="selectItem($event, 'year')"
       >
@@ -181,7 +183,12 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       <KeyboardArrowDownIcon />
     </div>
     <div :class="[$style.selector_wrapper]" @click="openDropdown($event)">
-      <select :value="birthday.month" @change="selectItem($event, 'month')">
+      <select
+        :value="birthday.month"
+        :name="`${name}-month`"
+        :required="isRequired"
+        @change="selectItem($event, 'month')"
+      >
         <option disabled selected value="">月</option>
         <option
           v-for="month in monthOptions"
@@ -198,7 +205,12 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       :class="[$style.selector_wrapper]"
       @click="openDropdown($event)"
     >
-      <select :value="birthday.day" @change="selectItem($event, 'day')">
+      <select
+        :value="birthday.day"
+        :name="`${name}-day`"
+        :required="isRequired"
+        @change="selectItem($event, 'day')"
+      >
         <option disabled selected value="">日</option>
         <option v-for="day in dayOptions" :key="day.value" :value="day.value">
           {{ day.label }}
