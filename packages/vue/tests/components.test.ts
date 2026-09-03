@@ -97,7 +97,7 @@ describe('RadioButtons', () => {
       .map((input) => (input.element as HTMLInputElement).name)
 
     expect(new Set(names).size).toBe(1)
-    expect(names[0]).toMatch(/^radio_group_\d+$/)
+    expect(names[0]).toMatch(/^radio_group_.+$/)
   })
 
   it('name を渡すとそれを使う', () => {
@@ -112,14 +112,26 @@ describe('RadioButtons', () => {
     expect(names).toEqual(['contractType', 'contractType'])
   })
 
-  it('複数設置しても name が衝突しない', () => {
-    const first = mount(RadioButtons, { props: { modelValue: '', options } })
-    const second = mount(RadioButtons, { props: { modelValue: '', options } })
+  // id は useId() で採番する（SSR と client で一致させるため）。
+  // useId はアプリ単位で一意なので、同じアプリに複数置いた場合を検証する
+  // （別アプリ同士の衝突は app.config.idPrefix で分ける）
+  it('同じアプリに複数設置しても name が衝突しない', () => {
+    const wrapper = mount({
+      components: { RadioButtons },
+      data: () => ({ options }),
+      template: `
+        <div>
+          <RadioButtons :options="options" model-value="" />
+          <RadioButtons :options="options" model-value="" />
+        </div>
+      `,
+    })
 
-    const nameOf = (wrapper: ReturnType<typeof mount>) =>
-      (wrapper.find('input[type="radio"]').element as HTMLInputElement).name
+    const names = wrapper
+      .findAll('input[type="radio"]')
+      .map((input) => (input.element as HTMLInputElement).name)
 
-    expect(nameOf(first)).not.toBe(nameOf(second))
+    expect(new Set(names).size).toBe(2)
   })
 
   // 修正前は !selectedValue.value で判定しており、数値の 0 が未選択扱いになって

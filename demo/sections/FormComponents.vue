@@ -15,11 +15,12 @@ import ToggleButton from '@/components/ToggleButton.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import DatePicker from '@/components/DatePicker.vue'
 import DateRangePicker from '@/components/DateRangePicker.vue'
+import type { Option } from '@/types'
 import DateSelector from '@/components/DateSelector.vue'
 import { FormValidationManager } from '@/scripts/form-validation-manager'
 import { componentSource } from '~demo/data/repository'
 
-const SELECT_BOX_OPTIONS = [
+const SELECT_BOX_OPTIONS: Array<Option | Record<string, Option[]>> = [
   { label: '未選択', value: '' },
   { label: 'デザイン', value: 'design' },
   { label: 'エンジニアリング', value: 'engineering' },
