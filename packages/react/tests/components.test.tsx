@@ -785,6 +785,42 @@ describe('formValidationStore との接続', () => {
     expect(valid()).toBe('true')
   })
 
+  // 回帰: 年月日欄の不正値はエラー文言を出すだけで、登録する validity は
+  // 必須の空欄しか見ておらず isAllValid が true のままだった
+  it('年月日欄に不正な値を入れると isAllValid が false になる', () => {
+    act(() => {
+      root.render(<Form isRequired={false} />)
+    })
+    expect(valid()).toBe('true')
+
+    const byLabel = (label: string) =>
+      container.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!
+
+    act(() => setInputValue(byLabel('startedOnの年'), '2024'))
+    act(() => setInputValue(byLabel('startedOnの月'), '13'))
+    act(() => setInputValue(byLabel('startedOnの日'), '01'))
+
+    expect(valid()).toBe('false')
+  })
+
+  it('年月日欄を正しい値に直すと isAllValid が true に戻る', () => {
+    act(() => {
+      root.render(<Form isRequired={false} />)
+    })
+
+    const byLabel = (label: string) =>
+      container.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!
+
+    act(() => setInputValue(byLabel('startedOnの年'), '2024'))
+    act(() => setInputValue(byLabel('startedOnの月'), '13'))
+    act(() => setInputValue(byLabel('startedOnの日'), '01'))
+    expect(valid()).toBe('false')
+
+    act(() => setInputValue(byLabel('startedOnの月'), '12'))
+
+    expect(valid()).toBe('true')
+  })
+
   it('必須でなければ空でも有効', () => {
     act(() => {
       root.render(<Form isRequired={false} />)

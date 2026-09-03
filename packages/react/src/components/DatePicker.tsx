@@ -54,6 +54,8 @@ export function DatePicker({
       : { year: '', month: '', day: '' }
   )
   const [errorMessage, setErrorMessage] = useState('')
+  // 年月日欄（DateSelector）側の妥当性。カレンダー入力では常に true
+  const [isObjectValid, setIsObjectValid] = useState(true)
 
   // prop が実際に変わったときだけ同期する（内部編集を上書きしないため）
   const lastValueProp = useRef(value)
@@ -67,6 +69,8 @@ export function DatePicker({
     const normalized = value ? formatDateValue(value, type) : ''
     setDateValue(normalized)
     setDateObject(splitDate(normalized))
+    // 親から値を入れ直したら、前の不正入力の判定を持ち越さない
+    setIsObjectValid(true)
   }, [value, type])
 
   const validateInput = (newValue: string) => {
@@ -84,6 +88,8 @@ export function DatePicker({
     setDateObject(splitDate(newValue))
     const { message } = validateInput(newValue)
     setErrorMessage(message)
+    // カレンダー入力は不正な日付を作れないので、年月日欄の判定は解除する
+    setIsObjectValid(true)
     onChange?.(newValue)
   }
 
@@ -92,6 +98,7 @@ export function DatePicker({
     setDateObject(next)
     const { isValid, message } = validateObject(next)
     setErrorMessage(message)
+    setIsObjectValid(isValid)
 
     if (isValid) {
       const joined = composeDateValue(next, type)
@@ -100,11 +107,13 @@ export function DatePicker({
     }
   }
 
-  // Vue 版（DatePicker.vue）と同じく、必須の空欄だけを無効として登録する
+  // 年月日欄の不正値（月 13 等）はエラー文言を出すだけで、登録する validity は
+  // 必須の空欄しか見ていなかったため isAllValid が true のままだった。
+  // Vue 版（DatePicker.vue）は validateObject の結果を setValid している
   useRegisterValidation(
     formValidationStore,
     name,
-    validateInput(dateValue).isValid
+    validateInput(dateValue).isValid && isObjectValid
   )
 
   const isSmall = size === 'small'
