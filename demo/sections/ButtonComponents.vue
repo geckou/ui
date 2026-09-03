@@ -17,7 +17,7 @@ const submit = () => {
 
 const CODE = {
   button: `<BasicButton
-  buttonType="submit"
+  buttonType="button"
   :isLoading="isLoading"
   @click="submit"
 >
@@ -26,7 +26,7 @@ const CODE = {
   textButton: `<TextButton
   text="削除"
   variant="caution"
-  @click="remove"
+  @click="lastAction = '削除'"
 />`,
 }
 </script>
