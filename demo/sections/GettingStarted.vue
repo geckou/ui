@@ -21,13 +21,14 @@ const PACKAGES = [
     url: NPM_URL,
     role: 'Vue 3',
     description:
-      'フォーム UI と記事一覧 UI。このデモサイトで動いているのはこのパッケージ。',
+      'フォーム / ボタン / 表示・操作 UI と記事一覧 UI。このデモサイトで動いているのはこのパッケージ。',
   },
   {
     name: '@geckou/ui-react',
     url: NPM_REACT_URL,
     role: 'React 19',
-    description: 'フォーム UI。Next.js 向け。記事一覧は収録していない。',
+    description:
+      'フォーム / ボタン / 表示・操作 UI。Next.js 向け。記事一覧は収録していない。',
   },
 ]
 

@@ -16,7 +16,6 @@ type Props = {
     background: string
     text: string
   }
-  type?: 'tab' | 'button' | 'border'
   initialIndex?: number
   tabSlots?: Record<string, ReactNode>
   panelSlots?: Record<string, ReactNode>

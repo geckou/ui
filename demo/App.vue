@@ -5,6 +5,8 @@ import GithubIcon from '~demo/components/GithubIcon.vue'
 import StarField from '~demo/components/StarField.vue'
 import GettingStarted from '~demo/sections/GettingStarted.vue'
 import FormComponents from '~demo/sections/FormComponents.vue'
+import ButtonComponents from '~demo/sections/ButtonComponents.vue'
+import DisplayComponents from '~demo/sections/DisplayComponents.vue'
 import ArticleLists from '~demo/sections/ArticleLists.vue'
 
 const PAGES = [
@@ -26,17 +28,32 @@ const PAGES = [
       { hash: 'checkboxes', label: 'CheckBoxes' },
       { hash: 'radiobuttons', label: 'RadioButtons' },
       { hash: 'togglebutton', label: 'ToggleButton' },
-      { hash: 'basicbutton', label: 'BasicButton' },
       { hash: 'labeledfieldset', label: 'LabeledFieldset' },
+      { hash: 'datepicker', label: 'DatePicker' },
+      { hash: 'daterangepicker', label: 'DateRangePicker' },
+      { hash: 'dateselector', label: 'DateSelector' },
+      { hash: 'errormessage', label: 'ErrorMessage' },
+    ],
+  },
+  {
+    key: 'button',
+    label: 'ボタン',
+    component: ButtonComponents,
+    links: [
+      { hash: 'basicbutton', label: 'BasicButton' },
+      { hash: 'textbutton', label: 'TextButton' },
+    ],
+  },
+  {
+    key: 'display',
+    label: '表示・操作 UI',
+    component: DisplayComponents,
+    links: [
       { hash: 'tabui', label: 'TabUI' },
       { hash: 'slidedownui', label: 'SlideDownUi' },
       { hash: 'dropdownui', label: 'DropdownUi' },
       { hash: 'modalbox', label: 'ModalBox' },
-      { hash: 'datepicker', label: 'DatePicker' },
-      { hash: 'daterangepicker', label: 'DateRangePicker' },
-      { hash: 'dateselector', label: 'DateSelector' },
-      { hash: 'textbutton', label: 'TextButton' },
-      { hash: 'misc', label: 'その他' },
+      { hash: 'loadingspinner', label: 'LoadingSpinner' },
     ],
   },
   {
