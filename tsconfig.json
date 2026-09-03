@@ -3,7 +3,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["packages/vue/src/*"],
-      "~demo/*": ["demo/*"]
+      "~demo/*": ["demo/*"],
+      // デモは packages/vue/src を直接読むので、その src が import する
+      // @geckou/ui-core も src へ向ける。dist（ビルド成果物）に向けると、
+      // CI が build より先に type-check を走らせる構成で解決できなくなる
+      "@geckou/ui-core": ["packages/core/src/index.ts"]
     },
     "target": "ESNext",
     "module": "ESNext",
