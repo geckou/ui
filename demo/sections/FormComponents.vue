@@ -12,17 +12,10 @@ import LabeledCheckbox from '@/components/LabeledCheckbox.vue'
 import LabeledFieldset from '@/components/LabeledFieldset.vue'
 import RadioButtons from '@/components/RadioButtons.vue'
 import ToggleButton from '@/components/ToggleButton.vue'
-import BasicButton from '@/components/BasicButton.vue'
-import TabUI from '@/components/TabUI.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
-import SlideDownUi from '@/components/SlideDownUi.vue'
-import DropdownUi from '@/components/DropdownUi.vue'
-import ModalBox from '@/components/ModalBox.vue'
 import DatePicker from '@/components/DatePicker.vue'
 import DateRangePicker from '@/components/DateRangePicker.vue'
 import DateSelector from '@/components/DateSelector.vue'
-import TextButton from '@/components/TextButton.vue'
 import { FormValidationManager } from '@/scripts/form-validation-manager'
 import { componentSource } from '~demo/data/repository'
 
@@ -62,19 +55,10 @@ const labeledCheck = ref(true)
 const checks = ref<string[]>(['mail'])
 const radios = ref('personal')
 const toggle = ref(false)
-const isLoading = ref(false)
 const validationManager = new FormValidationManager()
 const date = ref('')
 const dateRange = ref({ start: '', end: '' })
 const birthday = ref('')
-const isModalShown = ref(false)
-
-const submit = () => {
-  isLoading.value = true
-  window.setTimeout(() => {
-    isLoading.value = false
-  }, 1200)
-}
 
 const CODE = {
   textBox: `<TextBox
@@ -124,45 +108,10 @@ const CODE = {
   name="toggleButton"
   :label="{ on: '公開', off: '非公開' }"
 />`,
-  button: `<BasicButton
-  buttonType="submit"
-  :isLoading="isLoading"
-  @click="submit"
->
-  送信
-</BasicButton>`,
   fieldset: `<LabeledFieldset>
   <template #label>お問い合わせ内容</template>
   <TextArea v-model="textarea" name="textarea" />
 </LabeledFieldset>`,
-  tab: `<TabUI
-  :tabs="[
-    { key: 'tabA', label: '入力値' },
-    { key: 'tabB', label: 'JSON' },
-  ]"
-  type="tab"
->
-  <template #tabAContents>...</template>
-  <template #tabBContents>...</template>
-</TabUI>`,
-  slideDown: `<SlideDownUi>
-  <template #trigger>配送について</template>
-  <p>ご注文から 3 営業日以内に発送します。</p>
-</SlideDownUi>`,
-  dropdown: `<DropdownUi contentAlignment="left" contentsWidth="16rem">
-  <template #trigger>メニュー</template>
-  <template #contents>
-    <ul><li>プロフィール</li><li>設定</li></ul>
-  </template>
-</DropdownUi>`,
-  modal: `<ModalBox
-  :isShown="isModalShown"
-  size="small"
-  @closeModal="isModalShown = false"
->
-  <template #header><h4>確認</h4></template>
-  <p>この内容で送信します。</p>
-</ModalBox>`,
   datePicker: `<DatePicker
   v-model="date"
   name="startedOn"
@@ -184,37 +133,11 @@ const CODE = {
   :formValidationManager="validationManager"
   isRequired
 />`,
-  textButton: `<TextButton
-  text="削除"
-  variant="caution"
-  @click="reset"
-/>`,
-  misc: `<!-- ErrorMessage は position: absolute。基準にしたい要素を relative にしておく -->
+  errorMessage: `<!-- ErrorMessage は position: absolute。基準にしたい要素を relative にしておく -->
 <div style="position: relative;">
   <ErrorMessage :errorMessages="['必須項目です']" />
-</div>
-
-<!-- LoadingSpinner はサイズを持たないので親で指定する -->
-<span style="display: block; inline-size: 2rem; fill: var(--primary-color);">
-  <LoadingSpinner />
-</span>`,
+</div>`,
 }
-
-const formState = () =>
-  JSON.stringify(
-    {
-      text: text.value,
-      textarea: textarea.value,
-      select: select.value,
-      check: check.value,
-      labeledCheck: labeledCheck.value,
-      checks: checks.value,
-      radios: radios.value,
-      toggle: toggle.value,
-    },
-    null,
-    2
-  )
 </script>
 
 <template>
@@ -337,20 +260,6 @@ const formState = () =>
     </DemoSection>
 
     <DemoSection
-      id="basicbutton"
-      :sources="[
-        { label: 'BasicButton', path: componentSource('BasicButton') },
-      ]"
-      title="BasicButton"
-      description="isLoading でスピナー表示に切り替わる（クリックで 1.2 秒間ローディング）。"
-      :code="CODE.button"
-    >
-      <BasicButton buttonType="button" :isLoading="isLoading" @click="submit">
-        送信
-      </BasicButton>
-    </DemoSection>
-
-    <DemoSection
       id="labeledfieldset"
       :sources="[
         { label: 'LabeledFieldset', path: componentSource('LabeledFieldset') },
@@ -365,119 +274,6 @@ const formState = () =>
           <TextArea v-model="textarea" name="fieldsetTextarea" :rows="2" />
         </LabeledFieldset>
       </div>
-    </DemoSection>
-
-    <DemoSection
-      id="tabui"
-      :sources="[{ label: 'TabUI', path: componentSource('TabUI') }]"
-      title="TabUI"
-      description="tabs の key に対応する #<key>Contents スロットに中身を書く。"
-      :code="CODE.tab"
-    >
-      <TabUI
-        :tabs="[
-          { key: 'tabA', label: '入力値' },
-          { key: 'tabB', label: 'JSON' },
-        ]"
-      >
-        <template #tabAContents>
-          <dl :class="$style.state">
-            <div>
-              <dt>TextBox</dt>
-              <dd>{{ text || '—' }}</dd>
-            </div>
-            <div>
-              <dt>TextArea</dt>
-              <dd>{{ textarea || '—' }}</dd>
-            </div>
-            <div>
-              <dt>SelectBox</dt>
-              <dd>{{ select || '—' }}</dd>
-            </div>
-            <div>
-              <dt>CheckBoxes</dt>
-              <dd>{{ checks.join(', ') || '—' }}</dd>
-            </div>
-            <div>
-              <dt>RadioButtons</dt>
-              <dd>{{ radios }}</dd>
-            </div>
-            <div>
-              <dt>ToggleButton</dt>
-              <dd>{{ toggle }}</dd>
-            </div>
-          </dl>
-        </template>
-        <template #tabBContents>
-          <pre :class="$style.json">{{ formState() }}</pre>
-        </template>
-      </TabUI>
-    </DemoSection>
-
-    <DemoSection
-      id="slidedownui"
-      :sources="[
-        { label: 'SlideDownUi', path: componentSource('SlideDownUi') },
-      ]"
-      title="SlideDownUi"
-      description="アコーディオン。summary スロットが見出し、デフォルトスロットが中身。"
-      :code="CODE.slideDown"
-    >
-      <div :class="$style.narrow">
-        <SlideDownUi>
-          <template #trigger> 配送について </template>
-          <p :class="$style.plain">
-            ご注文から 3
-            営業日以内に発送します。離島の場合は追加で日数をいただきます。
-          </p>
-        </SlideDownUi>
-      </div>
-    </DemoSection>
-
-    <DemoSection
-      id="dropdownui"
-      :sources="[{ label: 'DropdownUi', path: componentSource('DropdownUi') }]"
-      title="DropdownUi"
-      description="トリガーをクリックすると中身を表示する。contentAlignment で表示位置を調整。"
-      :code="CODE.dropdown"
-    >
-      <DropdownUi contentAlignment="left" contentsWidth="16rem">
-        <template #trigger> メニュー </template>
-        <template #contents>
-          <ul :class="$style.menu">
-            <li>プロフィール</li>
-            <li>設定</li>
-            <li>ログアウト</li>
-          </ul>
-        </template>
-      </DropdownUi>
-    </DemoSection>
-
-    <DemoSection
-      id="modalbox"
-      :sources="[{ label: 'ModalBox', path: componentSource('ModalBox') }]"
-      title="ModalBox"
-      description="isShown で表示を制御し、closeModal イベントで閉じる。表示中は背面のスクロールをロック。"
-      :code="CODE.modal"
-    >
-      <BasicButton buttonType="button" @click="isModalShown = true">
-        モーダルを開く
-      </BasicButton>
-      <ModalBox
-        :isShown="isModalShown"
-        size="small"
-        @closeModal="isModalShown = false"
-      >
-        <template #header>
-          <h4 :class="$style.modalHeading">確認</h4>
-        </template>
-        <p :class="$style.plain">この内容で送信します。よろしいですか？</p>
-        <template #footer>
-          <BasicButton buttonType="button" @click="isModalShown = false">
-            閉じる
-          </BasicButton>
-        </template>
-      </ModalBox>
     </DemoSection>
 
     <DemoSection
@@ -535,48 +331,18 @@ const formState = () =>
     </DemoSection>
 
     <DemoSection
-      id="textbutton"
-      :sources="[{ label: 'TextButton', path: componentSource('TextButton') }]"
-      title="TextButton"
-      description="枠のないテキストリンク調のボタン。variant を caution にすると警告色になる。"
-      :code="CODE.textButton"
-    >
-      <div :class="$style.row">
-        <TextButton text="編集" />
-        <TextButton
-          text="削除"
-          variant="caution"
-          @click="
-            () => {
-              date = ''
-              birthday = ''
-              dateRange = { start: '', end: '' }
-            }
-          "
-        />
-        <TextButton text="無効" isDisabled />
-      </div>
-    </DemoSection>
-
-    <DemoSection
-      id="misc"
+      id="errormessage"
       :sources="[
         { label: 'ErrorMessage', path: componentSource('ErrorMessage') },
-        { label: 'LoadingSpinner', path: componentSource('LoadingSpinner') },
       ]"
-      title="ErrorMessage / LoadingSpinner"
-      description="ErrorMessage は position: absolute の吹き出しなので position: relative な親の中に置く。LoadingSpinner はサイズを持たない SVG なので、親要素で大きさと色を指定する。"
-      :code="CODE.misc"
+      title="ErrorMessage"
+      description="position: absolute の吹き出しなので、基準にしたい要素を position: relative にした中に置く。"
+      :code="CODE.errorMessage"
     >
-      <div :class="$style.row">
-        <div :class="$style.errorAnchor">
-          <ErrorMessage
-            :errorMessages="['必須項目です', '半角英字で入力してください']"
-          />
-        </div>
-        <span :class="$style.spinner">
-          <LoadingSpinner />
-        </span>
+      <div :class="$style.errorAnchor">
+        <ErrorMessage
+          :errorMessages="['必須項目です', '半角英字で入力してください']"
+        />
       </div>
     </DemoSection>
   </div>
@@ -600,13 +366,6 @@ const formState = () =>
   margin-block-end: 3.5rem;
 }
 
-.spinner {
-  display: block;
-  inline-size: 2rem;
-  block-size: 2rem;
-  fill: var(--primary-color);
-}
-
 .row {
   display: flex;
   align-items: center;
@@ -614,65 +373,9 @@ const formState = () =>
   gap: 1.5rem;
 }
 
-.state {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin: 0;
-  font-size: var(--fs-small);
-
-  > div {
-    display: grid;
-    grid-template-columns: 10rem 1fr;
-    gap: 0.5rem;
-  }
-
-  dt {
-    color: var(--gray);
-  }
-
-  dd {
-    margin: 0;
-    word-break: break-word;
-  }
-}
-
-.json {
-  overflow: auto;
-  margin: 0;
-  padding: 0.75rem;
-  border-radius: var(--radius-size);
-  background-color: var(--code-background);
-  color: var(--code-text);
-  font-size: var(--fs-smaller);
-}
-
-.plain {
-  margin: 0;
-  font-size: var(--fs-small);
-}
-
 .note {
   margin: var(--sp-medium) 0 0;
   color: var(--gray);
   font-size: var(--fs-smaller);
-}
-
-.menu {
-  padding: 0.5rem 0;
-
-  > li {
-    padding: 0.4rem 0.75rem;
-    cursor: pointer;
-
-    &:hover {
-      background-color: var(--sub-color);
-    }
-  }
-}
-
-.modalHeading {
-  margin: 0;
-  font-size: 1rem;
 }
 </style>

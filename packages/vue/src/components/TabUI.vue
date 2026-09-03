@@ -23,13 +23,11 @@ const props = withDefaults(
         radius: string
       }
     }
-    type?: 'tab' | 'button' | 'border'
     initialIndex?: number
   }>(),
   {
     color: undefined,
     cssStyle: undefined,
-    type: 'tab',
     initialIndex: 0,
   }
 )
