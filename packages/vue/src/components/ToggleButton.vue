@@ -20,10 +20,15 @@ const props = withDefaults(
     isDisabled?: boolean
     // React 版（ToggleButton.tsx）と揃える。default 以外は任意
     cssStyle?: StyleForEachStatus<ToggleStyle>
+    /** アクセシブル名。可視ラベルがあるなら ariaLabelledBy でその要素を指すこと */
+    ariaLabel?: string
+    ariaLabelledBy?: string
   }>(),
   {
     label: () => ({ on: 'ON', off: 'OFF' }),
     cssStyle: undefined,
+    ariaLabel: undefined,
+    ariaLabelledBy: undefined,
   }
 )
 
@@ -89,8 +94,10 @@ const currentCssStyle = computed(() => {
     }"
     type="button"
     :disabled="isDisabled"
-    :aria-label="name"
-    :aria-pressed="isChecked"
+    role="switch"
+    :aria-checked="isChecked"
+    :aria-labelledby="ariaLabelledBy"
+    :aria-label="ariaLabelledBy ? undefined : (ariaLabel ?? name)"
     @click.stop="!isDisabled ? (isChecked = !isChecked) : null"
   >
     <!-- 値の送信専用。フォーカスできると Tab の停止がボタンと二重になるので外す -->

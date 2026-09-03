@@ -72,7 +72,7 @@ defineExpose({ isOpenedContents })
     <div
       :style="{ height: isOpenedContents ? `${contentsHeight}px` : 0 }"
       :class="$style.contents"
-      :inert="!isOpenedContents"
+      :inert="!isOpenedContents || undefined"
     >
       <div ref="contents" :class="$style.container">
         <slot />

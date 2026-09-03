@@ -6,7 +6,7 @@ import type {
   RadioButtonStyleForEachStatus,
   SelectValue,
 } from '../types'
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { isEmptyValue, MESSAGES } from '@geckou/ui-core'
 import { ErrorMessage } from './ErrorMessage'
 import { COLOR } from '../constants'
@@ -33,11 +33,23 @@ export function RadioButtons({
   isDisableAnimation,
 }: Props) {
   const selectedValue = value ?? ''
-  // Vue 版（RadioButtons.vue）と揃えて必須エラーを出す。
-  // Vue 側は watch なので、初回描画では出さず選択が動いてから判定する
-  const [isTouched, setIsTouched] = useState(false)
+
+  // Vue 版（RadioButtons.vue）は watch(selectedValue) で判定するので、
+  // 初回描画では出さず「値が変化したとき」に空なら出す。
+  // isTouched（クリック済み）で見ると、制御コンポーネントの React では
+  // クリック直後に値が入るため実質出ないままになる
+  const [hasChanged, setHasChanged] = useState(false)
+  const previousValue = useRef(selectedValue)
+
+  useEffect(() => {
+    if (previousValue.current === selectedValue) return
+
+    previousValue.current = selectedValue
+    setHasChanged(true)
+  }, [selectedValue])
+
   const errorMessages =
-    isTouched && isRequired && isEmptyValue(selectedValue)
+    hasChanged && isRequired && isEmptyValue(selectedValue)
       ? [MESSAGES.required]
       : undefined
   // Vue 版（@geckou/ui-vue）は option ごとに別の name を振っていたため、
@@ -91,10 +103,7 @@ export function RadioButtons({
               disabled={isDisabled}
               required={isRequired}
               checked={isChecked}
-              onChange={() => {
-                setIsTouched(true)
-                onChange?.(option.value)
-              }}
+              onChange={() => onChange?.(option.value)}
               className="sr-only"
             />
             <span>{option.label}</span>

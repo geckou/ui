@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { useEffect, useId, useRef } from 'react'
+import { createScrollLock } from '@geckou/ui-core'
 
 type Props = {
   isShown: boolean
@@ -44,16 +45,17 @@ export function ModalBox({
   const headerId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (isShown) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
+  // body.style.overflow を直接触ると、モーダルを重ねて内側を閉じたときに
+  // 外側が開いたままスクロールが戻り、アプリ側のインライン overflow も消える。
+  // ロック数を数える実装は @geckou/ui-core に置いて Vue 版と共有している
+  const scrollLock = useRef(createScrollLock())
 
-    return () => {
-      document.body.style.overflow = ''
-    }
+  useEffect(() => {
+    const lock = scrollLock.current
+
+    lock.toggle(isShown)
+
+    return () => lock.release()
   }, [isShown])
 
   // 開く前にフォーカスしていた要素。閉じたらここへ戻す

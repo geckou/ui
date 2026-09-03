@@ -59,9 +59,6 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      // 'use client' は preserveUseClient で意図的に残しているので、
-      // それを「無視した」と言う警告（約 25 件）は出さない。
-      // 埋もれると本物の警告に気付けなくなる
       // 利用側が持つものはバンドルしない
       external: [
         'react',

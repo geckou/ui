@@ -85,6 +85,7 @@ const handleKeydown = (event: KeyboardEvent) => {
             if (el) tabRefs[index] = el as HTMLButtonElement
           }
         "
+        type="button"
         role="tab"
         :aria-controls="panelId(tab.key)"
         :aria-selected="activeTab === tab.key"

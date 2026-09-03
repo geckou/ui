@@ -16,6 +16,9 @@ type Props = {
   onChange?: (newValue: boolean) => void
   isDisabled?: boolean
   cssStyle?: StyleForEachStatus<ToggleStyle>
+  /** アクセシブル名。可視ラベルがあるなら ariaLabelledBy でその要素を指すこと */
+  ariaLabel?: string
+  ariaLabelledBy?: string
 }
 
 export function ToggleButton({
@@ -25,6 +28,8 @@ export function ToggleButton({
   onChange,
   isDisabled,
   cssStyle,
+  ariaLabel,
+  ariaLabelledBy,
 }: Props) {
   const isChecked = checked ?? false
   const maxTextLength = Math.max(label.on.length, label.off.length)
@@ -73,8 +78,10 @@ export function ToggleButton({
       type="button"
       style={style}
       disabled={isDisabled}
-      aria-pressed={isChecked}
-      aria-label={name}
+      role="switch"
+      aria-checked={isChecked}
+      aria-labelledby={ariaLabelledBy}
+      aria-label={ariaLabelledBy ? undefined : (ariaLabel ?? name)}
       onClick={(event) => {
         event.stopPropagation()
         if (!isDisabled) {

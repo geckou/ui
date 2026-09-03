@@ -1,11 +1,6 @@
-<script lang="ts">
-// スクロールロックはページ全体で 1 つの状態として扱う
-let lockCount = 0
-let previousOverflow = ''
-</script>
-
 <script setup lang="ts">
-import { nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { createScrollLock } from '@geckou/ui-core'
 import IconClose from '@/components/Icon/CloseIcon.vue'
 import { nextUniqueId } from '@/scripts/unique-id'
 
@@ -23,32 +18,10 @@ const dialog = ref<HTMLElement | null>(null)
 // React 版（ModalBox.tsx の onClose）と揃える
 const emit = defineEmits<{ (e: 'close'): void }>()
 
-// setup は SSR でも走るため、document は参照した時点で解決する。
-// トップレベルで触ると Nuxt の SSR で「document is not defined」になる
-const getBodyElement = (): HTMLElement | null =>
-  typeof document === 'undefined' ? null : document.body
-
-// 複数のモーダルが重なっても解除順で壊れないよう、ロック数をカウントする
-let isLocked = false
-
-const toggleScrollLock = (shouldLock: boolean) => {
-  const bodyElement = getBodyElement()
-
-  if (!bodyElement || isLocked === shouldLock) {
-    return
-  }
-
-  isLocked = shouldLock
-  lockCount += shouldLock ? 1 : -1
-
-  if (lockCount === 1 && shouldLock) {
-    previousOverflow = bodyElement.style.overflow
-    bodyElement.style.overflow = 'hidden'
-  } else if (lockCount <= 0) {
-    lockCount = 0
-    bodyElement.style.overflow = previousOverflow
-  }
-}
+// ロック数を数える実装は @geckou/ui-core に置いて React 版と共有している
+// （document の参照は呼び出し時なので SSR でも安全）
+const scrollLock = createScrollLock()
+const toggleScrollLock = (shouldLock: boolean) => scrollLock.toggle(shouldLock)
 
 // 自発的に閉じたときだけ emit する。親が isShown=false にしたときや unmount 時に
 // emit すると、親のハンドラが再入する
@@ -82,6 +55,11 @@ watch(
   }
 )
 
+// inert は HTML の boolean 属性で、値に関係なく「存在すれば有効」。
+// Vue は false を inert="false" として出すため、そのまま渡すと
+// 表示中も中身を操作できない。属性ごと消すには undefined を渡す
+const isInert = computed(() => !props.isShown || undefined)
+
 // Escape で閉じる（role="dialog" は自前で実装する必要がある）
 const handleKeyDown = (event: KeyboardEvent) => {
   if (props.isShown && event.key === 'Escape') {
@@ -95,7 +73,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  toggleScrollLock(false)
+  scrollLock.release()
   document.removeEventListener('keydown', handleKeyDown)
 })
 </script>
@@ -104,7 +82,7 @@ onBeforeUnmount(() => {
   <div
     :class="[$style.overlay, { [$style.display]: isShown }]"
     :aria-hidden="!isShown"
-    :inert="!isShown"
+    :inert="isInert"
     @click.self="requestClose"
   >
     <div

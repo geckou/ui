@@ -123,6 +123,17 @@ describe('composeDateValue の端', () => {
     expect(composeDateValue({ year: '2024', month: '01', day: '--' })).toBe('')
   })
 
+  // Number.isFinite だとこれらを通してしまい、'2024-1.5-01' や
+  // '0x0a' の 10 進化のような日付でない値ができる
+  it('小数・16 進・空白混じりも通さない', () => {
+    expect(composeDateValue({ year: '2024', month: '1.5', day: '01' })).toBe('')
+    expect(composeDateValue({ year: '2024', month: '0x0a', day: '01' })).toBe(
+      ''
+    )
+    expect(composeDateValue({ year: '2024', month: ' 1', day: '01' })).toBe('')
+    expect(composeDateValue({ year: '2024', month: '-1', day: '01' })).toBe('')
+  })
+
   it("type='month' でも日は見ない", () => {
     expect(
       composeDateValue({ year: '2024', month: '01', day: 'ab' }, 'month')

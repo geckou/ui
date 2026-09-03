@@ -1,5 +1,5 @@
 // @geckou/ui-core への移行時に修正したバグのリグレッションテスト
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import CheckBoxes from '@/components/CheckBoxes.vue'
@@ -8,6 +8,7 @@ import DatePicker from '@/components/DatePicker.vue'
 import DateRangePicker from '@/components/DateRangePicker.vue'
 import DateSelector from '@/components/DateSelector.vue'
 import InputBox from '@/components/InputBox.vue'
+import LabeledCheckbox from '@/components/LabeledCheckbox.vue'
 import ModalBox from '@/components/ModalBox.vue'
 import PostedDate from '@/components/ArticleList/Parts/PostedDate.vue'
 import DropdownUi from '@/components/DropdownUi.vue'
@@ -16,6 +17,7 @@ import SelectBox from '@/components/SelectBox.vue'
 import SlideDownUi from '@/components/SlideDownUi.vue'
 import TabUI from '@/components/TabUI.vue'
 import TextBox from '@/components/TextBox.vue'
+import { INPUT_BOX_DEFAULT_STYLES } from '@geckou/ui-core'
 import { FormValidationManager } from '@/scripts/form-validation-manager'
 
 describe('DateSelector', () => {
@@ -284,9 +286,7 @@ describe('TabUI', () => {
 describe('TextBox のバリデーション', () => {
   // v-model 相当。emit を受けて modelValue を戻さないと内部の値が更新されない
   const mountTextBox = (props: { name: string } & Record<string, unknown>) => {
-    let wrapper: ReturnType<typeof mount<typeof TextBox>>
-
-    wrapper = mount(TextBox, {
+    const wrapper: ReturnType<typeof mount<typeof TextBox>> = mount(TextBox, {
       props: {
         ...props,
         'onUpdate:modelValue': (newValue: string | number): void => {
@@ -603,26 +603,39 @@ describe('InputBox の状態判定', () => {
     attachTo: document.body,
   }
 
-  const stateOf = (wrapper: ReturnType<typeof mount>) =>
-    wrapper.attributes('style') ?? ''
+  // style 文字列の「変わった / 変わらない」だけだと、valid を期待している箇所が
+  // error になっても通ってしまう。トークンの実値で状態を特定する
+  const STATES = ['default', 'focus', 'valid', 'error', 'disabled'] as const
+
+  const shadowOf = (state: (typeof STATES)[number]) => {
+    const css = INPUT_BOX_DEFAULT_STYLES[state]
+
+    return `0 0 0 ${css?.border?.size} ${css?.border?.color} inset`
+  }
+
+  const stateOf = (wrapper: ReturnType<typeof mount>) => {
+    const style = wrapper.attributes('style') ?? ''
+
+    return STATES.find((state) => style.includes(shadowOf(state))) ?? style
+  }
 
   it('2 つ目のコントロールにフォーカスしても focus 配色になる', async () => {
     const wrapper = mount(InputBox, twoControls)
-    const before = stateOf(wrapper)
+
+    expect(stateOf(wrapper)).toBe('default')
 
     const text = wrapper.findAll('input')[1].element as HTMLInputElement
     text.focus()
     await wrapper.trigger('focusin')
     await nextTick()
 
-    expect(stateOf(wrapper)).not.toBe(before)
+    expect(stateOf(wrapper)).toBe('focus')
 
     wrapper.unmount()
   })
 
   it('空のまま blur しても valid 配色にしない', async () => {
     const wrapper = mount(InputBox, twoControls)
-    const before = stateOf(wrapper)
 
     const text = wrapper.findAll('input')[1].element as HTMLInputElement
     text.focus()
@@ -631,14 +644,37 @@ describe('InputBox の状態判定', () => {
     await wrapper.trigger('blur')
     await nextTick()
 
-    expect(stateOf(wrapper)).toBe(before)
+    expect(stateOf(wrapper)).toBe('default')
 
     wrapper.unmount()
   })
 
+  // 回帰: onUnmounted の時点で ref は null なので解除が走らず、observer も
+  // disconnect していなかった
+  it('アンマウントで MutationObserver を解除する', () => {
+    const disconnect = vi.fn()
+    const original = globalThis.MutationObserver
+
+    globalThis.MutationObserver = class {
+      observe() {}
+      disconnect() {
+        disconnect()
+      }
+      takeRecords() {
+        return []
+      }
+    } as unknown as typeof MutationObserver
+
+    const wrapper = mount(InputBox, twoControls)
+    wrapper.unmount()
+
+    expect(disconnect).toHaveBeenCalled()
+
+    globalThis.MutationObserver = original
+  })
+
   it('全て埋まったら valid 配色になる', async () => {
     const wrapper = mount(InputBox, twoControls)
-    const before = stateOf(wrapper)
 
     const [date, text] = wrapper
       .findAll('input')
@@ -649,7 +685,7 @@ describe('InputBox の状態判定', () => {
     await wrapper.trigger('blur')
     await nextTick()
 
-    expect(stateOf(wrapper)).not.toBe(before)
+    expect(stateOf(wrapper)).toBe('valid')
 
     wrapper.unmount()
   })
@@ -675,6 +711,23 @@ describe('ModalBox', () => {
     const emittedBeforeUnmount = wrapper.emitted('close')!.length
     wrapper.unmount()
     expect(emittedBeforeUnmount).toBe(1)
+  })
+
+  // 回帰: Vue は :inert="false" を inert="false" として出す。inert は boolean 属性で
+  // 値に関係なく効くため、表示中もモーダルの中身を操作できなくなっていた
+  it('表示中は inert が付かない', async () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: false },
+      attachTo: document.body,
+    })
+
+    expect(wrapper.element.hasAttribute('inert')).toBe(true)
+
+    await wrapper.setProps({ isShown: true })
+
+    expect(wrapper.element.hasAttribute('inert')).toBe(false)
+
+    wrapper.unmount()
   })
 
   it('Escape で close を emit する', async () => {
@@ -714,33 +767,39 @@ describe('ModalBox', () => {
 })
 
 describe('閉じた開閉コンテンツはキーボードで触れない', () => {
-  it('DropdownUi は閉状態で inert を付ける', async () => {
+  // 「中身のリンクへキーボードで到達できるか」をそのまま見る。
+  // html() に 'inert' が含まれるかだけでは、開いたときに外れたことを検証できない
+  const linkIsInert = (wrapper: ReturnType<typeof mount>) =>
+    wrapper.find('a').element.closest('[inert]') !== null
+
+  it('DropdownUi は閉状態だけ inert を付ける', async () => {
     const wrapper = mount(DropdownUi, {
       slots: { trigger: 'メニュー', contents: '<a href="#x">リンク</a>' },
     })
+    const button = () => wrapper.find('button')
 
-    const contents = wrapper.findAll('div').at(-2)!
+    expect(button().attributes('aria-expanded')).toBe('false')
+    expect(linkIsInert(wrapper)).toBe(true)
 
-    expect(wrapper.find('button').attributes('aria-expanded')).toBe('false')
-    expect(wrapper.html()).toContain('inert')
+    await button().trigger('click')
 
-    await wrapper.find('button').trigger('click')
-
-    expect(wrapper.find('button').attributes('aria-expanded')).toBe('true')
-    expect(contents).toBeTruthy()
+    expect(button().attributes('aria-expanded')).toBe('true')
+    expect(linkIsInert(wrapper)).toBe(false)
   })
 
-  it('SlideDownUi は閉状態で inert を付ける', async () => {
+  it('SlideDownUi は閉状態だけ inert を付ける', async () => {
     const wrapper = mount(SlideDownUi, {
       slots: { trigger: '開く', default: '<a href="#x">リンク</a>' },
     })
+    const button = () => wrapper.find('button')
 
-    expect(wrapper.find('button').attributes('aria-expanded')).toBe('false')
-    expect(wrapper.html()).toContain('inert')
+    expect(button().attributes('aria-expanded')).toBe('false')
+    expect(linkIsInert(wrapper)).toBe(true)
 
-    await wrapper.find('button').trigger('click')
+    await button().trigger('click')
 
-    expect(wrapper.find('button').attributes('aria-expanded')).toBe('true')
+    expect(button().attributes('aria-expanded')).toBe('true')
+    expect(linkIsInert(wrapper)).toBe(false)
   })
 })
 
@@ -834,7 +893,7 @@ describe('DateRangePicker', () => {
 
     await nextTick()
 
-    expect(wrapper.text()).toContain('開始日は終了日より前にしてください')
+    expect(wrapper.text()).toContain('終了日より後の日付は選べません')
     expect(manager.isAllValid.value).toBe(false)
   })
 
@@ -850,7 +909,7 @@ describe('DateRangePicker', () => {
 
     await nextTick()
 
-    expect(wrapper.text()).not.toContain('開始日は終了日より前にしてください')
+    expect(wrapper.text()).not.toContain('終了日より後の日付は選べません')
     expect(manager.isAllValid.value).toBe(true)
   })
 
@@ -866,6 +925,28 @@ describe('DateRangePicker', () => {
 
     await nextTick()
 
-    expect(wrapper.text()).not.toContain('開始日は終了日より前にしてください')
+    expect(wrapper.text()).not.toContain('終了日より後の日付は選べません')
+  })
+})
+
+describe('LabeledCheckbox', () => {
+  // 回帰: <label> は <button> をラベル付けしないので、可視ラベルがあっても
+  // アクセシブル名が name（機械名）になり、画面の文言と読み上げが食い違っていた
+  it('可視ラベルをアクセシブル名にする', () => {
+    const wrapper = mount(LabeledCheckbox, {
+      props: { name: 'agreement', label: '利用規約に同意する' },
+      attachTo: document.body,
+    })
+
+    const button = wrapper.find('button')
+    const labelledBy = button.attributes('aria-labelledby')
+
+    expect(labelledBy).toBeTruthy()
+    expect(button.attributes('aria-label')).toBeUndefined()
+    expect(wrapper.find(`#${labelledBy}`).text()).toBe('利用規約に同意する')
+    expect(button.attributes('role')).toBe('checkbox')
+    expect(button.attributes('aria-checked')).toBe('false')
+
+    wrapper.unmount()
   })
 })

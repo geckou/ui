@@ -64,7 +64,7 @@ defineExpose({ isContentsOpened, close: closeDropDown })
     <div
       v-if="$slots.contents"
       :class="$style.contents"
-      :inert="!isContentsOpened"
+      :inert="!isContentsOpened || undefined"
       :style="{
         boxShadow: isContentsOpened ? 'var(--box-shadow)' : 'none',
         blockSize: isContentsOpened ? `${contentsHeight}px` : 0,

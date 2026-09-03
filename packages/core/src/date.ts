@@ -107,8 +107,9 @@ export function composeDateValue(
   }
 
   // 数字でない入力（'ab' 等）を pad(Number(part)) に通すと '2024-NaN-01' のような
-  // 日付でない文字列ができる。組み立てられないなら空文字を返す
-  if (parts.some((part) => !Number.isFinite(Number(part)))) {
+  // 日付でない文字列ができる。Number.isFinite だと '1.5' / '0x0a' / ' 1' を通して
+  // しまうので、validateDateObject と同じ isNumeric で判定する
+  if (parts.some((part) => !isNumeric(part))) {
     return ''
   }
 

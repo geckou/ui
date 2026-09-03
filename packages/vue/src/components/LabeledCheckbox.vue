@@ -2,6 +2,7 @@
 import type { CheckBoxStyleForEachStatus } from '@/types'
 import { computed } from 'vue'
 import CheckBox from '@/components/CheckBox.vue'
+import { nextUniqueId } from '@/scripts/unique-id'
 import { COLOR } from '@/const'
 
 const emit = defineEmits<{
@@ -24,6 +25,11 @@ const props = withDefaults(
     cssStyle: undefined,
   }
 )
+
+// <label> は <button> をラベル付けしないので、可視ラベルを明示的に指す。
+// これをしないと CheckBox のアクセシブル名が name（機械名）になり、
+// 画面の文言と読み上げが食い違う（WCAG 2.5.3 Label in Name）
+const labelId = nextUniqueId('labeled_check_box_label')
 
 const isChecked = computed<boolean>({
   get: () => props.modelValue ?? false,
@@ -54,9 +60,11 @@ const currentCssStyle = computed(() => {
       :isDisabled="isDisabled"
       :cssStyle="cssStyle"
       :isDisableAnimation="isDisableAnimation"
+      :ariaLabelledBy="labelId"
       style="pointer-events: none"
     />
     <span
+      :id="labelId"
       :class="$style.label"
       :style="{
         '--text-color': currentCssStyle?.textColor,

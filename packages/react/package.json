@@ -3,7 +3,9 @@
   "version": "0.4.0",
   "description": "A set of reusable React UI components (forms) by Geckou",
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -42,8 +44,8 @@
   },
   "scripts": {
     "build": "vite build && node scripts/copy-assets.mjs",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
     "prepublishOnly": "yarn build",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -64,39 +64,41 @@ export function DateRangePicker({
   } as CSSProperties
 
   return (
-    <div
-      style={style}
-      className="relative flex bg-(--range-background-color) [&>*]:flex-auto [&>*]:rounded-none! [&>*:first-child]:rounded-s-[calc(var(--bv,0.375rem)/2)]! [&>*:last-child]:rounded-e-[calc(var(--bv,0.375rem)/2)]! [&>*:not(:last-child)]:border-e [&>*:not(:last-child)]:border-(--range-border-color)"
-    >
-      <DatePicker
-        name={`${name}Start`}
-        value={value.start}
-        isDisabled={isDisabled}
-        isRequired={isRequired}
-        formValidationStore={formValidationStore}
-        minDate={minDate}
-        // 終了日より後は選べない
-        maxDate={value.end || maxDate}
-        size={size}
-        type={type}
-        onChange={handleStartChange}
-      />
-      <div className="flex flex-none! items-center px-[var(--bv,0.375rem)]">
-        〜
+    // 角丸・区切り線は :first-child / :last-child で割り当てるため、
+    // ErrorMessage を同じ階層に置くとエラー表示時だけ枠の見た目が変わる。
+    // 入力群を内側にまとめ、ErrorMessage は外側（relative）に置く
+    <div style={style} className="relative">
+      <div className="flex bg-(--range-background-color) [&>*]:flex-auto [&>*]:rounded-none! [&>*:first-child]:rounded-s-[calc(var(--bv,0.375rem)/2)]! [&>*:last-child]:rounded-e-[calc(var(--bv,0.375rem)/2)]! [&>*:not(:last-child)]:border-e [&>*:not(:last-child)]:border-(--range-border-color)">
+        <DatePicker
+          name={`${name}Start`}
+          value={value.start}
+          isDisabled={isDisabled}
+          isRequired={isRequired}
+          formValidationStore={formValidationStore}
+          minDate={minDate}
+          // 終了日より後は選べない
+          maxDate={value.end || maxDate}
+          size={size}
+          type={type}
+          onChange={handleStartChange}
+        />
+        <div className="flex flex-none! items-center px-[var(--bv,0.375rem)]">
+          〜
+        </div>
+        <DatePicker
+          name={`${name}End`}
+          value={value.end}
+          isDisabled={isDisabled}
+          isRequired={isRequired}
+          formValidationStore={formValidationStore}
+          // 開始日より前は選べない
+          minDate={value.start || minDate}
+          maxDate={maxDate}
+          size={size}
+          type={type}
+          onChange={handleEndChange}
+        />
       </div>
-      <DatePicker
-        name={`${name}End`}
-        value={value.end}
-        isDisabled={isDisabled}
-        isRequired={isRequired}
-        formValidationStore={formValidationStore}
-        // 開始日より前は選べない
-        minDate={value.start || minDate}
-        maxDate={maxDate}
-        size={size}
-        type={type}
-        onChange={handleEndChange}
-      />
       <ErrorMessage
         errorMessages={isRangeValid ? undefined : [MESSAGES.startAfterEnd]}
       />

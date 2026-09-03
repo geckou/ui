@@ -98,6 +98,18 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
+## 0.4.0 の変更
+
+- `RadioButtons` が必須エラー（「必須項目です」）を描画する。Vue 版と同じく、
+  値が空へ変化したときに出る
+- `CheckBox` / `ToggleButton` のロールが `aria-pressed` から
+  `role="checkbox" + aria-checked` / `role="switch" + aria-checked` に変わった。
+  アクセシブル名は `ariaLabel` / `ariaLabelledBy` で渡せる（未指定なら従来どおり `name`）
+- `DateSelector` に `minYear` / `maxYear` を追加（既定は従来どおり「今年 -100 〜 今年 -14」）
+- `DateRangePicker` が範囲（開始 > 終了）を検証し、`<name>Range` という名前で
+  `FormValidationStore` に登録する。`invalidNames` を見ている場合は増える
+- `TabUI` の `color.text` を配線した
+
 ## License
 
 [MIT](../../LICENSE)

@@ -5,6 +5,7 @@ import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import {
   TabUI,
   DateSelector,
+  LabeledCheckbox,
   DatePicker,
   DateRangePicker,
   SearchableSelectBox,
@@ -23,7 +24,6 @@ import {
 } from '../src'
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean
 }
 
@@ -446,7 +446,7 @@ describe('キーボードアクセシビリティ', () => {
     expect(onChange).toHaveBeenLastCalledWith(true)
   })
 
-  it('CheckBox: button に aria-pressed と disabled が反映される', () => {
+  it('CheckBox: role=checkbox と aria-checked / disabled が反映される', () => {
     const onChange = vi.fn()
 
     function renderCheckBox(checked: boolean, isDisabled?: boolean) {
@@ -464,14 +464,16 @@ describe('キーボードアクセシビリティ', () => {
 
     renderCheckBox(false)
     const button = () => container.querySelector('button')!
-    expect(button().getAttribute('aria-pressed')).toBe('false')
+    // aria-pressed はトグルボタン用。チェックボックスの意味論は role + aria-checked
+    expect(button().getAttribute('role')).toBe('checkbox')
+    expect(button().getAttribute('aria-checked')).toBe('false')
     expect(button().getAttribute('aria-label')).toBe('agree')
 
     act(() => button().click())
     expect(onChange).toHaveBeenLastCalledWith(true)
 
     renderCheckBox(true)
-    expect(button().getAttribute('aria-pressed')).toBe('true')
+    expect(button().getAttribute('aria-checked')).toBe('true')
 
     renderCheckBox(false, true)
     expect(button().disabled).toBe(true)
@@ -508,7 +510,7 @@ describe('キーボードアクセシビリティ', () => {
     expect(onChange).toHaveBeenLastCalledWith('orange')
   })
 
-  it('ToggleButton: aria-pressed とアクセシブル名がある', () => {
+  it('ToggleButton: role=switch と aria-checked / アクセシブル名がある', () => {
     const onChange = vi.fn()
 
     function renderToggle(checked: boolean) {
@@ -525,14 +527,35 @@ describe('キーボードアクセシビリティ', () => {
 
     renderToggle(false)
     const button = () => container.querySelector('button')!
-    expect(button().getAttribute('aria-pressed')).toBe('false')
+    // aria-pressed は押しボタン用。ON/OFF スイッチは role=switch + aria-checked
+    expect(button().getAttribute('role')).toBe('switch')
+    expect(button().getAttribute('aria-checked')).toBe('false')
     expect(button().getAttribute('aria-label')).toBe('notification')
 
     act(() => button().click())
     expect(onChange).toHaveBeenLastCalledWith(true)
 
     renderToggle(true)
-    expect(button().getAttribute('aria-pressed')).toBe('true')
+    expect(button().getAttribute('aria-checked')).toBe('true')
+  })
+
+  // 回帰: <label> は <button> をラベル付けしないので、可視ラベルがあっても
+  // アクセシブル名が name（機械名）になり、画面の文言と読み上げが食い違っていた
+  it('LabeledCheckbox: 可視ラベルをアクセシブル名にする', () => {
+    act(() => {
+      root.render(
+        <LabeledCheckbox name="agreement" label="利用規約に同意する" />
+      )
+    })
+
+    const button = container.querySelector('button')!
+    const labelledBy = button.getAttribute('aria-labelledby')
+
+    expect(labelledBy).toBeTruthy()
+    expect(button.getAttribute('aria-label')).toBeNull()
+    expect(document.getElementById(labelledBy!)?.textContent).toBe(
+      '利用規約に同意する'
+    )
   })
 
   it('ModalBox: Escape で閉じ、閉じたらトリガーへフォーカスが戻る', () => {
@@ -924,9 +947,7 @@ describe('Vue 版との API 統一', () => {
       )
     })
 
-    expect(container.textContent).toContain(
-      '開始日は終了日より前にしてください'
-    )
+    expect(container.textContent).toContain('終了日より後の日付は選べません')
 
     act(() => {
       root.render(
@@ -938,7 +959,7 @@ describe('Vue 版との API 統一', () => {
     })
 
     expect(container.textContent).not.toContain(
-      '開始日は終了日より前にしてください'
+      '終了日より後の日付は選べません'
     )
   })
 
@@ -966,27 +987,27 @@ describe('Vue 版との API 統一', () => {
 
   // 回帰: isRequired が required 属性を付けるだけで、Vue 版が出す
   // 「必須項目です」の ErrorMessage が無かった
-  it('RadioButtons: 必須で未選択なら必須エラーを出す', () => {
+  it('RadioButtons: 選択が空へ戻されたら必須エラーを出す', () => {
     const options = [
       { label: '個人', value: 'personal' },
       { label: '法人', value: 'corporate' },
     ]
 
-    act(() => {
-      root.render(<RadioButtons value="" options={options} isRequired />)
-    })
+    const renderRadios = (value: string) => {
+      act(() => {
+        root.render(<RadioButtons value={value} options={options} isRequired />)
+      })
+    }
 
     // 初回描画では出さない（Vue 版は watch で判定するため）
+    renderRadios('')
     expect(container.textContent).not.toContain('必須項目です')
 
-    const radio = container.querySelectorAll<HTMLInputElement>(
-      'input[type="radio"]'
-    )[0]
-    act(() => radio.click())
-    act(() => {
-      root.render(<RadioButtons value="" options={options} isRequired />)
-    })
+    renderRadios('personal')
+    expect(container.textContent).not.toContain('必須項目です')
 
+    // 親がフォームをリセットして空へ戻したケース
+    renderRadios('')
     expect(container.textContent).toContain('必須項目です')
   })
 

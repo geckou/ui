@@ -83,6 +83,20 @@ watch(
 watch(
   () => props.options,
   (newOptions) => {
+    // deep watch は参照が変われば内容が同じでも走る。親がインライン配列を
+    // 渡していると再レンダーのたびに作り直してしまうので、並びを比べて弾く
+    const isSameOptions =
+      newOptions.length === checkBoxes.value.length &&
+      newOptions.every(
+        (option, index) =>
+          option.value === checkBoxes.value[index]?.value &&
+          option.label === checkBoxes.value[index]?.label
+      )
+
+    if (isSameOptions) {
+      return
+    }
+
     const checked = new Set(checkedValues.value)
 
     checkBoxes.value = newOptions.map((option) => ({

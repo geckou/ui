@@ -17,10 +17,18 @@ const props = withDefaults(
     isDisabled?: boolean
     cssStyle?: CheckBoxStyleForEachStatus
     isDisableAnimation?: boolean
+    /**
+     * アクセシブル名。可視ラベルがあるなら ariaLabelledBy でその要素を指すこと。
+     * どちらも無いときだけ name を名前として使う（機械名でも無いよりはマシ）
+     */
+    ariaLabel?: string
+    ariaLabelledBy?: string
   }>(),
   {
     value: undefined,
     cssStyle: undefined,
+    ariaLabel: undefined,
+    ariaLabelledBy: undefined,
   }
 )
 
@@ -61,8 +69,10 @@ const currentCssStyle = computed(() => {
       '--duration': isDisableAnimation ? '0s' : '.3s',
     }"
     type="button"
-    :aria-label="name"
-    :aria-pressed="isChecked"
+    role="checkbox"
+    :aria-checked="isChecked"
+    :aria-labelledby="ariaLabelledBy"
+    :aria-label="ariaLabelledBy ? undefined : (ariaLabel ?? name)"
     @click.stop="!isDisabled ? (isChecked = !isChecked) : null"
   >
     <!-- 値の送信専用。フォーカスできると Tab の停止がボタンと二重になるので外す -->

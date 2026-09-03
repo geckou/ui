@@ -1,6 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import { useId } from 'react'
 import type { CheckBoxStyleForEachStatus } from '../types'
 import { CheckBox } from './CheckBox'
 import { COLOR } from '../constants'
@@ -25,6 +26,10 @@ export function LabeledCheckbox({
   isDisableAnimation,
 }: Props) {
   const isChecked = checked ?? false
+  // <label> は <button> をラベル付けしないので、可視ラベルを明示的に指す。
+  // これをしないと CheckBox のアクセシブル名が name（機械名）になり、
+  // 画面の文言と読み上げが食い違う（WCAG 2.5.3 Label in Name）
+  const labelId = useId()
   const baseStyle = isDisabled ? cssStyle?.disabled : cssStyle?.default
 
   const currentCssStyle = {
@@ -48,9 +53,11 @@ export function LabeledCheckbox({
           isDisabled={isDisabled}
           cssStyle={cssStyle}
           isDisableAnimation={isDisableAnimation}
+          ariaLabelledBy={labelId}
         />
       </span>
       <span
+        id={labelId}
         style={style}
         className={isChecked ? 'text-(--text-color)' : 'text-(--checked-color)'}
       >
