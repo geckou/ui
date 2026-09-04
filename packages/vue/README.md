@@ -239,10 +239,10 @@ const articles = ref<any[]>([])
 
 ### `Category`
 
-| Prop Name | Type     | Required | Description                    |
-|-----------|----------|----------|--------------------------------|
-| `id`      | `string` | ✅       | WordPress のカテゴリ ID        |
-| `name`    | `string` | ✅       | 表示するカテゴリ名             |
+| Prop Name | Type               | Required | Description                                          |
+|-----------|--------------------|----------|------------------------------------------------------|
+| `id`      | `string \| number` | ✅       | WordPress のカテゴリ ID（REST の数値 ID もそのまま可）|
+| `name`    | `string`           | ✅       | 表示するカテゴリ名                                   |
 
 ### `PostConfig`
 

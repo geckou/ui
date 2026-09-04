@@ -5,7 +5,7 @@ import { computed } from 'vue'
 import MetadataList from '@/components/ArticleList/Parts/MetadataList.vue'
 
 const props = defineProps<{
-  categoryIds: string[]
+  categoryIds: (string | number)[]
   categoryData: Category[]
   icon?: {
     color?: string
@@ -21,12 +21,18 @@ const props = defineProps<{
   delimiter?: string
 }>()
 
-const returnCatNameFromCatId = (categories: Category[], categoryId: string) =>
+// WP REST の ID は数値、Category[] を手で書くときは文字列になりがちで、
+// 厳密等価だと例外も出さずに黙って空になる。文字列に寄せて比べる
+const returnCatNameFromCatId = (
+  categories: Category[],
+  categoryId: string | number
+) =>
   categories.length
-    ? (categories.find((category) => category.id === categoryId)?.name ?? '')
+    ? (categories.find((category) => String(category.id) === String(categoryId))
+        ?.name ?? '')
     : ''
 const categories: ComputedRef<string[]> = computed(() =>
-  props.categoryIds.map((id: string) =>
+  props.categoryIds.map((id: string | number) =>
     returnCatNameFromCatId(props.categoryData, id)
   )
 )

@@ -748,6 +748,40 @@ describe('ModalBox', () => {
     wrapper.unmount()
   })
 
+  // 回帰: 子（SearchableSelectBox の候補リスト等）が Escape を処理しても
+  // ダイアログまで閉じ、入力途中のフォームが消えていた
+  it('子が preventDefault した Escape では close を emit しない', async () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: true },
+      attachTo: document.body,
+    })
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      cancelable: true,
+    })
+    event.preventDefault()
+    document.dispatchEvent(event)
+    await nextTick()
+
+    expect(wrapper.emitted('close')).toBeUndefined()
+
+    wrapper.unmount()
+  })
+
+  it('閉じるボタンにアクセシブル名がある', () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: true },
+      attachTo: document.body,
+    })
+
+    expect(
+      wrapper.find('[role="dialog"] > button').attributes('aria-label')
+    ).toBe('閉じる')
+
+    wrapper.unmount()
+  })
+
   it('閉じたら開く前の要素へフォーカスを戻す', async () => {
     const trigger = document.createElement('button')
     document.body.appendChild(trigger)

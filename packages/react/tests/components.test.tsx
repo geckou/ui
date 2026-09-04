@@ -756,6 +756,31 @@ describe('キーボードアクセシビリティ', () => {
     trigger.remove()
   })
 
+  // 回帰: 子（SearchableSelectBox の候補リスト等）が Escape を処理しても
+  // ダイアログまで閉じ、入力途中のフォームが消えていた
+  it('ModalBox: 子が preventDefault した Escape では閉じない', () => {
+    const onClose = vi.fn()
+
+    act(() => {
+      root.render(
+        <ModalBox isShown onClose={onClose}>
+          <p>本文</p>
+        </ModalBox>
+      )
+    })
+
+    act(() => {
+      const event = new KeyboardEvent('keydown', {
+        key: 'Escape',
+        cancelable: true,
+      })
+      event.preventDefault()
+      document.dispatchEvent(event)
+    })
+
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
   it('ModalBox: 非表示時は inert、閉じるボタンにアクセシブル名がある', () => {
     function renderModal(isShown: boolean) {
       act(() => {

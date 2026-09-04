@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import StandardCard from '@/components/ArticleList/Card/Standard.vue'
 import CardHeading from '@/components/ArticleList/Parts/CardHeading.vue'
+import CategoryList from '@/components/ArticleList/Parts/CategoryList.vue'
 import ThumbnailImage from '@/components/ArticleList/Parts/ThumbnailImage.vue'
 import { returnAuthor } from '@/scripts/utils'
 import type { Article, PostConfig } from '@/types'
@@ -180,5 +181,34 @@ describe('CardHeading', () => {
     })
 
     expect(wrapper.find('h2 em').text()).toBe('強調')
+  })
+})
+
+describe('CategoryList', () => {
+  const categoryData = [
+    { id: '1', name: 'デザイン' },
+    { id: '2', name: '技術' },
+  ]
+
+  // 回帰: 厳密等価で比べていたため、WP REST の数値 ID をそのまま渡すと
+  // 例外も出さずに黙って空になっていた
+  it('数値の categoryIds でもカテゴリ名を描画する', () => {
+    const wrapper = mount(CategoryList, {
+      props: { categoryIds: [1, 2], categoryData },
+    })
+
+    expect(wrapper.text()).toContain('デザイン')
+    expect(wrapper.text()).toContain('技術')
+  })
+
+  it('数値の Category.id でも文字列の categoryIds と一致する', () => {
+    const wrapper = mount(CategoryList, {
+      props: {
+        categoryIds: ['1'],
+        categoryData: [{ id: 1, name: 'デザイン' }],
+      },
+    })
+
+    expect(wrapper.text()).toContain('デザイン')
   })
 })

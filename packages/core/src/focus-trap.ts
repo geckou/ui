@@ -26,6 +26,9 @@ export const FOCUSABLE_SELECTOR = [
 export type FocusableLike = {
   focus: () => void
   hasAttribute?: (name: string) => boolean
+  closest?: (selectors: string) => unknown
+  matches?: (selectors: string) => boolean
+  checkVisibility?: () => boolean
 }
 
 export type FocusTrapContainer = FocusableLike & {
@@ -40,7 +43,18 @@ export type FocusTrapEvent = {
 
 /**
  * コンテナ内のフォーカス可能な要素を、DOM 順（= Tab 順）で返す。
- * `inert` が付いた要素はフォーカスできないので除く
+ *
+ * セレクタだけでは「実際にはフォーカスできない要素」が混ざる。
+ * 混ざると端の要素が no-op になって Tab が止まるか、preventDefault を挟んだ後に
+ * ブラウザ既定の移動が起きてダイアログの外へ抜けるため、ここで落とす。
+ *
+ * - `inert` 配下（閉じた SlideDownUi / DropdownUi の中身）。自身の属性だけでは足りない
+ * - `<fieldset disabled>` 配下（`:disabled` は継承する。`:not([disabled])` では消せない）
+ * - `display: none` で描画されていないもの（`hidden` な TabUI のパネルの中身など）。
+ *   引数なしの `checkVisibility()` は `visibility: hidden` / `opacity: 0` は落とさない
+ *
+ * `closest` / `matches` / `checkVisibility` は任意（`FocusableLike` は DOM 型を
+ * 要求しない）。持たない実装では従来どおりの結果になる
  */
 export function getFocusableElements(
   container: FocusTrapContainer | null
@@ -48,7 +62,12 @@ export function getFocusableElements(
   if (!container) return []
 
   return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
-    (element) => !element.hasAttribute?.('inert')
+    (element) =>
+      // closest を持たない実装のために、自身の inert も見る（DOM では冗長）
+      !element.hasAttribute?.('inert') &&
+      !element.closest?.('[inert]') &&
+      !element.matches?.(':disabled') &&
+      (element.checkVisibility?.() ?? true)
   )
 }
 
