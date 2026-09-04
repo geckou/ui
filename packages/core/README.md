@@ -106,6 +106,28 @@ lock.release() // アンマウント時
 
 SSR（`document` が無い環境）では何もしません。
 
+### フォーカストラップ
+
+```ts
+import { handleTabKey, getFocusableElements } from '@geckou/ui-core'
+
+const onKeyDown = (event: KeyboardEvent) => {
+  handleTabKey(dialogElement, event, document.activeElement)
+}
+```
+
+`aria-modal="true"` を出していても、背景を `inert` にしていない限り Tab / Shift+Tab は
+ダイアログの外へ抜けます。`handleTabKey()` に `keydown` を渡すと、コンテナ内の
+フォーカス可能な要素の端で折り返します（末尾で Tab → 先頭、先頭で Shift+Tab → 末尾）。
+
+| 関数 | 説明 |
+|---|---|
+| `handleTabKey(container, event, activeElement?)` | Tab / Shift+Tab を端で折り返す。フォーカスを移して既定動作を止めたら `true` を返す。Tab 以外と `container` が無い場合は何もしない |
+| `getFocusableElements(container)` | コンテナ内のフォーカス可能な要素を DOM 順（= Tab 順）で返す。`inert` が付いたものは除く |
+| `FOCUSABLE_SELECTOR` | 上記で使うセレクタ（`tabindex="-1"` と `disabled` を除く） |
+
+`ModalBox`（Vue / React）はこれを使っています。
+
 ### 定数・型
 
 ```ts

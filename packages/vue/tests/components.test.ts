@@ -1131,3 +1131,72 @@ describe('DatePicker / DateSelector のアクセシブル名', () => {
     expect(wrapper.find(`#${unitId}`).text()).toBe('の年')
   })
 })
+
+describe('ModalBox のフォーカストラップ', () => {
+  // 回帰(#56): 背景を inert にしていないため、Tab / Shift+Tab でダイアログの外の
+  // リンクやボタンへフォーカスが抜けていた
+  const mountModal = () =>
+    mount(ModalBox, {
+      props: { isShown: true },
+      slots: {
+        default: '<a href="#first">最初</a><a href="#last">最後</a>',
+      },
+      attachTo: document.body,
+    })
+
+  it('最後の要素で Tab したら最初の要素へ戻る', async () => {
+    const outside = document.createElement('button')
+    document.body.appendChild(outside)
+
+    const wrapper = mountModal()
+    const focusable = wrapper.findAll('a, button')
+    const last = focusable[focusable.length - 1]!.element as HTMLElement
+
+    last.focus()
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }))
+    await nextTick()
+
+    expect(document.activeElement).toBe(focusable[0]!.element)
+
+    wrapper.unmount()
+    outside.remove()
+  })
+
+  it('最初の要素で Shift+Tab したら最後の要素へ回る', async () => {
+    const wrapper = mountModal()
+    const focusable = wrapper.findAll('a, button')
+    const first = focusable[0]!.element as HTMLElement
+
+    first.focus()
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true })
+    )
+    await nextTick()
+
+    expect(document.activeElement).toBe(
+      focusable[focusable.length - 1]!.element
+    )
+
+    wrapper.unmount()
+  })
+
+  it('閉じている間は Tab を横取りしない', async () => {
+    const outside = document.createElement('button')
+    document.body.appendChild(outside)
+    outside.focus()
+
+    const wrapper = mount(ModalBox, {
+      props: { isShown: false },
+      slots: { default: '<a href="#first">最初</a>' },
+      attachTo: document.body,
+    })
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }))
+    await nextTick()
+
+    expect(document.activeElement).toBe(outside)
+
+    wrapper.unmount()
+    outside.remove()
+  })
+})

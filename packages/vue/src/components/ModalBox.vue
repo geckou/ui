@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
-import { createScrollLock } from '@geckou/ui-core'
+import { createScrollLock, handleTabKey } from '@geckou/ui-core'
 import IconClose from '@/components/Icon/CloseIcon.vue'
 import { nextUniqueId } from '@/scripts/unique-id'
 
@@ -60,11 +60,21 @@ watch(
 // 表示中も中身を操作できない。属性ごと消すには undefined を渡す
 const isInert = computed(() => !props.isShown || undefined)
 
-// Escape で閉じる（role="dialog" は自前で実装する必要がある）
+// Escape で閉じ、Tab / Shift+Tab はダイアログ内で循環させる
+// （role="dialog" は自前で実装する必要がある。背景は inert にしていないので、
+//  トラップが無いと Tab で外のリンクやボタンへ抜ける）
 const handleKeyDown = (event: KeyboardEvent) => {
-  if (props.isShown && event.key === 'Escape') {
-    requestClose()
+  if (!props.isShown) {
+    return
   }
+
+  if (event.key === 'Escape') {
+    requestClose()
+
+    return
+  }
+
+  handleTabKey(dialog.value, event, document.activeElement)
 }
 
 onMounted(() => {

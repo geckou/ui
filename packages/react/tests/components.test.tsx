@@ -1,5 +1,5 @@
 // @geckou/ui の移植時に修正したバグのリグレッションテスト
-import { act, useState } from 'react'
+import { StrictMode, act, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -1201,5 +1201,96 @@ describe('DatePicker / DateSelector のアクセシブル名', () => {
     expect(
       container.querySelector(`[id="${labelledBy.split(' ')[1]}"]`)?.textContent
     ).toBe('の年')
+  })
+})
+
+describe('ModalBox のフォーカストラップ', () => {
+  // 回帰(#56): 背景を inert にしていないため、Tab / Shift+Tab でダイアログの外の
+  // リンクやボタンへフォーカスが抜けていた
+  function renderModal(isShown = true) {
+    act(() => {
+      root.render(
+        <ModalBox isShown={isShown} onClose={() => {}}>
+          <a href="#first">最初</a>
+          <a href="#last">最後</a>
+        </ModalBox>
+      )
+    })
+  }
+
+  const focusable = () =>
+    [...container.querySelectorAll('a, button')] as HTMLElement[]
+
+  it('最後の要素で Tab したら最初の要素へ戻る', () => {
+    const outside = document.createElement('button')
+    document.body.appendChild(outside)
+
+    renderModal()
+    const elements = focusable()
+    elements[elements.length - 1]!.focus()
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }))
+    })
+
+    expect(document.activeElement).toBe(elements[0])
+    outside.remove()
+  })
+
+  it('最初の要素で Shift+Tab したら最後の要素へ回る', () => {
+    renderModal()
+    const elements = focusable()
+    elements[0]!.focus()
+
+    act(() => {
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true })
+      )
+    })
+
+    expect(document.activeElement).toBe(elements[elements.length - 1])
+  })
+
+  it('閉じている間は Tab を横取りしない', () => {
+    const outside = document.createElement('button')
+    document.body.appendChild(outside)
+
+    renderModal(false)
+    outside.focus()
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }))
+    })
+
+    expect(document.activeElement).toBe(outside)
+    outside.remove()
+  })
+
+  // 回帰(#56 の details): StrictMode では effect が 2 回走り、2 回目に
+  // lastFocused がダイアログ自身になって復帰しなくなっていた
+  it('StrictMode でも閉じたら開く前の要素へフォーカスが戻る', () => {
+    const trigger = document.createElement('button')
+    document.body.appendChild(trigger)
+    trigger.focus()
+
+    function renderStrict(isShown: boolean) {
+      act(() => {
+        root.render(
+          <StrictMode>
+            <ModalBox isShown={isShown} onClose={() => {}}>
+              <p>本文</p>
+            </ModalBox>
+          </StrictMode>
+        )
+      })
+    }
+
+    renderStrict(true)
+    expect(document.activeElement).not.toBe(trigger)
+
+    renderStrict(false)
+    expect(document.activeElement).toBe(trigger)
+
+    trigger.remove()
   })
 })

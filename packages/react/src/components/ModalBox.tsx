@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { useEffect, useId, useRef } from 'react'
-import { createScrollLock } from '@geckou/ui-core'
+import { createScrollLock, handleTabKey } from '@geckou/ui-core'
 
 type Props = {
   isShown: boolean
@@ -64,7 +64,10 @@ export function ModalBox({
 
   useEffect(() => {
     if (isShown) {
-      lastFocused.current = document.activeElement as HTMLElement | null
+      // StrictMode（開発時）は effect を 2 回走らせる。素直に毎回取り直すと、
+      // 2 回目は 1 回目の dialogRef.focus() 後なので lastFocused がダイアログ自身になり、
+      // 閉じたとき inert なダイアログへ focus() して復帰しない。未設定のときだけ取る
+      lastFocused.current ??= document.activeElement as HTMLElement | null
       dialogRef.current?.focus()
 
       return
@@ -74,7 +77,9 @@ export function ModalBox({
     lastFocused.current = null
   }, [isShown])
 
-  // Escape で閉じる（role="dialog" は自前で実装する必要がある）
+  // Escape で閉じ、Tab / Shift+Tab はダイアログ内で循環させる
+  // （role="dialog" は自前で実装する必要がある。背景は inert にしていないので、
+  //  トラップが無いと Tab で外のリンクやボタンへ抜ける）
   useEffect(() => {
     if (!isShown) {
       return
@@ -83,7 +88,11 @@ export function ModalBox({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose()
+
+        return
       }
+
+      handleTabKey(dialogRef.current, event, document.activeElement)
     }
 
     document.addEventListener('keydown', handleKeyDown)
