@@ -99,9 +99,12 @@ export function SearchableSelectBox({
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault()
 
+      // 閉じているときは開いて端へ移る。↑ は末尾（候補が無ければ -1 = 未選択）
       if (!isOpened) {
         setIsOpened(true)
-        setActiveIndex(event.key === 'ArrowDown' ? 0 : -1)
+        setActiveIndex(
+          event.key === 'ArrowDown' ? 0 : filteredOptions.length - 1
+        )
 
         return
       }

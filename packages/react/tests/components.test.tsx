@@ -286,6 +286,27 @@ describe('SearchableSelectBox', () => {
     expect(input().getAttribute('aria-activedescendant')).toBe(options()[1].id)
   })
 
+  // WAI-ARIA の Combobox パターンでは、閉じた状態の ↑ は開いて末尾を選ぶ。
+  // 修正前は activeIndex を -1 のままにしており、1 回押しても何も選ばれなかった
+  it('閉じているとき ↑ で開いて末尾の候補を選ぶ', () => {
+    renderBox('')
+
+    expect(input().getAttribute('aria-expanded')).toBe('false')
+
+    pressKey('ArrowUp')
+
+    expect(input().getAttribute('aria-expanded')).toBe('true')
+
+    const options = [...container.querySelectorAll('[role="option"]')]
+    expect(input().getAttribute('aria-activedescendant')).toBe(
+      options[options.length - 1].id
+    )
+    expect(options.map((o) => o.getAttribute('aria-selected'))).toEqual([
+      'false',
+      'true',
+    ])
+  })
+
   it('Enter で選択中の候補を確定する', () => {
     const onChange = vi.fn()
     const onSelect = vi.fn()
