@@ -144,17 +144,27 @@ yarn build:demo   # デモサイトを demo-dist に出力
 
 ### Release
 
-パッケージ単位でリリースします。タグは `<ディレクトリ名>@<バージョン>` 形式です。
+**version を上げる PR を `production` へマージすれば、それだけで npm へ公開されます。**
+`.github/workflows/publish.yml` が `production` への push で走り、
+`packages/*/package.json` の version が npm に載っていないパッケージを全部公開します。
+手で叩くコマンドはありません。
+
+タグ（`<ディレクトリ名>@<バージョン>`）を push しての公開も引き続きできます。
+リリースの区切りを git のタグとして残したいときや、自動公開が失敗して打ち直すときに使います。
 
 ```bash
-# 1. packages/<パッケージ>/package.json の version を上げる PR を出してマージする
-# 2. production でタグを打つ（複数まとめて指定できる）
+# version を上げる PR をマージしたあと（複数まとめて指定できる）
 git checkout production && git pull --ff-only
 yarn release core react vue
 ```
 
-タグを push すると `.github/workflows/publish.yml` がタグから対象パッケージを判別して
-npm に publish します。
+**どちらの経路でも公開されるのは「npm に未公開の version」だけです。** 公開済みのものは
+対象から外れて publish ジョブごと skip されるので、自動公開の後からタグを打っても
+二重に公開されることはありません。
+
+自動公開は、公開済みの型定義との差分検査（`check-api-diff.mjs`）に引っかかると止まります。
+**互換の追加だと分かっていて通したい場合は `yarn release <パッケージ> --force` でタグを打ちます。**
+タグ起動の実行はこの検査を行いません（`release.sh` が打つ前に済ませているため）。
 
 #### どこからでも実行する
 
@@ -228,10 +238,10 @@ npm 側では縛れません。そこは上の `production` 包含チェック�
 
 | ref type | パターン | 用途 |
 | --- | --- | --- |
-| Tag | `*@*` | 通常のリリース（`yarn release`） |
-| Branch | `production` | `workflow_dispatch` での公開 |
+| Tag | `*@*` | タグを打っての公開（`yarn release`） |
+| Branch | `production` | `production` への push による自動公開と `workflow_dispatch` |
 
-**タグだけに限定すると `workflow_dispatch` が Environment 側で弾かれます。**
+**どちらか片方に限定すると、もう一方が Environment 側で弾かれます。**
 
 移行が動くことを確認できたら、パッケージ設定の
 **「Require two-factor authentication and disallow tokens」を有効にします**。
