@@ -32,7 +32,7 @@
     "vue": "^3.5.0"
   },
   "dependencies": {
-    "@geckou/ui-core": "^0.4.0",
+    "@geckou/ui-core": "^0.5.0",
     "date-fns": "^4.4.0"
   },
   "scripts": {

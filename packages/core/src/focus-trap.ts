@@ -50,7 +50,11 @@ export type FocusTrapEvent = {
  *
  * - `inert` 配下（閉じた SlideDownUi / DropdownUi の中身）。自身の属性だけでは足りない
  * - `<fieldset disabled>` 配下（`:disabled` は継承する。`:not([disabled])` では消せない）
- * - 表示されていないもの（`hidden` な TabUI のパネルの中身など）
+ * - `display: none` で描画されていないもの（`hidden` な TabUI のパネルの中身など）。
+ *   引数なしの `checkVisibility()` は `visibility: hidden` / `opacity: 0` は落とさない
+ *
+ * `closest` / `matches` / `checkVisibility` は任意（`FocusableLike` は DOM 型を
+ * 要求しない）。持たない実装では従来どおりの結果になる
  */
 export function getFocusableElements(
   container: FocusTrapContainer | null
@@ -59,6 +63,7 @@ export function getFocusableElements(
 
   return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
     (element) =>
+      // closest を持たない実装のために、自身の inert も見る（DOM では冗長）
       !element.hasAttribute?.('inert') &&
       !element.closest?.('[inert]') &&
       !element.matches?.(':disabled') &&

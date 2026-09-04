@@ -68,8 +68,9 @@ const handleKeyDown = (event: KeyboardEvent) => {
     return
   }
 
-  // 子（SearchableSelectBox の候補リスト等）が Escape を処理した印。
-  // 尊重しないと、候補を閉じる操作でダイアログまで閉じてしまう
+  // 子（SearchableSelectBox の候補リスト等）がキー入力を処理した印。
+  // 尊重しないと、候補を閉じる Escape でダイアログまで閉じてしまう
+  // （Tab も同様にスキップする。現状 Tab を握る子はいない）
   if (event.defaultPrevented) {
     return
   }
