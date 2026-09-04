@@ -481,6 +481,24 @@ describe('DropdownUi / SlideDownUi の外側クリック', () => {
 
     wrapper.unmount()
   })
+
+  // 回帰(#70): React 版（SlideDownUiHandle）は isOpenedContents / close を
+  // 公開しているのに、Vue 版は isOpenedContents しか出していなかった
+  it('SlideDownUi: close を公開している（isDisableClickOutside でも閉じる）', async () => {
+    const wrapper = mount(SlideDownUi, {
+      props: { isDisableClickOutside: true },
+      attachTo: document.body,
+    })
+
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.vm.isOpenedContents).toBe(true)
+
+    wrapper.vm.close()
+    await nextTick()
+    expect(wrapper.vm.isOpenedContents).toBe(false)
+
+    wrapper.unmount()
+  })
 })
 
 describe('DateSelector と FormValidationManager', () => {
@@ -594,6 +612,17 @@ describe('PostedDate', () => {
     const wrapper = mount(PostedDate, { props: { date: '2026-08-17' } })
 
     expect(wrapper.text()).toBe('2026/08/17')
+  })
+
+  // 回帰(#70): <time> に datetime が無く、表示文字列しか機械可読な情報が
+  // 無かった（formatString を変えると解釈できなくなる）
+  it('<time> に機械可読な datetime を出す', () => {
+    const wrapper = mount(PostedDate, {
+      props: { date: '2026-08-17', formatString: 'M月d日' },
+    })
+
+    expect(wrapper.text()).toBe('8月17日')
+    expect(wrapper.attributes('datetime')).toBe('2026-08-17')
   })
 })
 

@@ -23,9 +23,11 @@ const contents: Ref<HTMLElement | null> = ref(null)
 const contentsHeight = ref(0)
 const toggleBox = () => (isOpenedContents.value = !isOpenedContents.value)
 
+const close = () => (isOpenedContents.value = false)
+
 const closeDropDown = () => {
   if (!props.isDisableClickOutside) {
-    isOpenedContents.value = false
+    close()
   }
 }
 
@@ -48,7 +50,9 @@ watch(
     }
   }
 )
-defineExpose({ isOpenedContents })
+// React 版（SlideDownUiHandle）と揃えて close も公開する。
+// 外から閉じる用途なので isDisableClickOutside は見ない
+defineExpose({ isOpenedContents, close })
 </script>
 
 <template>

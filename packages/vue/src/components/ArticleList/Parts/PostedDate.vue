@@ -31,6 +31,7 @@ const formattedDate = computed(() =>
 
 <template>
   <time
+    :datetime="date"
     :class="$style.posted_date"
     :style="{
       '--date-color': color,
