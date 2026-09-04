@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
-import { createScrollLock, handleTabKey } from '@geckou/ui-core'
+import {
+  createModalLayer,
+  createScrollLock,
+  handleTabKey,
+} from '@geckou/ui-core'
 import IconClose from '@/components/Icon/CloseIcon.vue'
 import { nextUniqueId } from '@/scripts/unique-id'
 
@@ -27,10 +31,19 @@ const toggleScrollLock = (shouldLock: boolean) => scrollLock.toggle(shouldLock)
 // emit すると、親のハンドラが再入する
 const requestClose = () => emit('close')
 
-// スクロールロックは isShown の変化に追従させる（emit とは切り離す）
+// 重なっているモーダルのうち、キー入力を処理してよいのは最前面のものだけ。
+// 判定は @geckou/ui-core に置いて React 版と共有している
+const modalLayer = createModalLayer()
+const updateModalLayer = (isShown: boolean) =>
+  modalLayer.toggle(isShown, dialog.value)
+
+// スクロールロックと最前面判定は isShown の変化に追従させる（emit とは切り離す）
 watch(
   () => props.isShown,
-  (newVal) => toggleScrollLock(newVal)
+  (newVal) => {
+    toggleScrollLock(newVal)
+    updateModalLayer(newVal)
+  }
 )
 
 // 開いたらダイアログへフォーカスを移し、閉じたら開く前の要素へ戻す
@@ -68,6 +81,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
     return
   }
 
+  // 重ねたモーダルで内側の Escape が外側まで閉じていた。ハンドラは全部
+  // document に付いていて実行順が当てにならないので、最前面かどうかで決める
+  if (!modalLayer.isTopmost()) {
+    return
+  }
+
   // 子（SearchableSelectBox の候補リスト等）がキー入力を処理した印。
   // 尊重しないと、候補を閉じる Escape でダイアログまで閉じてしまう
   // （Tab も同様にスキップする。現状 Tab を握る子はいない）
@@ -76,6 +95,9 @@ const handleKeyDown = (event: KeyboardEvent) => {
   }
 
   if (event.key === 'Escape') {
+    // 自分が処理した印を残す。これが無いと、外側で Escape を見ている
+    // アプリ側のハンドラまで一緒に反応する
+    event.preventDefault()
     requestClose()
 
     return
@@ -86,11 +108,13 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
 onMounted(() => {
   toggleScrollLock(props.isShown)
+  updateModalLayer(props.isShown)
   document.addEventListener('keydown', handleKeyDown)
 })
 
 onBeforeUnmount(() => {
   scrollLock.release()
+  modalLayer.release()
   document.removeEventListener('keydown', handleKeyDown)
 })
 </script>

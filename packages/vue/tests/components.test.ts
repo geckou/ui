@@ -1,7 +1,7 @@
 // @geckou/ui-core への移行時に修正したバグのリグレッションテスト
 import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { defineComponent, h, nextTick } from 'vue'
 import CheckBox from '@/components/CheckBox.vue'
 import CheckBoxes from '@/components/CheckBoxes.vue'
 import CheckButton from '@/components/CheckButton.vue'
@@ -765,6 +765,75 @@ describe('ModalBox', () => {
     await nextTick()
 
     expect(wrapper.emitted('close')).toBeUndefined()
+
+    wrapper.unmount()
+  })
+
+  // 回帰: モーダルを重ねると両方のハンドラが同じ Escape を受け取り、
+  // 内側を閉じるつもりが外側まで閉じていた。ハンドラは両方 document に
+  // 付いていて実行順は登録順で決まるため、外側が先に開く実際の使い方で試す
+  it('入れ子のとき Escape で閉じるのは内側だけ', async () => {
+    const onCloseOuter = vi.fn()
+    const onCloseInner = vi.fn()
+
+    const NestedModals = defineComponent({
+      props: { isInnerShown: { type: Boolean, default: false } },
+      setup(props) {
+        return () =>
+          h(
+            ModalBox,
+            { isShown: true, onClose: onCloseOuter },
+            {
+              // 内側は後から差し込む。Vue はハンドラを onMounted で登録するので、
+              // 最初から居ると子（内側）が先に登録されてしまい順序の問題が出ない
+              default: () =>
+                props.isInnerShown
+                  ? h(
+                      ModalBox,
+                      { isShown: true, onClose: onCloseInner },
+                      { default: () => h('p', '内側') }
+                    )
+                  : null,
+            }
+          )
+      },
+    })
+
+    // 先に外側だけを開く（= 外側のハンドラが先に document へ登録される）
+    const wrapper = mount(NestedModals, {
+      props: { isInnerShown: false },
+      attachTo: document.body,
+    })
+
+    await wrapper.setProps({ isInnerShown: true })
+
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
+    )
+    await nextTick()
+
+    expect(onCloseInner).toHaveBeenCalledTimes(1)
+    expect(onCloseOuter).not.toHaveBeenCalled()
+
+    wrapper.unmount()
+  })
+
+  // 自分が Escape を処理したら印を残す（外側で Escape を見ているアプリ側の
+  // ハンドラまで一緒に反応しないように）
+  it('Escape を処理したら preventDefault する', async () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: true },
+      attachTo: document.body,
+    })
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      cancelable: true,
+    })
+    document.dispatchEvent(event)
+    await nextTick()
+
+    expect(event.defaultPrevented).toBe(true)
 
     wrapper.unmount()
   })
