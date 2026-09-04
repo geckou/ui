@@ -606,6 +606,8 @@ describe('PostedDate', () => {
     const wrapper = mount(PostedDate, { props: { date: '' } })
 
     expect(wrapper.text()).toBe('')
+    // datetime="" は無効な HTML なので属性ごと出さない
+    expect(wrapper.attributes('datetime')).toBeUndefined()
   })
 
   it('有効な date は書式どおりに描画する', () => {

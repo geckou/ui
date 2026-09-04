@@ -27,11 +27,17 @@ const parsedDate = computed(() => parseISO(props.date))
 const formattedDate = computed(() =>
   isValid(parsedDate.value) ? format(parsedDate.value, props.formatString) : ''
 )
+
+// datetime="" は無効な HTML。無効な date のときは属性ごと省略する
+// （Vue は undefined を渡すと属性を出さない）
+const machineReadableDate = computed(() =>
+  isValid(parsedDate.value) ? props.date : undefined
+)
 </script>
 
 <template>
   <time
-    :datetime="date"
+    :datetime="machineReadableDate"
     :class="$style.posted_date"
     :style="{
       '--date-color': color,
