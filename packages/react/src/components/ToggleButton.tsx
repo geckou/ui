@@ -74,38 +74,41 @@ export function ToggleButton({
   } as CSSProperties
 
   return (
-    <button
-      type="button"
-      style={style}
-      disabled={isDisabled}
-      role="switch"
-      aria-checked={isChecked}
-      aria-labelledby={ariaLabelledBy}
-      aria-label={ariaLabelledBy ? undefined : (ariaLabel ?? name)}
-      onClick={(event) => {
-        event.stopPropagation()
-        if (!isDisabled) {
-          onChange?.(!isChecked)
-        }
-      }}
-      className="relative inline-block w-[calc(var(--inline-size)+var(--handle-size)+(var(--padding-size)*2))] cursor-pointer rounded-(--radius-size) border-none bg-(--background-color) p-(--padding-size) shadow-[0_0_0_var(--border-size)_var(--border-color)_inset,var(--box-shadow)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-color)"
-    >
-      <input
-        type="checkbox"
-        name={name}
-        checked={isChecked}
+    <>
+      <button
+        type="button"
+        style={style}
         disabled={isDisabled}
-        readOnly
-        className="hidden"
-      />
-      <div
-        data-on={label.on}
-        data-off={label.off}
-        className={`absolute top-0 left-0 h-full w-full text-(--text-color) uppercase before:absolute before:right-0 before:m-auto before:inline-flex before:h-full before:w-[calc(100%-var(--handle-size)-var(--padding-size))] before:items-center before:justify-center before:leading-none before:transition-opacity before:duration-(--duration) before:ease-out before:content-[attr(data-off)] after:absolute after:left-0 after:m-auto after:inline-flex after:h-full after:w-[calc(100%-var(--handle-size)-var(--padding-size))] after:items-center after:justify-center after:leading-none after:transition-opacity after:duration-(--duration) after:ease-out after:content-[attr(data-on)] ${isChecked ? 'before:opacity-0 after:opacity-100' : 'before:opacity-100 after:opacity-0'}`}
-      />
-      <div
-        className={`relative m-0 aspect-square w-(--handle-size) rounded-[calc(var(--radius-size)-(var(--padding-size)/2))] bg-(--text-color) shadow-(--box-shadow) transition-[left] duration-(--duration) ease-out ${isChecked ? 'left-[calc(100%-var(--handle-size))]' : 'left-0'}`}
-      />
-    </button>
+        role="switch"
+        aria-checked={isChecked}
+        data-checked={isChecked}
+        aria-labelledby={ariaLabelledBy}
+        aria-label={ariaLabelledBy ? undefined : (ariaLabel ?? name)}
+        onClick={(event) => {
+          event.stopPropagation()
+          if (!isDisabled) {
+            onChange?.(!isChecked)
+          }
+        }}
+        className="relative inline-block w-[calc(var(--inline-size)+var(--handle-size)+(var(--padding-size)*2))] cursor-pointer rounded-(--radius-size) border-none bg-(--background-color) p-(--padding-size) shadow-[0_0_0_var(--border-size)_var(--border-color)_inset,var(--box-shadow)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-color)"
+      >
+        <div
+          data-on={label.on}
+          data-off={label.off}
+          className={`absolute top-0 left-0 h-full w-full text-(--text-color) uppercase before:absolute before:right-0 before:m-auto before:inline-flex before:h-full before:w-[calc(100%-var(--handle-size)-var(--padding-size))] before:items-center before:justify-center before:leading-none before:transition-opacity before:duration-(--duration) before:ease-out before:content-[attr(data-off)] after:absolute after:left-0 after:m-auto after:inline-flex after:h-full after:w-[calc(100%-var(--handle-size)-var(--padding-size))] after:items-center after:justify-center after:leading-none after:transition-opacity after:duration-(--duration) after:ease-out after:content-[attr(data-on)] ${isChecked ? 'before:opacity-0 after:opacity-100' : 'before:opacity-100 after:opacity-0'}`}
+        />
+        <div
+          className={`relative m-0 aspect-square w-(--handle-size) rounded-[calc(var(--radius-size)-(var(--padding-size)/2))] bg-(--text-color) shadow-(--box-shadow) transition-[left] duration-(--duration) ease-out ${isChecked ? 'left-[calc(100%-var(--handle-size))]' : 'left-0'}`}
+        />
+      </button>
+      {/*
+        値の送信専用。<button> の content model は interactive content を許さないので
+        中に <input> は置けない。ON のときだけ hidden として外に出す
+        （OFF なら送られない、というネイティブの挙動はそのまま）
+      */}
+      {isChecked && (
+        <input type="hidden" name={name} value="on" disabled={isDisabled} />
+      )}
+    </>
   )
 }

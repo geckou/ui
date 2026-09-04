@@ -44,7 +44,7 @@ export function LabeledCheckbox({
   } as CSSProperties
 
   return (
-    <label className="inline-flex cursor-pointer items-center gap-[.5em] has-[input:disabled]:cursor-auto">
+    <label className="inline-flex cursor-pointer items-center gap-[.5em] has-[button:disabled]:cursor-auto">
       <span className="pointer-events-none">
         <CheckBox
           name={name}

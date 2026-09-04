@@ -479,6 +479,64 @@ describe('キーボードアクセシビリティ', () => {
     expect(button().disabled).toBe(true)
   })
 
+  // 回帰(#53): <button> の content model は interactive content を許さないので
+  // 中に <input> を置けない。状態は data-checked で表し、送信用は hidden を外に出す
+  it('CheckBox: button の中に input を置かず、チェック時だけ hidden を外に描く', () => {
+    function renderCheckBox(checked: boolean, isDisabled?: boolean) {
+      act(() => {
+        root.render(
+          <CheckBox name="agree" checked={checked} isDisabled={isDisabled} />
+        )
+      })
+    }
+
+    renderCheckBox(false)
+    const button = () => container.querySelector('button')!
+    expect(button().querySelector('input')).toBeNull()
+    expect(container.querySelector('input[type="hidden"]')).toBeNull()
+    expect(button().getAttribute('data-checked')).toBe('false')
+
+    renderCheckBox(true)
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement
+    expect(hidden).not.toBeNull()
+    expect(hidden.name).toBe('agree')
+    expect(hidden.value).toBe('on')
+    // button の外（兄弟）に出ていること
+    expect(hidden.closest('button')).toBeNull()
+    expect(button().getAttribute('data-checked')).toBe('true')
+
+    // 無効なら送信されない（disabled な input はフォームに載らない）
+    renderCheckBox(true, true)
+    expect(
+      (container.querySelector('input[type="hidden"]') as HTMLInputElement)
+        .disabled
+    ).toBe(true)
+  })
+
+  it('ToggleButton: button の中に input を置かず、ON のときだけ hidden を外に描く', () => {
+    function renderToggle(checked: boolean) {
+      act(() => {
+        root.render(<ToggleButton name="notification" checked={checked} />)
+      })
+    }
+
+    renderToggle(false)
+    const button = () => container.querySelector('button')!
+    expect(button().querySelector('input')).toBeNull()
+    expect(container.querySelector('input[type="hidden"]')).toBeNull()
+
+    renderToggle(true)
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement
+    expect(hidden).not.toBeNull()
+    expect(hidden.name).toBe('notification')
+    expect(hidden.closest('button')).toBeNull()
+    expect(button().getAttribute('data-checked')).toBe('true')
+  })
+
   it('RadioButtons: input が sr-only でフォーカス・選択できる', () => {
     const onChange = vi.fn()
     act(() => {

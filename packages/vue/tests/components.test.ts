@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
+import CheckBox from '@/components/CheckBox.vue'
 import CheckBoxes from '@/components/CheckBoxes.vue'
 import CheckButton from '@/components/CheckButton.vue'
 import DatePicker from '@/components/DatePicker.vue'
@@ -17,6 +18,7 @@ import SelectBox from '@/components/SelectBox.vue'
 import SlideDownUi from '@/components/SlideDownUi.vue'
 import TabUI from '@/components/TabUI.vue'
 import TextBox from '@/components/TextBox.vue'
+import ToggleButton from '@/components/ToggleButton.vue'
 import { INPUT_BOX_DEFAULT_STYLES } from '@geckou/ui-core'
 import { FormValidationManager } from '@/scripts/form-validation-manager'
 
@@ -552,11 +554,13 @@ describe('CheckBoxes', () => {
       props: { name: 'kind', options: [] },
     })
 
-    expect(wrapper.findAll('input[type="checkbox"]')).toHaveLength(0)
+    // #53 で <button> の中の <input> をやめたので、チェックボックスの実体は
+    // role="checkbox" の <button>（送信用の hidden はチェック時だけ描かれる）
+    expect(wrapper.findAll('button[role="checkbox"]')).toHaveLength(0)
 
     await wrapper.setProps({ options })
 
-    expect(wrapper.findAll('input[type="checkbox"]')).toHaveLength(2)
+    expect(wrapper.findAll('button[role="checkbox"]')).toHaveLength(2)
     expect(wrapper.text()).toContain('法人')
   })
 
@@ -570,8 +574,8 @@ describe('CheckBoxes', () => {
     })
 
     const checked = wrapper
-      .findAll('input[type="checkbox"]')
-      .map((input) => (input.element as HTMLInputElement).checked)
+      .findAll('button[role="checkbox"]')
+      .map((button) => button.attributes('aria-checked') === 'true')
 
     expect(checked).toEqual([false, true, false])
   })
@@ -948,5 +952,104 @@ describe('LabeledCheckbox', () => {
     expect(button.attributes('aria-checked')).toBe('false')
 
     wrapper.unmount()
+  })
+})
+
+describe('CheckBox', () => {
+  // 回帰(#58): isDisabled でも <button> に disabled が出ず、Tab で止まり
+  // 支援技術には有効なチェックボックスとして読まれていた
+  it('isDisabled のとき button に disabled が出る', () => {
+    const wrapper = mount(CheckBox, {
+      props: { name: 'agree', isDisabled: true },
+    })
+
+    const button = wrapper.find('button')
+
+    expect(button.attributes('disabled')).toBeDefined()
+    expect((button.element as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('有効なときは disabled が出ない', () => {
+    const wrapper = mount(CheckBox, { props: { name: 'agree' } })
+
+    expect(wrapper.find('button').attributes('disabled')).toBeUndefined()
+  })
+
+  // 回帰(#53): <button> の content model は interactive content を許さないので
+  // 中に <input> を置けない。状態は data-checked で表し、送信用は hidden を外に出す
+  it('button の中に input を置かない', () => {
+    const wrapper = mount(CheckBox, {
+      props: { name: 'agree', modelValue: true },
+    })
+
+    expect(wrapper.find('button input').exists()).toBe(false)
+  })
+
+  it('チェック時だけ送信用の hidden を button の外に描く', async () => {
+    const wrapper = mount(CheckBox, {
+      props: { name: 'agree', value: 'yes', modelValue: false },
+    })
+
+    expect(wrapper.find('input[type="hidden"]').exists()).toBe(false)
+
+    await wrapper.setProps({ modelValue: true })
+
+    const hidden = wrapper.find('input[type="hidden"]')
+
+    expect(hidden.exists()).toBe(true)
+    expect(hidden.attributes('name')).toBe('agree')
+    expect(hidden.attributes('value')).toBe('yes')
+    // button の外（兄弟）に出ていること
+    expect(hidden.element.closest('button')).toBeNull()
+  })
+
+  it('value が無いときはネイティブと同じ on を送る', () => {
+    const wrapper = mount(CheckBox, {
+      props: { name: 'agree', modelValue: true },
+    })
+
+    expect(wrapper.find('input[type="hidden"]').attributes('value')).toBe('on')
+  })
+
+  it('チェック状態を data-checked で表す', async () => {
+    const wrapper = mount(CheckBox, {
+      props: { name: 'agree', modelValue: false },
+    })
+
+    expect(wrapper.find('button').attributes('data-checked')).toBe('false')
+
+    await wrapper.setProps({ modelValue: true })
+
+    expect(wrapper.find('button').attributes('data-checked')).toBe('true')
+  })
+
+  it('複数ルートでも渡された属性は button へ付く', () => {
+    const wrapper = mount(CheckBox, {
+      props: { name: 'agree', modelValue: true },
+      attrs: { 'data-testid': 'check' },
+    })
+
+    expect(wrapper.find('button').attributes('data-testid')).toBe('check')
+  })
+})
+
+describe('ToggleButton', () => {
+  // 回帰(#53): CheckBox と同じく button の中の input をやめた
+  it('button の中に input を置かず、ON のときだけ hidden を外に描く', async () => {
+    const wrapper = mount(ToggleButton, {
+      props: { name: 'notification', modelValue: false },
+    })
+
+    expect(wrapper.find('button input').exists()).toBe(false)
+    expect(wrapper.find('input[type="hidden"]').exists()).toBe(false)
+
+    await wrapper.setProps({ modelValue: true })
+
+    const hidden = wrapper.find('input[type="hidden"]')
+
+    expect(hidden.exists()).toBe(true)
+    expect(hidden.attributes('name')).toBe('notification')
+    expect(hidden.element.closest('button')).toBeNull()
+    expect(wrapper.find('button').attributes('data-checked')).toBe('true')
   })
 })
