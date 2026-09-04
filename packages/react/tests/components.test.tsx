@@ -199,23 +199,17 @@ describe('SearchableSelectBox', () => {
     ) as HTMLInputElement
     act(() => setInputValue(input, 'りん'))
 
-    const optionButtons = [...container.querySelectorAll('button')].filter(
-      (b) => b.textContent === 'りんご'
-    )
-    expect(optionButtons).toHaveLength(1)
-    expect(
-      [...container.querySelectorAll('button')].some(
-        (b) => b.textContent === 'みかん'
-      )
-    ).toBe(false)
+    // #61 で候補は role="option" になった（listbox の中に button は置けない）
+    const optionNodes = [...container.querySelectorAll('[role="option"]')]
+    expect(optionNodes.map((node) => node.textContent)).toEqual(['りんご'])
 
-    act(() => optionButtons[0].click())
-    expect(onChange).toHaveBeenLastCalledWith('apple')
-    expect(
-      [...container.querySelectorAll('button')].some(
-        (b) => b.textContent === 'りんご'
+    act(() => {
+      optionNodes[0].dispatchEvent(
+        new MouseEvent('pointerdown', { bubbles: true, cancelable: true })
       )
-    ).toBe(false)
+    })
+    expect(onChange).toHaveBeenLastCalledWith('apple')
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(0)
   })
 
   it("入力を空にすると選択肢が閉じ、onChange('') が呼ばれる", () => {
@@ -226,13 +220,106 @@ describe('SearchableSelectBox', () => {
     ) as HTMLInputElement
 
     act(() => setInputValue(input, 'り'))
-    expect(container.querySelectorAll('button').length).toBeGreaterThan(0)
+    expect(
+      container.querySelectorAll('[role="option"]').length
+    ).toBeGreaterThan(0)
     expect(onChange).toHaveBeenLastCalledWith('り')
 
     // 修正前は早期 return しており、空にしても親へ通知されなかった
     act(() => setInputValue(input, ''))
-    expect(container.querySelectorAll('button').length).toBe(0)
+    expect(container.querySelectorAll('[role="option"]').length).toBe(0)
     expect(onChange).toHaveBeenLastCalledWith('')
+  })
+
+  // 回帰(#61): 候補が素の <button> の列挙で、combobox の ARIA も
+  // ↑↓ / Enter / Escape も無く、Tab で 1 件ずつ辿るしかなかった
+  const input = () =>
+    container.querySelector('input[name="fruit"]') as HTMLInputElement
+
+  const pressKey = (key: string) =>
+    act(() => {
+      input().dispatchEvent(
+        new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })
+      )
+    })
+
+  it('combobox の ARIA を出す', () => {
+    renderBox('')
+
+    expect(input().getAttribute('role')).toBe('combobox')
+    expect(input().getAttribute('aria-autocomplete')).toBe('list')
+    expect(input().getAttribute('aria-expanded')).toBe('false')
+
+    const listboxId = input().getAttribute('aria-controls')
+    expect(listboxId).toBeTruthy()
+
+    pressKey('ArrowDown')
+
+    expect(input().getAttribute('aria-expanded')).toBe('true')
+
+    const listbox = container.querySelector('[role="listbox"]')!
+    expect(listbox.id).toBe(listboxId)
+    expect(listbox.querySelectorAll('[role="option"]')).toHaveLength(2)
+  })
+
+  it('↑↓ で候補を辿り、aria-activedescendant と aria-selected が追従する', () => {
+    renderBox('')
+
+    pressKey('ArrowDown')
+    const options = () => [...container.querySelectorAll('[role="option"]')]
+
+    expect(input().getAttribute('aria-activedescendant')).toBe(options()[0].id)
+    expect(options().map((o) => o.getAttribute('aria-selected'))).toEqual([
+      'true',
+      'false',
+    ])
+
+    pressKey('ArrowDown')
+    expect(input().getAttribute('aria-activedescendant')).toBe(options()[1].id)
+
+    // 末尾からさらに下げると先頭へ回る
+    pressKey('ArrowDown')
+    expect(input().getAttribute('aria-activedescendant')).toBe(options()[0].id)
+
+    // 先頭から上げると末尾へ回る
+    pressKey('ArrowUp')
+    expect(input().getAttribute('aria-activedescendant')).toBe(options()[1].id)
+  })
+
+  it('Enter で選択中の候補を確定する', () => {
+    const onChange = vi.fn()
+    const onSelect = vi.fn()
+
+    act(() => {
+      root.render(
+        <SearchableSelectBox
+          name="fruit"
+          options={options}
+          value=""
+          onChange={onChange}
+          onSelect={onSelect}
+        />
+      )
+    })
+
+    pressKey('ArrowDown')
+    pressKey('ArrowDown')
+    pressKey('Enter')
+
+    expect(onSelect).toHaveBeenLastCalledWith('orange')
+    expect(onChange).toHaveBeenLastCalledWith('orange')
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(0)
+  })
+
+  it('Escape で閉じる', () => {
+    renderBox('')
+
+    pressKey('ArrowDown')
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(2)
+
+    pressKey('Escape')
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(0)
+    expect(input().getAttribute('aria-expanded')).toBe('false')
   })
 })
 
