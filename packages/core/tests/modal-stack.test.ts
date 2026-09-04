@@ -79,7 +79,7 @@ describe('createModalLayer', () => {
 
     layer.toggle(true, element)
     layer.toggle(true, element)
-    layer.toggle(false)
+    layer.toggle(false, null)
 
     expect(layer.isTopmost()).toBe(false)
 

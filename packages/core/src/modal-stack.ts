@@ -37,9 +37,11 @@ function contains(layer: Layer, other: Layer): boolean {
 export type ModalLayer = {
   /**
    * 引数の真偽で登録・解除を切り替える。
-   * `element` には最前面判定に使う要素（ダイアログ本体）を渡す
+   * `element` には最前面判定に使う要素（ダイアログ本体）を渡す。
+   * 省略可にすると `toggle(true)` だけで要素の無いレイヤーが積まれ、
+   * 包含判定が効かなくなるので必須にしている（未取得なら明示的に null）
    */
-  toggle: (shouldBeActive: boolean, element?: ElementLike | null) => void
+  toggle: (shouldBeActive: boolean, element: ElementLike | null) => void
   /** このレイヤーが最前面か。キーイベントを処理してよいのは true のときだけ */
   isTopmost: () => boolean
   /** アンマウント時に呼ぶ。登録中なら解除する */
@@ -50,10 +52,7 @@ export function createModalLayer(): ModalLayer {
   const layer: Layer = { element: null }
   let isActive = false
 
-  const toggle = (
-    shouldBeActive: boolean,
-    element: ElementLike | null = null
-  ) => {
+  const toggle = (shouldBeActive: boolean, element: ElementLike | null) => {
     // 要素は再描画で差し替わりうるので、状態が変わらなくても取り直す
     layer.element = shouldBeActive ? element : null
 
@@ -86,5 +85,5 @@ export function createModalLayer(): ModalLayer {
     return innermost[innermost.length - 1] === layer
   }
 
-  return { toggle, isTopmost, release: () => toggle(false) }
+  return { toggle, isTopmost, release: () => toggle(false, null) }
 }

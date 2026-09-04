@@ -134,7 +134,7 @@ const onKeyDown = (event: KeyboardEvent) => {
 import { createModalLayer } from '@geckou/ui-core'
 
 const layer = createModalLayer()
-layer.toggle(isOpen, dialogElement) // 表示状態と、判定に使う要素
+layer.toggle(isOpen, dialogElement) // 表示状態と、判定に使う要素（要素は必須）
 layer.isTopmost() // キー入力を処理してよいのは true のときだけ
 layer.release() // アンマウント時
 ```
@@ -152,7 +152,7 @@ layer.release() // アンマウント時
 
 | メソッド | 説明 |
 |---|---|
-| `toggle(shouldBeActive, element?)` | 真偽で登録・解除する。`element` は最前面判定に使う要素（ダイアログ本体） |
+| `toggle(shouldBeActive, element)` | 真偽で登録・解除する。`element` は最前面判定に使う要素（ダイアログ本体）。省略可にすると要素の無いレイヤーが積まれて包含判定が効かなくなるため必須（未取得なら明示的に `null`） |
 | `isTopmost()` | このレイヤーが最前面か。登録していなければ `false` |
 | `release()` | アンマウント時に呼ぶ。登録中なら解除する |
 
