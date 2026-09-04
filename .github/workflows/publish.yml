@@ -3,6 +3,14 @@ name: Publish package
 # **このファイルの正は geckou/project-starter/.github/workflows/publish.yml。**
 # 直すときはまずそちらを直してから配ること。
 #
+# **ただし publish ジョブの分割はこのリポジトリ固有の差分。** project-starter 版は
+# 単一の publish ジョブが matrix で全パッケージを並列に公開する。このリポジトリは
+# @geckou/ui-react / @geckou/ui-vue が @geckou/ui-core を依存に持つため、
+# core を先に公開し（publish-core）、成功したときだけ残り（publish-others）を
+# 公開する。並列のままだと、core の公開が失敗した状態で react / vue が
+# npm に存在しない core のバージョンを要求して公開されうる（geckou/ui#55）。
+# project-starter 側のパッケージは相互依存しないので、この分割は配り返さない。
+#
 # **公開は production への push で自動的に走る。** version を上げる PR がマージされた
 # 時点で、npm に載っていないバージョンを持つ公開パッケージを全部公開する。
 # タグ（`<パッケージのディレクトリ名>@<バージョン>`。scripts/release.sh が打つ）と
@@ -51,7 +59,9 @@ jobs:
   targets:
     runs-on: ubuntu-latest
     outputs:
-      packages: ${{ steps.resolve.outputs.packages }}
+      # core とそれ以外を分けて出す（依存順に公開するため。ヘッダーのコメントを参照）
+      core: ${{ steps.resolve.outputs.core }}
+      others: ${{ steps.resolve.outputs.others }}
 
     steps:
       - uses: actions/checkout@v7
@@ -174,26 +184,37 @@ jobs:
             SELECTED+=("$PACKAGE")
           done
 
-          # 名前がケバブケースであることは上で検査済みなので、そのまま JSON に埋めてよい
-          JSON="["
+          # 名前がケバブケースであることは上で検査済みなので、そのまま JSON に埋めてよい。
+          # core は他のパッケージが依存するので、先に公開する側（core）と
+          # 後から公開する側（others）に分けて出す
+          CORE_JSON="["
+          OTHERS_JSON="["
 
           for PACKAGE in ${SELECTED[@]+"${SELECTED[@]}"}; do
-            JSON="$JSON\"$PACKAGE\","
+            if [ "$PACKAGE" = "core" ]; then
+              CORE_JSON="$CORE_JSON\"$PACKAGE\","
+            else
+              OTHERS_JSON="$OTHERS_JSON\"$PACKAGE\","
+            fi
           done
 
-          JSON="${JSON%,}]"
+          CORE_JSON="${CORE_JSON%,}]"
+          OTHERS_JSON="${OTHERS_JSON%,}]"
 
-          echo "公開対象: $JSON"
-          echo "packages=$JSON" >> "$GITHUB_OUTPUT"
+          echo "公開対象（core）: $CORE_JSON"
+          echo "公開対象（core 以外）: $OTHERS_JSON"
+          echo "core=$CORE_JSON" >> "$GITHUB_OUTPUT"
+          echo "others=$OTHERS_JSON" >> "$GITHUB_OUTPUT"
 
-  publish:
+  # core は react / vue が依存するので、単独で先に公開する
+  publish-core:
     needs: targets
     # **この条件は必須。** matrix の値が空配列だと GitHub は
     # 「Matrix vector 'package' does not contain any values」でワークフロー自体を
     # 失敗させる。ジョブレベルの if は strategy の展開より先に評価されるので、
     # 公開対象が無い実行（version を上げていない production への push、
     # 公開済みバージョンへのタグ打ち直し）をここで skip させている
-    if: needs.targets.outputs.packages != '[]'
+    if: needs.targets.outputs.core != '[]'
     runs-on: ubuntu-latest
     environment: npm-publish
     # 同じパッケージの公開が同時に走らないようにする。targets が「未公開」と判定してから
@@ -208,11 +229,94 @@ jobs:
       # Trusted Publishing（OIDC）で npm へ認証するために必要
       id-token: write
     strategy:
+      matrix:
+        package: ${{ fromJSON(needs.targets.outputs.core) }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          # Trusted Publishing は Node >= 22.14.0 を要求する。範囲で書くのは、
+          # `22` だとランナーのツールキャッシュ次第で 22.14 未満が選ばれうるため
+          node-version: '>=22.14.0'
+          # registry-url は指定しない。指定すると setup-node が .npmrc に
+          # ${NODE_AUTH_TOKEN} を書き、Trusted Publishing ではトークンが存在しないため
+          # 後続の yarn（cache dir / install / build）が全て
+          # 「Failed to replace env in config」で落ちる（yarn 1 は未定義の env を展開できない）。
+          # 公開先は各 package.json の publishConfig.registry が決めるので、これで足りる
+
+      # Node 22 に同梱の npm は 10 系。Trusted Publishing は npm >= 11.5.1 が要る
+      - name: Use npm that supports trusted publishing
+        run: npm install -g npm@^11.5.1
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # 依存パッケージ（core など）が先にビルドされている必要がある
+      - name: Build all packages
+        run: yarn build
+
+      # 公開済みの型定義と比べて、破壊的変更が patch に載っていないかを見る
+      # （geckou/project-starter#155）。判定できない場合は素通しする安全網。
+      #
+      # **自動公開のときだけ実行する。** タグ起動なら release.sh が打つ前に同じ検査を
+      # 済ませており、そこには「互換の追加だと分かっている」場合の --force がある。
+      # ここで無条件に見ると --force が効かなくなり、検査に引っかかった版を
+      # どの経路からも公開できなくなる（自動公開が止まったときの逃げ道が、
+      # yarn release <パッケージ> --force でタグを打つこと）
+      - name: Check for breaking changes in a patch release
+        if: github.ref_type != 'tag' && github.event_name != 'workflow_dispatch'
+        env:
+          PACKAGE: ${{ matrix.package }}
+        run: node scripts/check-api-diff.mjs "$PACKAGE"
+
+      - name: Publish to npm
+        working-directory: packages/${{ matrix.package }}
+        run: |
+          NAME="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+
+          # targets が「未公開」と判定してからここまでに時間が空くので、直前にもう一度見る
+          # （concurrency で塞いでいるが、レジストリ側の反映待ちなども含めた最後の砦）。
+          # 未公開なら npm view はエラー（パッケージ未登録）か空（バージョン未登録）になる
+          if [ -n "$(npm view "$NAME@$VERSION" version 2> /dev/null || true)" ]; then
+            echo "$NAME@$VERSION は既に公開済みのため、publish をスキップします"
+            exit 0
+          fi
+
+          # --provenance: どのコミット・どのワークフローから公開されたかの証明を
+          # npm に添付する（OIDC で公開するときだけ付けられる）
+          npm publish --access public --provenance
+
+  # core 以外（react / vue）。core の公開が終わってから走る。
+  # core が失敗（または targets が失敗）したらここは skip され、npm に存在しない
+  # core のバージョンを要求するパッケージが公開されるのを防ぐ。
+  # core が公開対象でない実行では publish-core が skip されるが、
+  # needs の結果が failure でなければ進むので、その場合はそのまま公開される
+  publish-others:
+    needs: [targets, publish-core]
+    if: >-
+      !cancelled()
+      && needs.targets.result == 'success'
+      && needs.publish-core.result != 'failure'
+      && needs.targets.outputs.others != '[]'
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    # 同じパッケージの公開が同時に走らないようにする（publish-core と同じ理由）
+    concurrency:
+      group: publish-${{ github.repository }}-${{ matrix.package }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      # Trusted Publishing（OIDC）で npm へ認証するために必要
+      id-token: write
+    strategy:
       # 1 つの公開が失敗しても、他のパッケージの公開は続ける。
       # 途中で止めると「どこまで公開されたか」を人が追いにくくなる
       fail-fast: false
       matrix:
-        package: ${{ fromJSON(needs.targets.outputs.packages) }}
+        package: ${{ fromJSON(needs.targets.outputs.others) }}
 
     steps:
       - uses: actions/checkout@v7
