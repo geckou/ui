@@ -108,7 +108,7 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
-## 未リリースの変更
+## 0.5.0 の変更
 
 - `DatePicker` / `DateSelector` が `ariaLabel` / `ariaLabelledBy` を受ける
   （未指定なら従来どおり `name` から読み上げ名を作る）

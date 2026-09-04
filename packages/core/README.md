@@ -139,6 +139,14 @@ import type { Validates, Option, StateVariation, DateObject } from '@geckou/ui-c
 
 型の一覧は [Vue パッケージの README](../vue/README.md#types) を参照してください。
 
+## 0.4.0 の変更
+
+- `focus-trap` を追加（`handleTabKey` / `getFocusableElements` / `FOCUSABLE_SELECTOR`）。
+  React / Vue の `ModalBox` が Tab の循環に使う
+- `scroll-lock` がロック時にスクロールバー幅を `padding-right` として補正する。
+  スクロールバーが常時表示される環境で、モーダルの開閉のたびにページが横へずれていた。
+  `body` の `padding-right` を自分で指定している場合は `calc()` で合成される
+
 ## テスト
 
 ```bash

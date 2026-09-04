@@ -301,7 +301,7 @@ const articles = ref<any[]>([])
 
 定義例はデモの `demo/styles/base.scss` を参照。
 
-## 未リリースの変更
+## 0.7.0 の変更
 
 - `DatePicker` / `DateSelector` が `ariaLabel` / `ariaLabelledBy` を受ける
   （未指定なら従来どおり `name` から読み上げ名を作る）
