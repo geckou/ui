@@ -86,6 +86,12 @@ export function ModalBox({
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      // 子（SearchableSelectBox の候補リスト等）が Escape を処理した印。
+      // 尊重しないと、候補を閉じる操作でダイアログまで閉じてしまう
+      if (event.defaultPrevented) {
+        return
+      }
+
       if (event.key === 'Escape') {
         onClose()
 

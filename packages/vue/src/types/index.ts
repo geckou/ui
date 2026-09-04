@@ -24,7 +24,8 @@ export type {
 
 // ArticleList は Vue のみの機能のため、型もこのパッケージで持つ
 export type Category = {
-  id: string
+  /** WP REST の ID は数値。手書きの文字列 ID も受ける（比較は String() で寄せる） */
+  id: string | number
   name: string
 }
 
@@ -83,7 +84,7 @@ export type Article = {
   date: string
   title: RenderedField
   excerpt: RenderedField
-  categories?: string[]
+  categories?: (string | number)[]
   _embedded?: {
     author?: WpAuthor[]
     'wp:featuredmedia'?: WpMedia[]

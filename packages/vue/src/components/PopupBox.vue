@@ -105,7 +105,7 @@ defineExpose({
   block-size: max-content;
   opacity: 0;
   transition: transform, opacity;
-  transition-duration: var(--transition-duration);
+  transition-duration: var(--animation-duration, 0.3s);
   pointer-events: none;
   z-index: var(--z-index-overlay, 90);
 

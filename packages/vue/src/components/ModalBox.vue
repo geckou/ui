@@ -68,6 +68,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
     return
   }
 
+  // 子（SearchableSelectBox の候補リスト等）が Escape を処理した印。
+  // 尊重しないと、候補を閉じる操作でダイアログまで閉じてしまう
+  if (event.defaultPrevented) {
+    return
+  }
+
   if (event.key === 'Escape') {
     requestClose()
 
@@ -113,7 +119,12 @@ onBeforeUnmount(() => {
       <footer v-if="$slots.footer" :class="$style.footer">
         <slot name="footer" />
       </footer>
-      <button type="button" :class="$style.close_button" @click="requestClose">
+      <button
+        type="button"
+        aria-label="閉じる"
+        :class="$style.close_button"
+        @click="requestClose"
+      >
         <IconClose />
       </button>
     </div>
