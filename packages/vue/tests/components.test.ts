@@ -1,15 +1,23 @@
 // @geckou/ui-core への移行時に修正したバグのリグレッションテスト
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
+import CheckBoxes from '@/components/CheckBoxes.vue'
 import CheckButton from '@/components/CheckButton.vue'
+import DatePicker from '@/components/DatePicker.vue'
+import DateRangePicker from '@/components/DateRangePicker.vue'
 import DateSelector from '@/components/DateSelector.vue'
+import InputBox from '@/components/InputBox.vue'
+import LabeledCheckbox from '@/components/LabeledCheckbox.vue'
+import ModalBox from '@/components/ModalBox.vue'
+import PostedDate from '@/components/ArticleList/Parts/PostedDate.vue'
 import DropdownUi from '@/components/DropdownUi.vue'
 import RadioButtons from '@/components/RadioButtons.vue'
 import SelectBox from '@/components/SelectBox.vue'
 import SlideDownUi from '@/components/SlideDownUi.vue'
 import TabUI from '@/components/TabUI.vue'
 import TextBox from '@/components/TextBox.vue'
+import { INPUT_BOX_DEFAULT_STYLES } from '@geckou/ui-core'
 import { FormValidationManager } from '@/scripts/form-validation-manager'
 
 describe('DateSelector', () => {
@@ -45,6 +53,53 @@ describe('DateSelector', () => {
         .map((select) => (select.element as HTMLSelectElement).value)
     ).toEqual(['2000', '12', '31'])
   })
+
+  // 回帰: 年の範囲が「今年-100 〜 今年-14」固定で、外れた value を渡すと
+  // select が空表示になっていた
+  it('minYear / maxYear で年の範囲を変えられる', () => {
+    const wrapper = mount(DateSelector, {
+      props: {
+        name: 'publishedOn',
+        modelValue: '2026-05-20',
+        minYear: 2020,
+        maxYear: 2030,
+      },
+    })
+
+    const yearSelect = wrapper.find('select').element as HTMLSelectElement
+
+    expect(yearSelect.value).toBe('2026')
+    expect(yearSelect.options.length).toBe(12)
+  })
+
+  // 回帰: name / required が DOM に出ておらず、ネイティブ送信で値が送られなかった
+  it('各 select に name と required が出る', () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'birthday', modelValue: '', isRequired: true },
+    })
+
+    const selects = wrapper.findAll('select')
+
+    expect(selects.map((select) => select.attributes('name'))).toEqual([
+      'birthday-year',
+      'birthday-month',
+      'birthday-day',
+    ])
+
+    for (const select of selects) {
+      expect(select.attributes('required')).toBeDefined()
+    }
+  })
+
+  it('isRequired が false なら required は出ない', () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'birthday', modelValue: '' },
+    })
+
+    for (const select of wrapper.findAll('select')) {
+      expect(select.attributes('required')).toBeUndefined()
+    }
+  })
 })
 
 describe('RadioButtons', () => {
@@ -65,7 +120,7 @@ describe('RadioButtons', () => {
       .map((input) => (input.element as HTMLInputElement).name)
 
     expect(new Set(names).size).toBe(1)
-    expect(names[0]).toMatch(/^radio_group_\d+$/)
+    expect(names[0]).toMatch(/^radio_group_.+$/)
   })
 
   it('name を渡すとそれを使う', () => {
@@ -80,14 +135,26 @@ describe('RadioButtons', () => {
     expect(names).toEqual(['contractType', 'contractType'])
   })
 
-  it('複数設置しても name が衝突しない', () => {
-    const first = mount(RadioButtons, { props: { modelValue: '', options } })
-    const second = mount(RadioButtons, { props: { modelValue: '', options } })
+  // id は useId() で採番する（SSR と client で一致させるため）。
+  // useId はアプリ単位で一意なので、同じアプリに複数置いた場合を検証する
+  // （別アプリ同士の衝突は app.config.idPrefix で分ける）
+  it('同じアプリに複数設置しても name が衝突しない', () => {
+    const wrapper = mount({
+      components: { RadioButtons },
+      data: () => ({ options }),
+      template: `
+        <div>
+          <RadioButtons :options="options" model-value="" />
+          <RadioButtons :options="options" model-value="" />
+        </div>
+      `,
+    })
 
-    const nameOf = (wrapper: ReturnType<typeof mount>) =>
-      (wrapper.find('input[type="radio"]').element as HTMLInputElement).name
+    const names = wrapper
+      .findAll('input[type="radio"]')
+      .map((input) => (input.element as HTMLInputElement).name)
 
-    expect(nameOf(first)).not.toBe(nameOf(second))
+    expect(new Set(names).size).toBe(2)
   })
 
   // 修正前は !selectedValue.value で判定しており、数値の 0 が未選択扱いになって
@@ -218,14 +285,16 @@ describe('TabUI', () => {
 
 describe('TextBox のバリデーション', () => {
   // v-model 相当。emit を受けて modelValue を戻さないと内部の値が更新されない
-  const mountTextBox = (props: Record<string, unknown>) => {
-    const wrapper = mount(TextBox, {
+  const mountTextBox = (props: { name: string } & Record<string, unknown>) => {
+    const wrapper: ReturnType<typeof mount<typeof TextBox>> = mount(TextBox, {
       props: {
         ...props,
-        'onUpdate:modelValue': (newValue: unknown) =>
-          wrapper.setProps({ modelValue: newValue }),
+        'onUpdate:modelValue': (newValue: string | number): void => {
+          void wrapper.setProps({ modelValue: newValue })
+        },
       },
     })
+
     return wrapper
   }
 
@@ -282,6 +351,19 @@ describe('TextBox のバリデーション', () => {
 
 describe('SelectBox', () => {
   // RadioButtons と同じ不具合。0 は正当な選択値なので未選択扱いにしない
+  // 回帰: :name が無く、必須 prop の name が DOM に出ていなかった
+  it('select に name が出る', () => {
+    const wrapper = mount(SelectBox, {
+      props: {
+        name: 'count',
+        modelValue: '',
+        options: [{ label: '1 個', value: 1 }],
+      },
+    })
+
+    expect(wrapper.find('select').attributes('name')).toBe('count')
+  })
+
   it('数値の 0 を選んでも必須エラーにしない', async () => {
     const wrapper = mount(SelectBox, {
       props: {
@@ -452,6 +534,418 @@ describe('CheckButton', () => {
     await input.setValue(true)
 
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([true])
+
+    wrapper.unmount()
+  })
+})
+
+describe('CheckBoxes', () => {
+  const options = [
+    { label: '個人', value: 'personal' },
+    { label: '法人', value: 'corporate' },
+  ]
+
+  // 回帰: options を初期化時に一度しか読んでおらず、API から取ってから渡す形で
+  // 何も描画されなかった
+  it('options が後から渡されても描画に追従する', async () => {
+    const wrapper = mount(CheckBoxes, {
+      props: { name: 'kind', options: [] },
+    })
+
+    expect(wrapper.findAll('input[type="checkbox"]')).toHaveLength(0)
+
+    await wrapper.setProps({ options })
+
+    expect(wrapper.findAll('input[type="checkbox"]')).toHaveLength(2)
+    expect(wrapper.text()).toContain('法人')
+  })
+
+  it('options が差し替わっても選択状態は modelValue から引き直す', async () => {
+    const wrapper = mount(CheckBoxes, {
+      props: { name: 'kind', options, modelValue: ['corporate'] },
+    })
+
+    await wrapper.setProps({
+      options: [...options, { label: '団体', value: 'group' }],
+    })
+
+    const checked = wrapper
+      .findAll('input[type="checkbox"]')
+      .map((input) => (input.element as HTMLInputElement).checked)
+
+    expect(checked).toEqual([false, true, false])
+  })
+})
+
+describe('PostedDate', () => {
+  // 回帰: 無効な date を format に渡すと date-fns が RangeError を投げ、
+  // 一覧全体が描画されなくなっていた
+  it('無効な date でも throw せず空になる', () => {
+    const wrapper = mount(PostedDate, { props: { date: '' } })
+
+    expect(wrapper.text()).toBe('')
+  })
+
+  it('有効な date は書式どおりに描画する', () => {
+    const wrapper = mount(PostedDate, { props: { date: '2026-08-17' } })
+
+    expect(wrapper.text()).toBe('2026/08/17')
+  })
+})
+
+describe('InputBox の状態判定', () => {
+  // 回帰: 最初の 1 要素だけを見ていたため、DatePicker のように
+  // 「隠しの date input + 年月日欄」を持つ入力で配色が誤っていた
+  const twoControls = {
+    slots: {
+      default: '<input type="date" /><input type="text" placeholder="年" />',
+    },
+    attachTo: document.body,
+  }
+
+  // style 文字列の「変わった / 変わらない」だけだと、valid を期待している箇所が
+  // error になっても通ってしまう。トークンの実値で状態を特定する
+  const STATES = ['default', 'focus', 'valid', 'error', 'disabled'] as const
+
+  const shadowOf = (state: (typeof STATES)[number]) => {
+    const css = INPUT_BOX_DEFAULT_STYLES[state]
+
+    return `0 0 0 ${css?.border?.size} ${css?.border?.color} inset`
+  }
+
+  const stateOf = (wrapper: ReturnType<typeof mount>) => {
+    const style = wrapper.attributes('style') ?? ''
+
+    return STATES.find((state) => style.includes(shadowOf(state))) ?? style
+  }
+
+  it('2 つ目のコントロールにフォーカスしても focus 配色になる', async () => {
+    const wrapper = mount(InputBox, twoControls)
+
+    expect(stateOf(wrapper)).toBe('default')
+
+    const text = wrapper.findAll('input')[1].element as HTMLInputElement
+    text.focus()
+    await wrapper.trigger('focusin')
+    await nextTick()
+
+    expect(stateOf(wrapper)).toBe('focus')
+
+    wrapper.unmount()
+  })
+
+  it('空のまま blur しても valid 配色にしない', async () => {
+    const wrapper = mount(InputBox, twoControls)
+
+    const text = wrapper.findAll('input')[1].element as HTMLInputElement
+    text.focus()
+    await wrapper.trigger('focusin')
+    text.blur()
+    await wrapper.trigger('blur')
+    await nextTick()
+
+    expect(stateOf(wrapper)).toBe('default')
+
+    wrapper.unmount()
+  })
+
+  // 回帰: onUnmounted の時点で ref は null なので解除が走らず、observer も
+  // disconnect していなかった
+  it('アンマウントで MutationObserver を解除する', () => {
+    const disconnect = vi.fn()
+    const original = globalThis.MutationObserver
+
+    globalThis.MutationObserver = class {
+      observe() {}
+      disconnect() {
+        disconnect()
+      }
+      takeRecords() {
+        return []
+      }
+    } as unknown as typeof MutationObserver
+
+    const wrapper = mount(InputBox, twoControls)
+    wrapper.unmount()
+
+    expect(disconnect).toHaveBeenCalled()
+
+    globalThis.MutationObserver = original
+  })
+
+  it('全て埋まったら valid 配色になる', async () => {
+    const wrapper = mount(InputBox, twoControls)
+
+    const [date, text] = wrapper
+      .findAll('input')
+      .map((input) => input.element as HTMLInputElement)
+    date.value = '2026-08-17'
+    text.value = '2026'
+
+    await wrapper.trigger('blur')
+    await nextTick()
+
+    expect(stateOf(wrapper)).toBe('valid')
+
+    wrapper.unmount()
+  })
+})
+
+describe('ModalBox', () => {
+  // 回帰: 親が isShown=false にしたときと unmount 時にも emit しており、
+  // 親のハンドラが再入していた
+  it('自発的に閉じたときだけ close を emit する', async () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: true },
+      attachTo: document.body,
+    })
+
+    await wrapper.setProps({ isShown: false })
+    expect(wrapper.emitted('close')).toBeUndefined()
+
+    await wrapper.setProps({ isShown: true })
+    await wrapper.find('button').trigger('click')
+    expect(wrapper.emitted('close')).toHaveLength(1)
+
+    // unmount 後は emitted() を取れないので、件数は解除前に控えておく
+    const emittedBeforeUnmount = wrapper.emitted('close')!.length
+    wrapper.unmount()
+    expect(emittedBeforeUnmount).toBe(1)
+  })
+
+  // 回帰: Vue は :inert="false" を inert="false" として出す。inert は boolean 属性で
+  // 値に関係なく効くため、表示中もモーダルの中身を操作できなくなっていた
+  it('表示中は inert が付かない', async () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: false },
+      attachTo: document.body,
+    })
+
+    expect(wrapper.element.hasAttribute('inert')).toBe(true)
+
+    await wrapper.setProps({ isShown: true })
+
+    expect(wrapper.element.hasAttribute('inert')).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  it('Escape で close を emit する', async () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: true },
+      attachTo: document.body,
+    })
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await nextTick()
+
+    expect(wrapper.emitted('close')).toHaveLength(1)
+
+    wrapper.unmount()
+  })
+
+  it('閉じたら開く前の要素へフォーカスを戻す', async () => {
+    const trigger = document.createElement('button')
+    document.body.appendChild(trigger)
+    trigger.focus()
+
+    const wrapper = mount(ModalBox, {
+      props: { isShown: false },
+      attachTo: document.body,
+    })
+
+    await wrapper.setProps({ isShown: true })
+    await nextTick()
+    expect(document.activeElement).not.toBe(trigger)
+
+    await wrapper.setProps({ isShown: false })
+    expect(document.activeElement).toBe(trigger)
+
+    wrapper.unmount()
+    trigger.remove()
+  })
+})
+
+describe('閉じた開閉コンテンツはキーボードで触れない', () => {
+  // 「中身のリンクへキーボードで到達できるか」をそのまま見る。
+  // html() に 'inert' が含まれるかだけでは、開いたときに外れたことを検証できない
+  const linkIsInert = (wrapper: ReturnType<typeof mount>) =>
+    wrapper.find('a').element.closest('[inert]') !== null
+
+  it('DropdownUi は閉状態だけ inert を付ける', async () => {
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'メニュー', contents: '<a href="#x">リンク</a>' },
+    })
+    const button = () => wrapper.find('button')
+
+    expect(button().attributes('aria-expanded')).toBe('false')
+    expect(linkIsInert(wrapper)).toBe(true)
+
+    await button().trigger('click')
+
+    expect(button().attributes('aria-expanded')).toBe('true')
+    expect(linkIsInert(wrapper)).toBe(false)
+  })
+
+  it('SlideDownUi は閉状態だけ inert を付ける', async () => {
+    const wrapper = mount(SlideDownUi, {
+      slots: { trigger: '開く', default: '<a href="#x">リンク</a>' },
+    })
+    const button = () => wrapper.find('button')
+
+    expect(button().attributes('aria-expanded')).toBe('false')
+    expect(linkIsInert(wrapper)).toBe(true)
+
+    await button().trigger('click')
+
+    expect(button().attributes('aria-expanded')).toBe('true')
+    expect(linkIsInert(wrapper)).toBe(false)
+  })
+})
+
+describe('DatePicker', () => {
+  const byLabel = (wrapper: ReturnType<typeof mount>, label: string) =>
+    wrapper.find(`input[aria-label="${label}"]`)
+
+  it('年月日欄の不正な値をエラーとして出し、manager にも無効を伝える', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DatePicker, {
+      props: {
+        name: 'startedOn',
+        modelValue: '',
+        formValidationManager: manager,
+      },
+    })
+
+    await byLabel(wrapper, 'startedOnの年').setValue('2024')
+    await byLabel(wrapper, 'startedOnの月').setValue('13')
+    await byLabel(wrapper, 'startedOnの日').setValue('01')
+
+    expect(wrapper.text()).toContain('月は01から12の間で入力してください')
+    expect(manager.isAllValid.value).toBe(false)
+  })
+
+  it('正しい値に直すと有効に戻る', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DatePicker, {
+      props: {
+        name: 'startedOn',
+        modelValue: '',
+        formValidationManager: manager,
+      },
+    })
+
+    await byLabel(wrapper, 'startedOnの年').setValue('2024')
+    await byLabel(wrapper, 'startedOnの月').setValue('13')
+    await byLabel(wrapper, 'startedOnの日').setValue('01')
+    expect(manager.isAllValid.value).toBe(false)
+
+    await byLabel(wrapper, 'startedOnの月').setValue('12')
+
+    expect(manager.isAllValid.value).toBe(true)
+  })
+
+  it('必須で空なら無効', async () => {
+    const manager = new FormValidationManager()
+    mount(DatePicker, {
+      props: {
+        name: 'startedOn',
+        modelValue: '',
+        isRequired: true,
+        formValidationManager: manager,
+      },
+    })
+
+    await nextTick()
+
+    expect(manager.isAllValid.value).toBe(false)
+  })
+
+  it('min / max をネイティブ入力へ渡す', () => {
+    const wrapper = mount(DatePicker, {
+      props: {
+        name: 'startedOn',
+        modelValue: '',
+        minDate: '2024-01-01',
+        maxDate: '2024-12-31',
+      },
+    })
+
+    const native = wrapper.find('input[type="date"]')
+
+    expect(native.attributes('min')).toBe('2024-01-01')
+    expect(native.attributes('max')).toBe('2024-12-31')
+  })
+})
+
+describe('DateRangePicker', () => {
+  // 回帰: min / max はネイティブ入力にしか効かず、年月日欄から
+  // 開始 > 終了 を入力しても検証されなかった
+  it('開始 > 終了ならエラーを出し、manager にも無効を伝える', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DateRangePicker, {
+      props: {
+        name: 'period',
+        modelValue: { start: '2024-05-01', end: '2024-04-01' },
+        formValidationManager: manager,
+      },
+    })
+
+    await nextTick()
+
+    expect(wrapper.text()).toContain('終了日より後の日付は選べません')
+    expect(manager.isAllValid.value).toBe(false)
+  })
+
+  it('開始 <= 終了なら有効', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DateRangePicker, {
+      props: {
+        name: 'period',
+        modelValue: { start: '2024-04-01', end: '2024-05-01' },
+        formValidationManager: manager,
+      },
+    })
+
+    await nextTick()
+
+    expect(wrapper.text()).not.toContain('終了日より後の日付は選べません')
+    expect(manager.isAllValid.value).toBe(true)
+  })
+
+  it('片方だけならエラーにしない', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DateRangePicker, {
+      props: {
+        name: 'period',
+        modelValue: { start: '2024-05-01', end: '' },
+        formValidationManager: manager,
+      },
+    })
+
+    await nextTick()
+
+    expect(wrapper.text()).not.toContain('終了日より後の日付は選べません')
+  })
+})
+
+describe('LabeledCheckbox', () => {
+  // 回帰: <label> は <button> をラベル付けしないので、可視ラベルがあっても
+  // アクセシブル名が name（機械名）になり、画面の文言と読み上げが食い違っていた
+  it('可視ラベルをアクセシブル名にする', () => {
+    const wrapper = mount(LabeledCheckbox, {
+      props: { name: 'agreement', label: '利用規約に同意する' },
+      attachTo: document.body,
+    })
+
+    const button = wrapper.find('button')
+    const labelledBy = button.attributes('aria-labelledby')
+
+    expect(labelledBy).toBeTruthy()
+    expect(button.attributes('aria-label')).toBeUndefined()
+    expect(wrapper.find(`#${labelledBy}`).text()).toBe('利用規約に同意する')
+    expect(button.attributes('role')).toBe('checkbox')
+    expect(button.attributes('aria-checked')).toBe('false')
 
     wrapper.unmount()
   })

@@ -14,7 +14,20 @@ Vue 3 用の再利用可能な UI コンポーネント集。
 yarn add @geckou/ui-vue
 ```
 
-Vue 本体は同梱していません。プロジェクト側の Vue 3.0 以上を使います（`peerDependencies`）。
+Vue 本体は同梱していません。プロジェクト側の Vue 3.5 以上を使います（`peerDependencies`）。
+3.5 未満では `onScopeDispose(fn, true)` と `useId()` が無いため動きません。
+
+⚠️ **1 ページに複数の Vue アプリをマウントする場合は、アプリごとに
+`app.config.idPrefix` を変えてください。** DOM id と `RadioButtons` のグループ
+`name` は `useId()` で採番しており（SSR と client で一致させるため）、既定の
+prefix はどのアプリでも同じです。分けないと、別アプリのラジオグループが同じ
+`name` になって片方を選ぶともう片方の選択が外れます。`RadioButtons` に `name` を
+明示すれば個別に回避できます。
+
+```ts
+const app = createApp(App)
+app.config.idPrefix = 'checkout'
+```
 
 ## Usage
 
@@ -247,13 +260,50 @@ const articles = ref<any[]>([])
 | `modelValue`       | `string \| number`          | ✅       | -                  | テキストボックスの値                           |
 | `name`             | `string`                    | ✅       | -                  | `name`属性                                     |
 | `cssStyle`         | `InputBoxStyleForEachStatus`| ❌       | -                  | テキストボックスのスタイル                     |
-| `type`             | `string`                    | ❌       | `text`             | テキストボックスのタイプ                       |
+| `inputType`        | `string`                    | ❌       | `text`             | `input` の `type` 属性                         |
 | `isDisabled`       | `boolean`                   | ❌       | `false`            | テキストボックスの活性/非活性                  |
 | `isRequired`       | `boolean`                   | ❌       | `false`            | 必須項目かどうか                               |
 | `maxLength`        | `number`                    | ❌       | `30`               | 最大入力文字数                                 |
 | `autocomplete`     | `string`                    | ❌       | `off`              | `autocomplete`属性                             |
 | `validates`        | `Validates[]`               | ❌       | `[]`               | バリデーションの設定                           |
 
+
+## Design tokens
+
+**トークンの一覧はルートの [README](../../README.md#design-tokens) が正。**
+ここに挙げるのは、そのうちフォールバックを持つもの（未定義でも壊れない）だけ。
+
+⚠️ `--sp-*` / `--white` / `--gray` / `--radius-small` / `--icon-medium` などは
+**フォールバックを持たない**。未定義だと padding が消える等、普通に崩れるので、
+`:root` で定義すること。
+
+| トークン | 既定値 | 使う場所 |
+|---|---|---|
+| `--overlay-color` | `rgba(0, 8, 26, 0.5)` | ModalBox の背面 |
+| `--shadow-color` | `rgba(21, 20, 58, 0.12)` | ModalBox の drop-shadow |
+| `--z-index-overlay` | `90` | ModalBox / PopupBox の重なり |
+| `--z-index-nav` | `70` | ModalBox の閉じるボタン（+1 で重ねる） |
+| `--contents-max-width` | `1440px` | ModalBox の最大幅、PopupBox の左右位置 |
+| `--global-header-height` | `0px` | PopupBox の上端 |
+| `--mobile-lower-width` | `430px` | PopupBox の最大幅 |
+| `--small-icon-size` | `0.9375rem` | ArticleList のアイコン |
+| `--medium-icon-size` | `1.125rem` | アイコン全般（`mixin.scss` の既定） |
+
+定義例はデモの `demo/styles/base.scss` を参照。
+
+## 0.6.0 の破壊的変更
+
+- `ModalBox` のイベント名が `closeModal` → `close`（React の `onClose` と揃えた）。
+  親が `isShown=false` にしたときと unmount 時には emit しなくなった
+- `TabUI` の `cssStyle` prop を削除（宣言のみで未使用だった）。`color.text` は配線した
+- `CheckBox` / `ToggleButton` のロールが `aria-pressed` から
+  `role="checkbox" + aria-checked` / `role="switch" + aria-checked` に変わった。
+  アクセシブル名は `ariaLabel` / `ariaLabelledBy` で渡せる（未指定なら従来どおり `name`）
+- id の採番が `useId()` になり、Vue 3.5 未満では動かない（→ Installation）
+- `dist` が `preserveModules` 構成になった（`import '@geckou/ui-vue/style.css'` は引き続き必要）
+- `DateSelector` に `minYear` / `maxYear` を追加（既定は従来どおり「今年 -100 〜 今年 -14」）
+- `DateRangePicker` が範囲（開始 > 終了）を検証し、`<name>Range` という名前で
+  `FormValidationManager` に登録する。`invalidNames` を見ている場合は増える
 
 ## License
 

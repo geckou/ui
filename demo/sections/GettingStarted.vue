@@ -68,11 +68,12 @@ const manager = new FormValidationManager()
 const VALIDATION_REACT = `import { DatePicker, useFormValidation } from '@geckou/ui-react'
 
 function Form() {
-  const { isAllValid } = useFormValidation()
+  // store を渡さない入力は集計されず、isAllValid が常に true になる
+  const { isAllValid, store } = useFormValidation()
 
   return (
     <form>
-      <DatePicker name="startedOn" isRequired />
+      <DatePicker name="startedOn" formValidationStore={store} isRequired />
       <button disabled={!isAllValid}>送信</button>
     </form>
   )
@@ -167,14 +168,14 @@ const CSS_VARS = `:root {
       <h3 :class="$style.heading">インストール</h3>
       <p :class="$style.text">
         Vue 3 のプロジェクトに追加してください。Vue
-        本体は同梱していないので、プロジェクト側の Vue（3.0
+        本体は同梱していないので、プロジェクト側の Vue（3.5
         以上）がそのまま使われます。
       </p>
       <CodeBlock :code="INSTALL_VUE" language="bash" />
       <p :class="$style.text">
-        React（Next.js）の場合はこちら。ソースをそのまま配布しているため、
-        <code>next.config.ts</code> の <code>transpilePackages</code> に
-        <code>'@geckou/ui-react'</code> を追加してください。
+        React（Next.js）の場合はこちら。0.2.0 からビルド済みの
+        <code>dist</code> を配布しているので、<code>next.config.ts</code> の
+        <code>transpilePackages</code> への追加は要りません。
       </p>
       <CodeBlock :code="INSTALL_REACT" language="bash" />
     </section>

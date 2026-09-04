@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import type { StateVariation, BaseStyle } from '@/types'
+import type { BaseStyle, StyleForEachStatus } from '@/types'
 import { computed } from 'vue'
 import { COLOR } from '@/const'
+
+type ToggleStyle = {
+  on: BaseStyle
+  off: BaseStyle
+}
 
 const emit = defineEmits<{
   (e: 'update:modelValue', newValue: boolean): void
@@ -13,17 +18,17 @@ const props = withDefaults(
     label?: Record<'on' | 'off', string>
     modelValue?: boolean
     isDisabled?: boolean
-    cssStyle?: Record<
-      StateVariation,
-      {
-        on: BaseStyle
-        off: BaseStyle
-      }
-    >
+    // React 版（ToggleButton.tsx）と揃える。default 以外は任意
+    cssStyle?: StyleForEachStatus<ToggleStyle>
+    /** アクセシブル名。可視ラベルがあるなら ariaLabelledBy でその要素を指すこと */
+    ariaLabel?: string
+    ariaLabelledBy?: string
   }>(),
   {
     label: () => ({ on: 'ON', off: 'OFF' }),
     cssStyle: undefined,
+    ariaLabel: undefined,
+    ariaLabelledBy: undefined,
   }
 )
 
@@ -89,11 +94,17 @@ const currentCssStyle = computed(() => {
     }"
     type="button"
     :disabled="isDisabled"
+    role="switch"
+    :aria-checked="isChecked"
+    :aria-labelledby="ariaLabelledBy"
+    :aria-label="ariaLabelledBy ? undefined : (ariaLabel ?? name)"
     @click.stop="!isDisabled ? (isChecked = !isChecked) : null"
   >
+    <!-- 値の送信専用。フォーカスできると Tab の停止がボタンと二重になるので外す -->
     <input
       v-model="isChecked"
       type="checkbox"
+      tabindex="-1"
       :name="name"
       :disabled="isDisabled"
     />

@@ -16,9 +16,16 @@ function preserveUseClient(): Plugin {
     enforce: 'pre',
 
     transform(code, id) {
-      if (/^\s*['"]use client['"]/.test(code)) clientModules.add(id)
+      const directive = /^\s*(['"])use client\1;?[ \t]*\r?\n?/
 
-      return null
+      if (!directive.test(code)) return null
+
+      clientModules.add(id)
+
+      // ディレクティブはここで落とす。残したまま渡すと rollup が
+      // 「バンドル時にエラーになるので無視した」と 1 モジュールずつ警告し、
+      // 本物の警告が埋もれる。renderChunk でチャンクの先頭に書き戻す
+      return { code: code.replace(directive, ''), map: null }
     },
 
     renderChunk(code, chunk) {

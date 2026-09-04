@@ -6,7 +6,9 @@ import type {
   RadioButtonStyleForEachStatus,
   SelectValue,
 } from '../types'
-import { useId } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { isEmptyValue, MESSAGES } from '@geckou/ui-core'
+import { ErrorMessage } from './ErrorMessage'
 import { COLOR } from '../constants'
 
 type Props = {
@@ -31,6 +33,25 @@ export function RadioButtons({
   isDisableAnimation,
 }: Props) {
   const selectedValue = value ?? ''
+
+  // Vue 版（RadioButtons.vue）は watch(selectedValue) で判定するので、
+  // 初回描画では出さず「値が変化したとき」に空なら出す。
+  // isTouched（クリック済み）で見ると、制御コンポーネントの React では
+  // クリック直後に値が入るため実質出ないままになる
+  const [hasChanged, setHasChanged] = useState(false)
+  const previousValue = useRef(selectedValue)
+
+  useEffect(() => {
+    if (previousValue.current === selectedValue) return
+
+    previousValue.current = selectedValue
+    setHasChanged(true)
+  }, [selectedValue])
+
+  const errorMessages =
+    hasChanged && isRequired && isEmptyValue(selectedValue)
+      ? [MESSAGES.required]
+      : undefined
   // Vue 版（@geckou/ui-vue）は option ごとに別の name を振っていたため、
   // ラジオグループとして機能しなかった（フォーム送信・キーボード操作）
   const generatedName = useId()
@@ -56,7 +77,7 @@ export function RadioButtons({
   } as CSSProperties
 
   return (
-    <div className="flex flex-wrap items-center gap-4">
+    <div className="relative flex flex-wrap items-center gap-4">
       <style>
         {
           '@keyframes uiRadioPop{0%{scale:1}10%{scale:.8}50%{scale:1.2}100%{scale:1}}'
@@ -89,6 +110,7 @@ export function RadioButtons({
           </label>
         )
       })}
+      <ErrorMessage errorMessages={errorMessages} />
     </div>
   )
 }

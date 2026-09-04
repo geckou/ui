@@ -106,6 +106,13 @@ export function composeDateValue(
     return ''
   }
 
+  // 数字でない入力（'ab' 等）を pad(Number(part)) に通すと '2024-NaN-01' のような
+  // 日付でない文字列ができる。Number.isFinite だと '1.5' / '0x0a' / ' 1' を通して
+  // しまうので、validateDateObject と同じ isNumeric で判定する
+  if (parts.some((part) => !isNumeric(part))) {
+    return ''
+  }
+
   const [yearPart, ...rest] = parts
 
   return [yearPart, ...rest.map((part) => pad(Number(part)))].join('-')

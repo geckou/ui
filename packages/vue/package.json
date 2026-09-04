@@ -1,10 +1,13 @@
 {
   "name": "@geckou/ui-vue",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A set of reusable Vue UI components (forms & article lists) by Geckou",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "sideEffects": [
+    "**/*.css"
+  ],
   "type": "module",
   "repository": {
     "type": "git",
@@ -29,17 +32,17 @@
     "vue": "^3.5.0"
   },
   "dependencies": {
-    "@geckou/ui-core": "^0.2.0",
+    "@geckou/ui-core": "^0.3.0",
     "date-fns": "^4.4.0"
   },
   "scripts": {
     "build": "vite build",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
     "prepublishOnly": "yarn build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "type-check": "vue-tsc --noEmit"
+    "type-check": "vue-tsc --noEmit && vue-tsc --noEmit -p tsconfig.test.json"
   },
   "exports": {
     ".": {

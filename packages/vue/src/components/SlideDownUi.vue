@@ -60,10 +60,11 @@ defineExpose({ isOpenedContents })
     <button
       :class="$style.trigger"
       :disabled="isDisabled"
+      :aria-expanded="isOpenedContents"
       type="button"
       @click.prevent="toggleBox"
     >
-      <div class="width:100% text-align:left">
+      <div :class="$style.trigger_content">
         <slot name="trigger" />
       </div>
       <IconChevronDown v-if="!isHiddenArrow" :class="$style.icon" />
@@ -71,6 +72,7 @@ defineExpose({ isOpenedContents })
     <div
       :style="{ height: isOpenedContents ? `${contentsHeight}px` : 0 }"
       :class="$style.contents"
+      :inert="!isOpenedContents || undefined"
     >
       <div ref="contents" :class="$style.container">
         <slot />
@@ -94,6 +96,11 @@ defineExpose({ isOpenedContents })
   100% {
     overflow: visible;
   }
+}
+
+.trigger_content {
+  inline-size: 100%;
+  text-align: start;
 }
 
 .trigger {

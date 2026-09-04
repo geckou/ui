@@ -71,6 +71,7 @@ watch(
   >
     <select
       v-model="selectedValue"
+      :name="name"
       :disabled="isDisabled"
       :required="isRequired"
       :class="$style.select"

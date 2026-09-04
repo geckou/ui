@@ -5,7 +5,10 @@
   overflow: hidden;
 }
 
-@mixin icon($size: var(--medium-icon-size), $color: var(--text-color)) {
+@mixin icon(
+  $size: var(--medium-icon-size, 1.125rem),
+  $color: var(--text-color)
+) {
   width: 100%;
   height: 100%;
   max-width: $size;

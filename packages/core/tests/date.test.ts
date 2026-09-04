@@ -106,6 +106,39 @@ describe('daysInMonth', () => {
     expect(daysInMonth(4, 2)).toBe(29)
     expect(daysInMonth(1900, 2)).toBe(28)
   })
+
+  // 月の端。setFullYear(year, month, 0) は前月の末日を返す仕様なので、
+  // 0 は前年 12 月、13 は同年 12 月になる
+  it('月の範囲外でも隣の月の末日を返す', () => {
+    expect(daysInMonth(2024, 0)).toBe(31)
+    expect(daysInMonth(2024, 13)).toBe(31)
+  })
+})
+
+describe('composeDateValue の端', () => {
+  // 回帰: pad(Number(part)) に数字でない入力を通すと '2024-NaN-01' ができていた
+  it('数字でない入力なら空文字を返す', () => {
+    expect(composeDateValue({ year: '2024', month: 'ab', day: '1' })).toBe('')
+    expect(composeDateValue({ year: 'yyyy', month: '01', day: '1' })).toBe('')
+    expect(composeDateValue({ year: '2024', month: '01', day: '--' })).toBe('')
+  })
+
+  // Number.isFinite だとこれらを通してしまい、'2024-1.5-01' や
+  // '0x0a' の 10 進化のような日付でない値ができる
+  it('小数・16 進・空白混じりも通さない', () => {
+    expect(composeDateValue({ year: '2024', month: '1.5', day: '01' })).toBe('')
+    expect(composeDateValue({ year: '2024', month: '0x0a', day: '01' })).toBe(
+      ''
+    )
+    expect(composeDateValue({ year: '2024', month: ' 1', day: '01' })).toBe('')
+    expect(composeDateValue({ year: '2024', month: '-1', day: '01' })).toBe('')
+  })
+
+  it("type='month' でも日は見ない", () => {
+    expect(
+      composeDateValue({ year: '2024', month: '01', day: 'ab' }, 'month')
+    ).toBe('2024-01')
+  })
 })
 
 describe('validateDateObject', () => {

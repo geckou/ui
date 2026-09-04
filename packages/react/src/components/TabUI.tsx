@@ -70,6 +70,7 @@ export function TabUI({
   const style = {
     '--active-color': color?.active || COLOR.blue,
     '--background-color': color?.background || 'transparent',
+    '--text-color': color?.text || 'inherit',
   } as CSSProperties
 
   return (
@@ -92,7 +93,7 @@ export function TabUI({
             aria-controls={panelId(tab.key)}
             aria-selected={activeTab === tab.key}
             tabIndex={activeTab === tab.key ? 0 : -1}
-            className={`border-none bg-transparent px-4 py-2 text-base ${activeTab === tab.key ? 'cursor-auto' : 'cursor-pointer'}`}
+            className={`border-none bg-transparent px-4 py-2 text-base ${activeTab === tab.key ? 'cursor-auto text-(--active-color)' : 'cursor-pointer text-(--text-color)'}`}
             onClick={() => changeTabs(tab.key)}
           >
             {tabSlots?.[tab.key] ?? tab.label}

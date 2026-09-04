@@ -1,6 +1,6 @@
 {
   "name": "@geckou/ui-core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Framework-agnostic logic shared by @geckou/ui-vue and @geckou/ui-react",
   "type": "module",
   "main": "dist/index.js",
@@ -34,8 +34,8 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
     "prepublishOnly": "yarn build",
     "test": "vitest run",
     "test:watch": "vitest",

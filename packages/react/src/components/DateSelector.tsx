@@ -24,6 +24,9 @@ type Props = {
   formValidationStore?: FormValidationStore | null
   /** 'month' なら日の選択を出さない（Vue 版と揃える） */
   type?: 'date' | 'month'
+  /** 選べる年の下限・上限。既定は「今年 -100 〜 今年 -14」（生年月日向け） */
+  minYear?: number
+  maxYear?: number
 }
 
 const EMPTY_BIRTHDAY: Birthday = { year: '', month: '', day: '' }
@@ -35,6 +38,8 @@ export function DateSelector({
   isRequired,
   formValidationStore,
   type = 'date',
+  minYear,
+  maxYear,
 }: Props) {
   const [birthday, setBirthday] = useState<Birthday>(EMPTY_BIRTHDAY)
 
@@ -60,12 +65,13 @@ export function DateSelector({
     }
   }, [value])
 
-  const today = new Date()
-  const maxYear = today.getFullYear() - 100
-  const currentYear = today.getFullYear() - 14
+  // 範囲を固定にすると、外れた value を渡されたとき select が空表示になる
+  const thisYear = new Date().getFullYear()
+  const yearFrom = minYear ?? thisYear - 100
+  const yearTo = maxYear ?? thisYear - 14
   const yearsOptions = Array.from(
-    { length: currentYear - maxYear + 1 },
-    (_, i) => (maxYear + i).toString()
+    { length: Math.max(yearTo - yearFrom + 1, 0) },
+    (_, i) => (yearFrom + i).toString()
   ).map((year) => ({ label: year, value: year }))
 
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
@@ -136,6 +142,7 @@ export function DateSelector({
         <select
           value={birthday.year}
           name={`${name}-year`}
+          aria-label={`${name}の年`}
           required={isRequired}
           onChange={(event) => selectItem('year', event.target.value)}
           className="w-[calc(5ch+var(--sp-medium,0.75rem)*2+var(--icon-medium,1.125rem))]! cursor-pointer p-[var(--sp-medium,0.75rem)]! pe-[calc(var(--sp-small,0.375rem)*2+var(--icon-medium,1.125rem))]!"
@@ -155,6 +162,7 @@ export function DateSelector({
         <select
           value={birthday.month}
           name={`${name}-month`}
+          aria-label={`${name}の月`}
           required={isRequired}
           onChange={(event) => selectItem('month', event.target.value)}
           className={selectClass}
@@ -179,6 +187,7 @@ export function DateSelector({
           <select
             value={birthday.day}
             name={`${name}-day`}
+            aria-label={`${name}の日`}
             required={isRequired}
             onChange={(event) => selectItem('day', event.target.value)}
             className={selectClass}

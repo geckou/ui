@@ -35,7 +35,8 @@ useClickOutside(root, () => closeDropDown())
 
 onMounted(() => updateContentsHeight())
 onUpdated(() => updateContentsHeight())
-defineExpose({ isContentsOpened })
+// React 版（DropdownUiHandle）と揃えて close も公開する
+defineExpose({ isContentsOpened, close: closeDropDown })
 </script>
 
 <template>
@@ -43,6 +44,7 @@ defineExpose({ isContentsOpened })
     <button
       :class="$style.button"
       :disabled="isDisabled"
+      :aria-expanded="isContentsOpened"
       type="button"
       :style="{
         '--trigger-color':
@@ -62,6 +64,7 @@ defineExpose({ isContentsOpened })
     <div
       v-if="$slots.contents"
       :class="$style.contents"
+      :inert="!isContentsOpened || undefined"
       :style="{
         boxShadow: isContentsOpened ? 'var(--box-shadow)' : 'none',
         blockSize: isContentsOpened ? `${contentsHeight}px` : 0,

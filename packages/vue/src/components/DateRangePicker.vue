@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, watch } from 'vue'
+import { MESSAGES } from '@geckou/ui-core'
 import { FormValidationManager } from '@/scripts/form-validation-manager'
 import DatePicker from '@/components/DatePicker.vue'
+import ErrorMessage from '@/components/ErrorMessage.vue'
 
 type DateRange = {
   start: string
@@ -39,6 +41,30 @@ const props = withDefaults(
 const startDate = computed(() => props.modelValue.start)
 const endDate = computed(() => props.modelValue.end)
 
+// minDate / maxDate はネイティブの入力にしか効かないので、年月日欄から
+// 開始 > 終了 を入力しても弾かれない。ここで範囲そのものを検証する
+const isRangeValid = computed(
+  () => !(startDate.value && endDate.value && startDate.value > endDate.value)
+)
+
+const rangeName = computed(() => `${props.name}Range`)
+
+watch(
+  [isRangeValid, rangeName],
+  ([valid, name], previous) => {
+    const previousName = previous?.[1]
+
+    if (previousName && previousName !== name) {
+      props.formValidationManager?.remove(previousName)
+    }
+
+    props.formValidationManager?.setValid(name, valid)
+  },
+  { immediate: true }
+)
+
+onBeforeUnmount(() => props.formValidationManager?.remove(rangeName.value))
+
 const updateStart = (newValue: string | null) =>
   emit('update:modelValue', { start: newValue ?? '', end: endDate.value })
 const updateEnd = (newValue: string | null) =>
@@ -72,11 +98,15 @@ const updateEnd = (newValue: string | null) =>
       :type="type"
       @update:modelValue="updateEnd"
     />
+    <ErrorMessage
+      :errorMessages="isRangeValid ? undefined : [MESSAGES.startAfterEnd]"
+    />
   </div>
 </template>
 
 <style lang="scss" module>
 .date_range_picker {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--sp-small);

@@ -9,7 +9,8 @@ import TextButton from '@/components/TextButton.vue'
 
 const emit = defineEmits<{ (e: 'update:modelValue', newValue: string): void }>()
 
-type Date = {
+// グローバルの Date を型空間で隠さないよう DateParts にする
+type DateParts = {
   year: string
   month: string
   day?: string
@@ -21,26 +22,32 @@ const props = withDefaults(
     isRequired?: boolean
     formValidationManager?: FormValidationManager | null
     type?: 'date' | 'month'
+    /** 選べる年の下限・上限。既定は「今年 -100 〜 今年 -14」（生年月日向け） */
+    minYear?: number
+    maxYear?: number
   }>(),
   {
     formValidationManager: null,
     type: 'date',
+    minYear: undefined,
+    maxYear: undefined,
   }
 )
 
-const birthday: Ref<Date> = ref({
+const birthday: Ref<DateParts> = ref({
   year: '',
   month: '',
   day: '',
 })
 
 const yearsOptions = computed(() => {
-  const today = new Date()
-  const maxYear = today.getFullYear() - 100
-  const currentYear = today.getFullYear() - 14
-  const years = Array.from({ length: currentYear - maxYear + 1 }, (_, i) =>
-    (maxYear + i).toString()
-  )
+  // 範囲を固定にすると、外れた value を渡されたとき select が空表示になる
+  const thisYear = new Date().getFullYear()
+  const from = props.minYear ?? thisYear - 100
+  const to = props.maxYear ?? thisYear - 14
+  const length = Math.max(to - from + 1, 0)
+  const years = Array.from({ length }, (_, i) => (from + i).toString())
+
   return years.map((year) => ({ label: year, value: year }))
 })
 
@@ -119,7 +126,7 @@ const setValid = (isValid: boolean): void => {
 
 // 初期値の判定にも使う。watch だけに置くと、登録の時点（初回）は発火せず、
 // 初期値の入った必須項目が「無効」のまま残っていた
-const judgeValid = (value: Date): boolean => {
+const judgeValid = (value: DateParts): boolean => {
   const isFilled = Boolean(
     value.year && value.month && (props.type === 'month' || value.day)
   )
@@ -166,6 +173,9 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
     <div :class="[$style.selector_wrapper]" @click="openDropdown($event)">
       <select
         :value="birthday.year"
+        :name="`${name}-year`"
+        :aria-label="`${name}の年`"
+        :required="isRequired"
         :class="$style.year"
         @change="selectItem($event, 'year')"
       >
@@ -181,7 +191,13 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       <KeyboardArrowDownIcon />
     </div>
     <div :class="[$style.selector_wrapper]" @click="openDropdown($event)">
-      <select :value="birthday.month" @change="selectItem($event, 'month')">
+      <select
+        :value="birthday.month"
+        :name="`${name}-month`"
+        :aria-label="`${name}の月`"
+        :required="isRequired"
+        @change="selectItem($event, 'month')"
+      >
         <option disabled selected value="">月</option>
         <option
           v-for="month in monthOptions"
@@ -198,7 +214,13 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       :class="[$style.selector_wrapper]"
       @click="openDropdown($event)"
     >
-      <select :value="birthday.day" @change="selectItem($event, 'day')">
+      <select
+        :value="birthday.day"
+        :name="`${name}-day`"
+        :aria-label="`${name}の日`"
+        :required="isRequired"
+        @change="selectItem($event, 'day')"
+      >
         <option disabled selected value="">日</option>
         <option v-for="day in dayOptions" :key="day.value" :value="day.value">
           {{ day.label }}

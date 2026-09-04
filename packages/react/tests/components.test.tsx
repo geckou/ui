@@ -5,6 +5,7 @@ import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import {
   TabUI,
   DateSelector,
+  LabeledCheckbox,
   DatePicker,
   DateRangePicker,
   SearchableSelectBox,
@@ -23,7 +24,6 @@ import {
 } from '../src'
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean
 }
 
@@ -115,7 +115,7 @@ describe('TabUI', () => {
 })
 
 describe('DateSelector', () => {
-  it('月の変更で選択済みの日が範囲外になったらクランプされる', () => {
+  it('月の変更で選択済みの日が範囲外になったらクランプされる', async () => {
     const onChange = vi.fn()
     act(() => {
       root.render(<DateSelector name="birthday" onChange={onChange} />)
@@ -134,6 +134,8 @@ describe('DateSelector', () => {
     // 2000年はうるう年なので 02/29 にクランプ
     expect(selects()[2].value).toBe('29')
     expect(onChange).toHaveBeenLastCalledWith('2000-02-29')
+
+    await flushEffects()
   })
 
   it('親が value を空に戻すとリセットされる', () => {
@@ -152,6 +154,13 @@ describe('DateSelector', () => {
     expect(selects().map((s) => s.value)).toEqual(['', '', ''])
   })
 })
+
+// InputBox は MutationObserver / focusin で状態を更新するため、act() の
+// 同期ブロックを抜けたあと（マイクロタスク）に setState が走る。
+// テストの最後にここで流し込まないと「not wrapped in act」の警告が出る
+async function flushEffects() {
+  await act(async () => {})
+}
 
 function setInputValue(input: HTMLInputElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(
@@ -280,7 +289,7 @@ describe('TextBox のバリデーション', () => {
     expect(container.textContent).not.toContain('必須項目です')
   })
 
-  it('数値 0 でも validates が実行される', () => {
+  it('数値 0 でも validates が実行される', async () => {
     act(() => {
       root.render(
         <TextBox
@@ -292,6 +301,8 @@ describe('TextBox のバリデーション', () => {
     })
 
     expect(container.textContent).toContain('1以上を入力')
+
+    await flushEffects()
   })
 
   it('g フラグ付き RegExp でも連続検証の結果が安定する', () => {
@@ -338,13 +349,15 @@ describe('TextBox のバリデーション', () => {
     expect(container.textContent).toContain('先頭が foo ではありません')
   })
 
-  it('空文字は必須エラーになる', () => {
+  it('空文字は必須エラーになる', async () => {
     act(() => {
       root.render(<TextBox name="quantity" value="" isRequired />)
     })
 
     blur(container.querySelector('input')!)
     expect(container.textContent).toContain('必須項目です')
+
+    await flushEffects()
   })
 })
 
@@ -393,7 +406,7 @@ describe('SelectBox のバリデーション', () => {
     expect(onChange).toHaveBeenLastCalledWith(0)
   })
 
-  it('未選択は必須エラーになる', () => {
+  it('未選択は必須エラーになる', async () => {
     act(() => {
       root.render(
         <SelectBox name="count" options={options} value="" isRequired />
@@ -402,6 +415,8 @@ describe('SelectBox のバリデーション', () => {
 
     blur(container.querySelector('select')!)
     expect(container.textContent).toContain('必須項目です')
+
+    await flushEffects()
   })
 })
 
@@ -431,7 +446,7 @@ describe('キーボードアクセシビリティ', () => {
     expect(onChange).toHaveBeenLastCalledWith(true)
   })
 
-  it('CheckBox: button に aria-pressed と disabled が反映される', () => {
+  it('CheckBox: role=checkbox と aria-checked / disabled が反映される', () => {
     const onChange = vi.fn()
 
     function renderCheckBox(checked: boolean, isDisabled?: boolean) {
@@ -449,14 +464,16 @@ describe('キーボードアクセシビリティ', () => {
 
     renderCheckBox(false)
     const button = () => container.querySelector('button')!
-    expect(button().getAttribute('aria-pressed')).toBe('false')
+    // aria-pressed はトグルボタン用。チェックボックスの意味論は role + aria-checked
+    expect(button().getAttribute('role')).toBe('checkbox')
+    expect(button().getAttribute('aria-checked')).toBe('false')
     expect(button().getAttribute('aria-label')).toBe('agree')
 
     act(() => button().click())
     expect(onChange).toHaveBeenLastCalledWith(true)
 
     renderCheckBox(true)
-    expect(button().getAttribute('aria-pressed')).toBe('true')
+    expect(button().getAttribute('aria-checked')).toBe('true')
 
     renderCheckBox(false, true)
     expect(button().disabled).toBe(true)
@@ -493,7 +510,7 @@ describe('キーボードアクセシビリティ', () => {
     expect(onChange).toHaveBeenLastCalledWith('orange')
   })
 
-  it('ToggleButton: aria-pressed とアクセシブル名がある', () => {
+  it('ToggleButton: role=switch と aria-checked / アクセシブル名がある', () => {
     const onChange = vi.fn()
 
     function renderToggle(checked: boolean) {
@@ -510,14 +527,67 @@ describe('キーボードアクセシビリティ', () => {
 
     renderToggle(false)
     const button = () => container.querySelector('button')!
-    expect(button().getAttribute('aria-pressed')).toBe('false')
+    // aria-pressed は押しボタン用。ON/OFF スイッチは role=switch + aria-checked
+    expect(button().getAttribute('role')).toBe('switch')
+    expect(button().getAttribute('aria-checked')).toBe('false')
     expect(button().getAttribute('aria-label')).toBe('notification')
 
     act(() => button().click())
     expect(onChange).toHaveBeenLastCalledWith(true)
 
     renderToggle(true)
-    expect(button().getAttribute('aria-pressed')).toBe('true')
+    expect(button().getAttribute('aria-checked')).toBe('true')
+  })
+
+  // 回帰: <label> は <button> をラベル付けしないので、可視ラベルがあっても
+  // アクセシブル名が name（機械名）になり、画面の文言と読み上げが食い違っていた
+  it('LabeledCheckbox: 可視ラベルをアクセシブル名にする', () => {
+    act(() => {
+      root.render(
+        <LabeledCheckbox name="agreement" label="利用規約に同意する" />
+      )
+    })
+
+    const button = container.querySelector('button')!
+    const labelledBy = button.getAttribute('aria-labelledby')
+
+    expect(labelledBy).toBeTruthy()
+    expect(button.getAttribute('aria-label')).toBeNull()
+    expect(document.getElementById(labelledBy!)?.textContent).toBe(
+      '利用規約に同意する'
+    )
+  })
+
+  it('ModalBox: Escape で閉じ、閉じたらトリガーへフォーカスが戻る', () => {
+    const onClose = vi.fn()
+    const trigger = document.createElement('button')
+    document.body.appendChild(trigger)
+    trigger.focus()
+
+    function renderModal(isShown: boolean) {
+      act(() => {
+        root.render(
+          <ModalBox isShown={isShown} onClose={onClose}>
+            <p>本文</p>
+          </ModalBox>
+        )
+      })
+    }
+
+    renderModal(false)
+    renderModal(true)
+
+    expect(document.activeElement).not.toBe(trigger)
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    })
+    expect(onClose).toHaveBeenCalledTimes(1)
+
+    renderModal(false)
+    expect(document.activeElement).toBe(trigger)
+
+    trigger.remove()
   })
 
   it('ModalBox: 非表示時は inert、閉じるボタンにアクセシブル名がある', () => {
@@ -785,6 +855,44 @@ describe('formValidationStore との接続', () => {
     expect(valid()).toBe('true')
   })
 
+  // 回帰: 年月日欄の不正値はエラー文言を出すだけで、登録する validity は
+  // 必須の空欄しか見ておらず isAllValid が true のままだった
+  it('年月日欄に不正な値を入れると isAllValid が false になる', () => {
+    act(() => {
+      root.render(<Form isRequired={false} />)
+    })
+    expect(valid()).toBe('true')
+
+    const byLabel = (label: string) =>
+      container.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!
+
+    act(() => setInputValue(byLabel('startedOnの年'), '2024'))
+    act(() => setInputValue(byLabel('startedOnの月'), '13'))
+    act(() => setInputValue(byLabel('startedOnの日'), '01'))
+
+    expect(valid()).toBe('false')
+  })
+
+  it('年月日欄を正しい値に直すと isAllValid が true に戻る', async () => {
+    act(() => {
+      root.render(<Form isRequired={false} />)
+    })
+
+    const byLabel = (label: string) =>
+      container.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`)!
+
+    act(() => setInputValue(byLabel('startedOnの年'), '2024'))
+    act(() => setInputValue(byLabel('startedOnの月'), '13'))
+    act(() => setInputValue(byLabel('startedOnの日'), '01'))
+    expect(valid()).toBe('false')
+
+    act(() => setInputValue(byLabel('startedOnの月'), '12'))
+
+    expect(valid()).toBe('true')
+
+    await flushEffects()
+  })
+
   it('必須でなければ空でも有効', () => {
     act(() => {
       root.render(<Form isRequired={false} />)
@@ -827,6 +935,82 @@ describe('formValidationStore との接続', () => {
 })
 
 describe('Vue 版との API 統一', () => {
+  // 回帰: min / max はネイティブ入力にしか効かず、年月日欄から
+  // 開始 > 終了 を入力しても検証されなかった
+  it('DateRangePicker: 開始 > 終了なら範囲エラーを出す', () => {
+    act(() => {
+      root.render(
+        <DateRangePicker
+          name="period"
+          value={{ start: '2024-05-01', end: '2024-04-01' }}
+        />
+      )
+    })
+
+    expect(container.textContent).toContain('終了日より後の日付は選べません')
+
+    act(() => {
+      root.render(
+        <DateRangePicker
+          name="period"
+          value={{ start: '2024-04-01', end: '2024-05-01' }}
+        />
+      )
+    })
+
+    expect(container.textContent).not.toContain(
+      '終了日より後の日付は選べません'
+    )
+  })
+
+  // 回帰: 年の範囲が「今年-100 〜 今年-14」固定で、外れた value を渡すと
+  // select が空表示になっていた
+  it('DateSelector: minYear / maxYear で年の範囲を変えられる', () => {
+    act(() => {
+      root.render(
+        <DateSelector
+          name="publishedOn"
+          value="2026-05-20"
+          minYear={2020}
+          maxYear={2030}
+        />
+      )
+    })
+
+    const yearSelect = container.querySelector<HTMLSelectElement>(
+      'select[name="publishedOn-year"]'
+    )!
+
+    expect(yearSelect.value).toBe('2026')
+    expect(yearSelect.options.length).toBe(12)
+  })
+
+  // 回帰: isRequired が required 属性を付けるだけで、Vue 版が出す
+  // 「必須項目です」の ErrorMessage が無かった
+  it('RadioButtons: 選択が空へ戻されたら必須エラーを出す', () => {
+    const options = [
+      { label: '個人', value: 'personal' },
+      { label: '法人', value: 'corporate' },
+    ]
+
+    const renderRadios = (value: string) => {
+      act(() => {
+        root.render(<RadioButtons value={value} options={options} isRequired />)
+      })
+    }
+
+    // 初回描画では出さない（Vue 版は watch で判定するため）
+    renderRadios('')
+    expect(container.textContent).not.toContain('必須項目です')
+
+    renderRadios('personal')
+    expect(container.textContent).not.toContain('必須項目です')
+
+    // 親がフォームをリセットして空へ戻したケース
+    renderRadios('')
+    expect(container.textContent).toContain('必須項目です')
+  })
+
   it('DateRangePicker: value が {start, end}、name は <name>Start / <name>End', () => {
     const onChange = vi.fn()
 

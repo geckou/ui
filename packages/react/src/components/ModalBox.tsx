@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { useEffect, useId, useRef } from 'react'
+import { createScrollLock } from '@geckou/ui-core'
 
 type Props = {
   isShown: boolean
@@ -44,23 +45,51 @@ export function ModalBox({
   const headerId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (isShown) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
+  // body.style.overflow を直接触ると、モーダルを重ねて内側を閉じたときに
+  // 外側が開いたままスクロールが戻り、アプリ側のインライン overflow も消える。
+  // ロック数を数える実装は @geckou/ui-core に置いて Vue 版と共有している
+  const scrollLock = useRef(createScrollLock())
 
-    return () => {
-      document.body.style.overflow = ''
-    }
+  useEffect(() => {
+    const lock = scrollLock.current
+
+    lock.toggle(isShown)
+
+    return () => lock.release()
   }, [isShown])
 
+  // 開く前にフォーカスしていた要素。閉じたらここへ戻す
+  // （戻さないとフォーカスが body に落ち、キーボード操作の位置を見失う）
+  const lastFocused = useRef<HTMLElement | null>(null)
+
   useEffect(() => {
     if (isShown) {
+      lastFocused.current = document.activeElement as HTMLElement | null
       dialogRef.current?.focus()
+
+      return
     }
+
+    lastFocused.current?.focus()
+    lastFocused.current = null
   }, [isShown])
+
+  // Escape で閉じる（role="dialog" は自前で実装する必要がある）
+  useEffect(() => {
+    if (!isShown) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isShown, onClose])
 
   return (
     <div

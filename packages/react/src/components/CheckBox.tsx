@@ -13,6 +13,12 @@ type Props = {
   cssStyle?: CheckBoxStyleForEachStatus
   isDisableAnimation?: boolean
   check?: ReactNode
+  /**
+   * アクセシブル名。可視ラベルがあるなら ariaLabelledBy でその要素を指すこと。
+   * どちらも無いときだけ name を名前として使う（機械名でも無いよりはマシ）
+   */
+  ariaLabel?: string
+  ariaLabelledBy?: string
 }
 
 export function CheckBox({
@@ -23,6 +29,8 @@ export function CheckBox({
   cssStyle,
   isDisableAnimation,
   check,
+  ariaLabel,
+  ariaLabelledBy,
 }: Props) {
   const isChecked = checked ?? false
   const baseStyle = isDisabled ? cssStyle?.disabled : cssStyle?.default
@@ -57,8 +65,10 @@ export function CheckBox({
       <button
         type="button"
         style={style}
-        aria-label={name}
-        aria-pressed={isChecked}
+        role="checkbox"
+        aria-checked={isChecked}
+        aria-labelledby={ariaLabelledBy}
+        aria-label={ariaLabelledBy ? undefined : (ariaLabel ?? name)}
         disabled={isDisabled}
         onClick={(event) => {
           event.stopPropagation()
