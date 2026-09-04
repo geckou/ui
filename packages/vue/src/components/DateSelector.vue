@@ -6,6 +6,7 @@ import { FormValidationManager } from '@/scripts/form-validation-manager'
 import InputBox from '@/components/InputBox.vue'
 import KeyboardArrowDownIcon from '@/components/Icon/KeyboardArrowDownIcon.vue'
 import TextButton from '@/components/TextButton.vue'
+import { nextUniqueId } from '@/scripts/unique-id'
 
 const emit = defineEmits<{ (e: 'update:modelValue', newValue: string): void }>()
 
@@ -25,14 +26,33 @@ const props = withDefaults(
     /** 選べる年の下限・上限。既定は「今年 -100 〜 今年 -14」（生年月日向け） */
     minYear?: number
     maxYear?: number
+    /**
+     * 年月日それぞれの読み上げ名の土台。「の年」「の月」「の日」を後ろに繋げる。
+     * 可視ラベルがあるなら ariaLabelledBy でその要素を指すこと。
+     * どちらも無いときだけ name を使う（機械名でも無いよりはマシ）
+     */
+    ariaLabel?: string
+    ariaLabelledBy?: string
   }>(),
   {
     formValidationManager: null,
     type: 'date',
     minYear: undefined,
     maxYear: undefined,
+    ariaLabel: undefined,
+    ariaLabelledBy: undefined,
   }
 )
+
+// ariaLabelledBy を渡されたときは、その可視ラベルと「年 / 月 / 日」を並べて読ませる
+// （aria-labelledby は文字列を足せないので、単位だけを持つ要素を用意して連結する）
+const unitLabelId = nextUniqueId('date_selector_unit')
+const fieldLabel = (unit: '年' | '月' | '日') =>
+  props.ariaLabelledBy ? undefined : `${props.ariaLabel ?? props.name}の${unit}`
+const fieldLabelledBy = (unit: '年' | '月' | '日') =>
+  props.ariaLabelledBy
+    ? `${props.ariaLabelledBy} ${unitLabelId}_${unit}`
+    : undefined
 
 const birthday: Ref<DateParts> = ref({
   year: '',
@@ -174,7 +194,8 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       <select
         :value="birthday.year"
         :name="`${name}-year`"
-        :aria-label="`${name}の年`"
+        :aria-label="fieldLabel('年')"
+        :aria-labelledby="fieldLabelledBy('年')"
         :required="isRequired"
         :class="$style.year"
         @change="selectItem($event, 'year')"
@@ -194,7 +215,8 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       <select
         :value="birthday.month"
         :name="`${name}-month`"
-        :aria-label="`${name}の月`"
+        :aria-label="fieldLabel('月')"
+        :aria-labelledby="fieldLabelledBy('月')"
         :required="isRequired"
         @change="selectItem($event, 'month')"
       >
@@ -217,7 +239,8 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       <select
         :value="birthday.day"
         :name="`${name}-day`"
-        :aria-label="`${name}の日`"
+        :aria-label="fieldLabel('日')"
+        :aria-labelledby="fieldLabelledBy('日')"
         :required="isRequired"
         @change="selectItem($event, 'day')"
       >
@@ -228,6 +251,11 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       </select>
       <KeyboardArrowDownIcon />
     </div>
+    <span v-if="ariaLabelledBy" :class="$style.unit_labels">
+      <span :id="`${unitLabelId}_年`">の年</span>
+      <span :id="`${unitLabelId}_月`">の月</span>
+      <span :id="`${unitLabelId}_日`">の日</span>
+    </span>
     <TextButton
       text="削除"
       variant="caution"
@@ -239,6 +267,11 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
 
 <style lang="scss" module>
 @use '@/assets/scss/mixin' as *;
+
+// aria-labelledby から参照するためだけの要素（画面には出さない）
+.unit_labels {
+  @include visually-hidden;
+}
 
 .date_selector {
   width: max-content;

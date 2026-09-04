@@ -84,6 +84,16 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 | `DateRangePicker` | `{ start: string; end: string }` | `DatePicker` と同じ（開始日と終了日の min / max が自動連動）。各入力の name は `<name>Start` / `<name>End` |
 | `DateSelector` | `string`（`YYYY-MM-DD` / `type="month"` なら `YYYY-MM`） | `name` / `isRequired` / `type` / `formValidationStore` |
 
+`DatePicker` / `DateSelector` の年月日欄の読み上げ名は、既定では `name` から作られます
+（`name="startedOn"` なら「startedOnの年」）。`CheckBox` と同じ `ariaLabel` / `ariaLabelledBy`
+を渡すと、そちらを土台に「の年」「の月」「の日」を繋げます。可視ラベルがあるなら
+`ariaLabelledBy` でその要素を指してください（WCAG 2.5.3 Label in Name）。
+
+```tsx
+<DatePicker name="startedOn" ariaLabel="開始日" /> {/* 「開始日の年」 */}
+<DatePicker name="startedOn" ariaLabelledBy={labelId} /> {/* 可視ラベル + 「の年」 */}
+```
+
 ## 収録コンポーネント
 
 フォーム系 25 種（`TextBox` / `TextArea` / `SelectBox` / `SearchableSelectBox` / `CheckBox` 系 /
@@ -97,6 +107,17 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 ```bash
 yarn workspace @geckou/ui-react test
 ```
+
+## 未リリースの変更
+
+- `DatePicker` / `DateSelector` が `ariaLabel` / `ariaLabelledBy` を受ける
+  （未指定なら従来どおり `name` から読み上げ名を作る）
+- `CheckBox` / `ToggleButton` が `<button>` の中に `<input>` を置かなくなった。
+  状態は `<button>` の `data-checked` / `disabled` で表し、送信用の入力は
+  チェック時だけ `<input type="hidden">` として `<button>` の外に描かれる。
+  DOM を辿っているテストやスタイルがあれば追従が要る
+- `ModalBox` が開いている間、Tab / Shift+Tab をダイアログ内で循環させる（フォーカストラップ）
+- `SearchableSelectBox` が WAI-ARIA の Combobox パターンに沿い、↑↓ / Enter / Escape で操作できる
 
 ## 0.4.0 の変更
 

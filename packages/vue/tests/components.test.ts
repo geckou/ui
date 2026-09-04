@@ -1053,3 +1053,81 @@ describe('ToggleButton', () => {
     expect(wrapper.find('button').attributes('data-checked')).toBe('true')
   })
 })
+
+describe('DatePicker / DateSelector のアクセシブル名', () => {
+  // 回帰(#59): name（フォームのフィールド名）から読み上げ名を作っていたため、
+  // name="startedOn" だと「startedOnの年」と読まれていた
+  it('DatePicker: ariaLabel を年月日のラベルに使う', () => {
+    const wrapper = mount(DatePicker, {
+      props: { name: 'startedOn', modelValue: '', ariaLabel: '開始日' },
+    })
+
+    const labels = wrapper
+      .findAll('input[type="text"]')
+      .map((input) => input.attributes('aria-label'))
+
+    expect(labels).toEqual(['開始日の年', '開始日の月', '開始日の日'])
+  })
+
+  it('DatePicker: ariaLabel が無ければ name にフォールバックする', () => {
+    const wrapper = mount(DatePicker, {
+      props: { name: 'startedOn', modelValue: '' },
+    })
+
+    expect(wrapper.find('input[type="text"]').attributes('aria-label')).toBe(
+      'startedOnの年'
+    )
+  })
+
+  it('DatePicker: ariaLabelledBy があれば可視ラベルと単位を並べて指す', () => {
+    const wrapper = mount(DatePicker, {
+      props: { name: 'startedOn', modelValue: '', ariaLabelledBy: 'label_id' },
+    })
+
+    const year = wrapper.find('input[type="text"]')
+    const labelledBy = year.attributes('aria-labelledby')
+
+    expect(year.attributes('aria-label')).toBeUndefined()
+    expect(labelledBy?.startsWith('label_id ')).toBe(true)
+
+    const unitId = labelledBy!.split(' ')[1]
+
+    expect(wrapper.find(`#${unitId}`).text()).toBe('の年')
+  })
+
+  it('DateSelector: ariaLabel を年月日のラベルに使う', () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'birthday', modelValue: '', ariaLabel: '生年月日' },
+    })
+
+    const labels = wrapper
+      .findAll('select')
+      .map((select) => select.attributes('aria-label'))
+
+    expect(labels).toEqual(['生年月日の年', '生年月日の月', '生年月日の日'])
+  })
+
+  it('DateSelector: ariaLabel が無ければ name にフォールバックする', () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'birthday', modelValue: '' },
+    })
+
+    expect(wrapper.find('select').attributes('aria-label')).toBe('birthdayの年')
+  })
+
+  it('DateSelector: ariaLabelledBy があれば可視ラベルと単位を並べて指す', () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'birthday', modelValue: '', ariaLabelledBy: 'label_id' },
+    })
+
+    const year = wrapper.find('select')
+    const labelledBy = year.attributes('aria-labelledby')
+
+    expect(year.attributes('aria-label')).toBeUndefined()
+    expect(labelledBy?.startsWith('label_id ')).toBe(true)
+
+    const unitId = labelledBy!.split(' ')[1]
+
+    expect(wrapper.find(`#${unitId}`).text()).toBe('の年')
+  })
+})

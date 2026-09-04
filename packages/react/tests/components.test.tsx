@@ -1123,3 +1123,83 @@ describe('Vue 版との API 統一', () => {
     expect(onChange).toHaveBeenLastCalledWith('1990-05')
   })
 })
+
+describe('DatePicker / DateSelector のアクセシブル名', () => {
+  // 回帰(#59): name（フォームのフィールド名）から読み上げ名を作っていたため、
+  // name="startedOn" だと「startedOnの年」と読まれていた
+  it('DatePicker: ariaLabel を年月日のラベルに使う', () => {
+    act(() => {
+      root.render(<DatePicker name="startedOn" value="" ariaLabel="開始日" />)
+    })
+
+    const labels = [...container.querySelectorAll('input[type="text"]')].map(
+      (input) => input.getAttribute('aria-label')
+    )
+
+    expect(labels).toEqual(['開始日の年', '開始日の月', '開始日の日'])
+  })
+
+  it('DatePicker: ariaLabel が無ければ name にフォールバックする', () => {
+    act(() => {
+      root.render(<DatePicker name="startedOn" value="" />)
+    })
+
+    expect(
+      container.querySelector('input[type="text"]')!.getAttribute('aria-label')
+    ).toBe('startedOnの年')
+  })
+
+  it('DatePicker: ariaLabelledBy があれば可視ラベルと単位を並べて指す', () => {
+    act(() => {
+      root.render(
+        <DatePicker name="startedOn" value="" ariaLabelledBy="label_id" />
+      )
+    })
+
+    const year = container.querySelector('input[type="text"]')!
+    const labelledBy = year.getAttribute('aria-labelledby')!
+
+    expect(year.getAttribute('aria-label')).toBeNull()
+    expect(labelledBy.startsWith('label_id ')).toBe(true)
+    expect(
+      container.querySelector(`[id="${labelledBy.split(' ')[1]}"]`)?.textContent
+    ).toBe('の年')
+  })
+
+  it('DateSelector: ariaLabel を年月日のラベルに使う', () => {
+    act(() => {
+      root.render(<DateSelector name="birthday" ariaLabel="生年月日" />)
+    })
+
+    const labels = [...container.querySelectorAll('select')].map((select) =>
+      select.getAttribute('aria-label')
+    )
+
+    expect(labels).toEqual(['生年月日の年', '生年月日の月', '生年月日の日'])
+  })
+
+  it('DateSelector: ariaLabel が無ければ name にフォールバックする', () => {
+    act(() => {
+      root.render(<DateSelector name="birthday" />)
+    })
+
+    expect(container.querySelector('select')!.getAttribute('aria-label')).toBe(
+      'birthdayの年'
+    )
+  })
+
+  it('DateSelector: ariaLabelledBy があれば可視ラベルと単位を並べて指す', () => {
+    act(() => {
+      root.render(<DateSelector name="birthday" ariaLabelledBy="label_id" />)
+    })
+
+    const year = container.querySelector('select')!
+    const labelledBy = year.getAttribute('aria-labelledby')!
+
+    expect(year.getAttribute('aria-label')).toBeNull()
+    expect(labelledBy.startsWith('label_id ')).toBe(true)
+    expect(
+      container.querySelector(`[id="${labelledBy.split(' ')[1]}"]`)?.textContent
+    ).toBe('の年')
+  })
+})
