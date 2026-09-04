@@ -138,7 +138,11 @@ export function SearchableSelectBox({
       return
     }
 
-    if (event.key === 'Escape' && isOpened) {
+    // 候補リストが見えているときだけ握る。isOpened で判定していたため、
+    // 何にもマッチしない語を入れた状態（リストは出ていないが isOpened は true）で
+    // Escape を押すと preventDefault だけが走り、画面上は何も起きなかった
+    // （ModalBox の中では、閉じるのに Escape を 2 回押すことになっていた）
+    if (event.key === 'Escape' && isListShown) {
       event.preventDefault()
       setIsOpened(false)
       setActiveIndex(-1)
