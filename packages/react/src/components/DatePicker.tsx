@@ -10,7 +10,7 @@ import {
   splitDate,
   validateDateObject,
 } from '@geckou/ui-core'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { InputBox } from './InputBox'
 import { ErrorMessage } from './ErrorMessage'
 import { CalendarIcon } from './icons/CalendarIcon'
@@ -30,6 +30,13 @@ type Props = {
   maxDate?: string
   size?: 'small' | 'medium'
   type?: 'date' | 'month'
+  /**
+   * 年月日それぞれの読み上げ名の土台。「の年」「の月」「の日」を後ろに繋げる。
+   * 可視ラベルがあるなら ariaLabelledBy でその要素を指すこと。
+   * どちらも無いときだけ name を使う（機械名でも無いよりはマシ）
+   */
+  ariaLabel?: string
+  ariaLabelledBy?: string
 }
 
 export function DatePicker({
@@ -44,6 +51,8 @@ export function DatePicker({
   maxDate = '',
   size = 'medium',
   type = 'date',
+  ariaLabel,
+  ariaLabelledBy,
 }: Props) {
   const [dateValue, setDateValue] = useState(() =>
     value ? formatDateValue(value, type) : ''
@@ -116,6 +125,14 @@ export function DatePicker({
     validateInput(dateValue).isValid && isObjectValid
   )
 
+  // ariaLabelledBy を渡されたときは、その可視ラベルと「年 / 月 / 日」を並べて読ませる
+  // （aria-labelledby は文字列を足せないので、単位だけを持つ要素を用意して連結する）
+  const unitLabelId = useId()
+  const fieldLabelProps = (unit: '年' | '月' | '日') =>
+    ariaLabelledBy
+      ? { 'aria-labelledby': `${ariaLabelledBy} ${unitLabelId}-${unit}` }
+      : { 'aria-label': `${ariaLabel ?? name}の${unit}` }
+
   const isSmall = size === 'small'
   const textInputClass = `flex-none! ${isSmall ? 'px-[var(--sp-small,0.375rem)]! py-[var(--sp-min,0.1875rem)]! text-[length:var(--fs-small,0.6875rem)]' : 'p-[var(--sp-medium,0.75rem)]!'}`
   const iconStyle = { '--icon-color': COLOR.blue } as CSSProperties
@@ -146,7 +163,7 @@ export function DatePicker({
       <input
         value={dateObject.year}
         placeholder="年"
-        aria-label={`${name}の年`}
+        {...fieldLabelProps('年')}
         maxLength={4}
         type="text"
         disabled={isDisabled}
@@ -157,7 +174,7 @@ export function DatePicker({
       <input
         value={dateObject.month}
         placeholder="月"
-        aria-label={`${name}の月`}
+        {...fieldLabelProps('月')}
         maxLength={2}
         type="text"
         disabled={isDisabled}
@@ -169,13 +186,20 @@ export function DatePicker({
         <input
           value={dateObject.day}
           placeholder="日"
-          aria-label={`${name}の日`}
+          {...fieldLabelProps('日')}
           maxLength={2}
           type="text"
           disabled={isDisabled}
           onChange={(event) => handleObjectChange('day', event.target.value)}
           className={`w-[calc(var(--sp-medium,0.75rem)*2+3ch)]! ${textInputClass}`}
         />
+      )}
+      {ariaLabelledBy && (
+        <span className="sr-only">
+          <span id={`${unitLabelId}-年`}>の年</span>
+          <span id={`${unitLabelId}-月`}>の月</span>
+          <span id={`${unitLabelId}-日`}>の日</span>
+        </span>
       )}
       <ErrorMessage errorMessages={errorMessage ? [errorMessage] : undefined} />
     </InputBox>

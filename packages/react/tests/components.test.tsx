@@ -1,5 +1,5 @@
 // @geckou/ui の移植時に修正したバグのリグレッションテスト
-import { act, useState } from 'react'
+import { StrictMode, act, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -199,23 +199,17 @@ describe('SearchableSelectBox', () => {
     ) as HTMLInputElement
     act(() => setInputValue(input, 'りん'))
 
-    const optionButtons = [...container.querySelectorAll('button')].filter(
-      (b) => b.textContent === 'りんご'
-    )
-    expect(optionButtons).toHaveLength(1)
-    expect(
-      [...container.querySelectorAll('button')].some(
-        (b) => b.textContent === 'みかん'
-      )
-    ).toBe(false)
+    // #61 で候補は role="option" になった（listbox の中に button は置けない）
+    const optionNodes = [...container.querySelectorAll('[role="option"]')]
+    expect(optionNodes.map((node) => node.textContent)).toEqual(['りんご'])
 
-    act(() => optionButtons[0].click())
-    expect(onChange).toHaveBeenLastCalledWith('apple')
-    expect(
-      [...container.querySelectorAll('button')].some(
-        (b) => b.textContent === 'りんご'
+    act(() => {
+      optionNodes[0].dispatchEvent(
+        new MouseEvent('pointerdown', { bubbles: true, cancelable: true })
       )
-    ).toBe(false)
+    })
+    expect(onChange).toHaveBeenLastCalledWith('apple')
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(0)
   })
 
   it("入力を空にすると選択肢が閉じ、onChange('') が呼ばれる", () => {
@@ -226,13 +220,127 @@ describe('SearchableSelectBox', () => {
     ) as HTMLInputElement
 
     act(() => setInputValue(input, 'り'))
-    expect(container.querySelectorAll('button').length).toBeGreaterThan(0)
+    expect(
+      container.querySelectorAll('[role="option"]').length
+    ).toBeGreaterThan(0)
     expect(onChange).toHaveBeenLastCalledWith('り')
 
     // 修正前は早期 return しており、空にしても親へ通知されなかった
     act(() => setInputValue(input, ''))
-    expect(container.querySelectorAll('button').length).toBe(0)
+    expect(container.querySelectorAll('[role="option"]').length).toBe(0)
     expect(onChange).toHaveBeenLastCalledWith('')
+  })
+
+  // 回帰(#61): 候補が素の <button> の列挙で、combobox の ARIA も
+  // ↑↓ / Enter / Escape も無く、Tab で 1 件ずつ辿るしかなかった
+  const input = () =>
+    container.querySelector('input[name="fruit"]') as HTMLInputElement
+
+  const pressKey = (key: string) =>
+    act(() => {
+      input().dispatchEvent(
+        new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })
+      )
+    })
+
+  it('combobox の ARIA を出す', () => {
+    renderBox('')
+
+    expect(input().getAttribute('role')).toBe('combobox')
+    expect(input().getAttribute('aria-autocomplete')).toBe('list')
+    expect(input().getAttribute('aria-expanded')).toBe('false')
+
+    const listboxId = input().getAttribute('aria-controls')
+    expect(listboxId).toBeTruthy()
+
+    pressKey('ArrowDown')
+
+    expect(input().getAttribute('aria-expanded')).toBe('true')
+
+    const listbox = container.querySelector('[role="listbox"]')!
+    expect(listbox.id).toBe(listboxId)
+    expect(listbox.querySelectorAll('[role="option"]')).toHaveLength(2)
+  })
+
+  it('↑↓ で候補を辿り、aria-activedescendant と aria-selected が追従する', () => {
+    renderBox('')
+
+    pressKey('ArrowDown')
+    const options = () => [...container.querySelectorAll('[role="option"]')]
+
+    expect(input().getAttribute('aria-activedescendant')).toBe(options()[0].id)
+    expect(options().map((o) => o.getAttribute('aria-selected'))).toEqual([
+      'true',
+      'false',
+    ])
+
+    pressKey('ArrowDown')
+    expect(input().getAttribute('aria-activedescendant')).toBe(options()[1].id)
+
+    // 末尾からさらに下げると先頭へ回る
+    pressKey('ArrowDown')
+    expect(input().getAttribute('aria-activedescendant')).toBe(options()[0].id)
+
+    // 先頭から上げると末尾へ回る
+    pressKey('ArrowUp')
+    expect(input().getAttribute('aria-activedescendant')).toBe(options()[1].id)
+  })
+
+  // WAI-ARIA の Combobox パターンでは、閉じた状態の ↑ は開いて末尾を選ぶ。
+  // 修正前は activeIndex を -1 のままにしており、1 回押しても何も選ばれなかった
+  it('閉じているとき ↑ で開いて末尾の候補を選ぶ', () => {
+    renderBox('')
+
+    expect(input().getAttribute('aria-expanded')).toBe('false')
+
+    pressKey('ArrowUp')
+
+    expect(input().getAttribute('aria-expanded')).toBe('true')
+
+    const options = [...container.querySelectorAll('[role="option"]')]
+    expect(input().getAttribute('aria-activedescendant')).toBe(
+      options[options.length - 1].id
+    )
+    expect(options.map((o) => o.getAttribute('aria-selected'))).toEqual([
+      'false',
+      'true',
+    ])
+  })
+
+  it('Enter で選択中の候補を確定する', () => {
+    const onChange = vi.fn()
+    const onSelect = vi.fn()
+
+    act(() => {
+      root.render(
+        <SearchableSelectBox
+          name="fruit"
+          options={options}
+          value=""
+          onChange={onChange}
+          onSelect={onSelect}
+        />
+      )
+    })
+
+    pressKey('ArrowDown')
+    pressKey('ArrowDown')
+    pressKey('Enter')
+
+    expect(onSelect).toHaveBeenLastCalledWith('orange')
+    expect(onChange).toHaveBeenLastCalledWith('orange')
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(0)
+  })
+
+  it('Escape で閉じる', () => {
+    renderBox('')
+
+    pressKey('ArrowDown')
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(2)
+
+    pressKey('Escape')
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(0)
+    expect(input().getAttribute('aria-expanded')).toBe('false')
   })
 })
 
@@ -477,6 +585,64 @@ describe('キーボードアクセシビリティ', () => {
 
     renderCheckBox(false, true)
     expect(button().disabled).toBe(true)
+  })
+
+  // 回帰(#53): <button> の content model は interactive content を許さないので
+  // 中に <input> を置けない。状態は data-checked で表し、送信用は hidden を外に出す
+  it('CheckBox: button の中に input を置かず、チェック時だけ hidden を外に描く', () => {
+    function renderCheckBox(checked: boolean, isDisabled?: boolean) {
+      act(() => {
+        root.render(
+          <CheckBox name="agree" checked={checked} isDisabled={isDisabled} />
+        )
+      })
+    }
+
+    renderCheckBox(false)
+    const button = () => container.querySelector('button')!
+    expect(button().querySelector('input')).toBeNull()
+    expect(container.querySelector('input[type="hidden"]')).toBeNull()
+    expect(button().getAttribute('data-checked')).toBe('false')
+
+    renderCheckBox(true)
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement
+    expect(hidden).not.toBeNull()
+    expect(hidden.name).toBe('agree')
+    expect(hidden.value).toBe('on')
+    // button の外（兄弟）に出ていること
+    expect(hidden.closest('button')).toBeNull()
+    expect(button().getAttribute('data-checked')).toBe('true')
+
+    // 無効なら送信されない（disabled な input はフォームに載らない）
+    renderCheckBox(true, true)
+    expect(
+      (container.querySelector('input[type="hidden"]') as HTMLInputElement)
+        .disabled
+    ).toBe(true)
+  })
+
+  it('ToggleButton: button の中に input を置かず、ON のときだけ hidden を外に描く', () => {
+    function renderToggle(checked: boolean) {
+      act(() => {
+        root.render(<ToggleButton name="notification" checked={checked} />)
+      })
+    }
+
+    renderToggle(false)
+    const button = () => container.querySelector('button')!
+    expect(button().querySelector('input')).toBeNull()
+    expect(container.querySelector('input[type="hidden"]')).toBeNull()
+
+    renderToggle(true)
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement
+    expect(hidden).not.toBeNull()
+    expect(hidden.name).toBe('notification')
+    expect(hidden.closest('button')).toBeNull()
+    expect(button().getAttribute('data-checked')).toBe('true')
   })
 
   it('RadioButtons: input が sr-only でフォーカス・選択できる', () => {
@@ -1063,5 +1229,176 @@ describe('Vue 版との API 統一', () => {
     act(() => setSelectValue(selects[1], '05'))
 
     expect(onChange).toHaveBeenLastCalledWith('1990-05')
+  })
+})
+
+describe('DatePicker / DateSelector のアクセシブル名', () => {
+  // 回帰(#59): name（フォームのフィールド名）から読み上げ名を作っていたため、
+  // name="startedOn" だと「startedOnの年」と読まれていた
+  it('DatePicker: ariaLabel を年月日のラベルに使う', () => {
+    act(() => {
+      root.render(<DatePicker name="startedOn" value="" ariaLabel="開始日" />)
+    })
+
+    const labels = [...container.querySelectorAll('input[type="text"]')].map(
+      (input) => input.getAttribute('aria-label')
+    )
+
+    expect(labels).toEqual(['開始日の年', '開始日の月', '開始日の日'])
+  })
+
+  it('DatePicker: ariaLabel が無ければ name にフォールバックする', () => {
+    act(() => {
+      root.render(<DatePicker name="startedOn" value="" />)
+    })
+
+    expect(
+      container.querySelector('input[type="text"]')!.getAttribute('aria-label')
+    ).toBe('startedOnの年')
+  })
+
+  it('DatePicker: ariaLabelledBy があれば可視ラベルと単位を並べて指す', () => {
+    act(() => {
+      root.render(
+        <DatePicker name="startedOn" value="" ariaLabelledBy="label_id" />
+      )
+    })
+
+    const year = container.querySelector('input[type="text"]')!
+    const labelledBy = year.getAttribute('aria-labelledby')!
+
+    expect(year.getAttribute('aria-label')).toBeNull()
+    expect(labelledBy.startsWith('label_id ')).toBe(true)
+    expect(
+      container.querySelector(`[id="${labelledBy.split(' ')[1]}"]`)?.textContent
+    ).toBe('の年')
+  })
+
+  it('DateSelector: ariaLabel を年月日のラベルに使う', () => {
+    act(() => {
+      root.render(<DateSelector name="birthday" ariaLabel="生年月日" />)
+    })
+
+    const labels = [...container.querySelectorAll('select')].map((select) =>
+      select.getAttribute('aria-label')
+    )
+
+    expect(labels).toEqual(['生年月日の年', '生年月日の月', '生年月日の日'])
+  })
+
+  it('DateSelector: ariaLabel が無ければ name にフォールバックする', () => {
+    act(() => {
+      root.render(<DateSelector name="birthday" />)
+    })
+
+    expect(container.querySelector('select')!.getAttribute('aria-label')).toBe(
+      'birthdayの年'
+    )
+  })
+
+  it('DateSelector: ariaLabelledBy があれば可視ラベルと単位を並べて指す', () => {
+    act(() => {
+      root.render(<DateSelector name="birthday" ariaLabelledBy="label_id" />)
+    })
+
+    const year = container.querySelector('select')!
+    const labelledBy = year.getAttribute('aria-labelledby')!
+
+    expect(year.getAttribute('aria-label')).toBeNull()
+    expect(labelledBy.startsWith('label_id ')).toBe(true)
+    expect(
+      container.querySelector(`[id="${labelledBy.split(' ')[1]}"]`)?.textContent
+    ).toBe('の年')
+  })
+})
+
+describe('ModalBox のフォーカストラップ', () => {
+  // 回帰(#56): 背景を inert にしていないため、Tab / Shift+Tab でダイアログの外の
+  // リンクやボタンへフォーカスが抜けていた
+  function renderModal(isShown = true) {
+    act(() => {
+      root.render(
+        <ModalBox isShown={isShown} onClose={() => {}}>
+          <a href="#first">最初</a>
+          <a href="#last">最後</a>
+        </ModalBox>
+      )
+    })
+  }
+
+  const focusable = () =>
+    [...container.querySelectorAll('a, button')] as HTMLElement[]
+
+  it('最後の要素で Tab したら最初の要素へ戻る', () => {
+    const outside = document.createElement('button')
+    document.body.appendChild(outside)
+
+    renderModal()
+    const elements = focusable()
+    elements[elements.length - 1]!.focus()
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }))
+    })
+
+    expect(document.activeElement).toBe(elements[0])
+    outside.remove()
+  })
+
+  it('最初の要素で Shift+Tab したら最後の要素へ回る', () => {
+    renderModal()
+    const elements = focusable()
+    elements[0]!.focus()
+
+    act(() => {
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true })
+      )
+    })
+
+    expect(document.activeElement).toBe(elements[elements.length - 1])
+  })
+
+  it('閉じている間は Tab を横取りしない', () => {
+    const outside = document.createElement('button')
+    document.body.appendChild(outside)
+
+    renderModal(false)
+    outside.focus()
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }))
+    })
+
+    expect(document.activeElement).toBe(outside)
+    outside.remove()
+  })
+
+  // 回帰(#56 の details): StrictMode では effect が 2 回走り、2 回目に
+  // lastFocused がダイアログ自身になって復帰しなくなっていた
+  it('StrictMode でも閉じたら開く前の要素へフォーカスが戻る', () => {
+    const trigger = document.createElement('button')
+    document.body.appendChild(trigger)
+    trigger.focus()
+
+    function renderStrict(isShown: boolean) {
+      act(() => {
+        root.render(
+          <StrictMode>
+            <ModalBox isShown={isShown} onClose={() => {}}>
+              <p>本文</p>
+            </ModalBox>
+          </StrictMode>
+        )
+      })
+    }
+
+    renderStrict(true)
+    expect(document.activeElement).not.toBe(trigger)
+
+    renderStrict(false)
+    expect(document.activeElement).toBe(trigger)
+
+    trigger.remove()
   })
 })

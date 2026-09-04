@@ -67,6 +67,7 @@ export function CheckBox({
         style={style}
         role="checkbox"
         aria-checked={isChecked}
+        data-checked={isChecked}
         aria-labelledby={ariaLabelledBy}
         aria-label={ariaLabelledBy ? undefined : (ariaLabel ?? name)}
         disabled={isDisabled}
@@ -76,26 +77,22 @@ export function CheckBox({
             onChange?.(!isChecked)
           }
         }}
-        className={`relative flex h-6 w-6 cursor-pointer items-center justify-center rounded-(--radius-size) border-none shadow-[0_0_0_var(--border-size)_var(--border-color)_inset] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-color) has-[input:disabled]:pointer-events-none has-[input:disabled]:before:pointer-events-auto has-[input:disabled]:before:absolute has-[input:disabled]:before:inset-0 has-[input:disabled]:before:cursor-not-allowed has-[input:disabled]:before:content-[''] ${isChecked ? 'animate-[uiCheckPop_var(--duration)_ease-out] bg-(--border-color)' : 'bg-(--background-color)'}`}
+        className={`relative flex h-6 w-6 cursor-pointer items-center justify-center rounded-(--radius-size) border-none shadow-[0_0_0_var(--border-size)_var(--border-color)_inset] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--border-color) disabled:pointer-events-none disabled:before:pointer-events-auto disabled:before:absolute disabled:before:inset-0 disabled:before:cursor-not-allowed disabled:before:content-[''] ${isChecked ? 'animate-[uiCheckPop_var(--duration)_ease-out] bg-(--border-color)' : 'bg-(--background-color)'}`}
       >
-        <input
-          type="checkbox"
-          name={name}
-          checked={isChecked}
-          disabled={isDisabled}
-          onChange={(event) => {
-            if (!isDisabled) {
-              onChange?.(event.target.checked)
-            }
-          }}
-          className="hidden"
-        />
         <div
           className={`flex h-4 w-4 items-center justify-center [&>*]:fill-current [&>*]:text-current ${isChecked ? 'text-(--background-color)' : 'text-(--border-color)'}`}
         >
           {check ?? <CheckIcon />}
         </div>
       </button>
+      {/*
+        値の送信専用。<button> の content model は interactive content を許さないので
+        中に <input> は置けない。チェック時だけ hidden として外に出す
+        （未チェックなら送られない、というネイティブの挙動はそのまま）
+      */}
+      {isChecked && (
+        <input type="hidden" name={name} value="on" disabled={isDisabled} />
+      )}
     </>
   )
 }

@@ -64,6 +64,16 @@ import { TextBox, StandardList } from '@geckou/ui-vue'
 
 `DatePicker` / `DateRangePicker` / `DateSelector`
 
+`DatePicker` / `DateSelector` の年月日欄の読み上げ名は、既定では `name` から作られます
+（`name="startedOn"` なら「startedOnの年」）。`CheckBox` と同じ `ariaLabel` / `ariaLabelledBy`
+を渡すと、そちらを土台に「の年」「の月」「の日」を繋げます。可視ラベルがあるなら
+`ariaLabelledBy` でその要素を指してください（WCAG 2.5.3 Label in Name）。
+
+```vue
+<DatePicker v-model="startedOn" name="startedOn" ariaLabel="開始日" />
+<DatePicker v-model="startedOn" name="startedOn" :ariaLabelledBy="labelId" />
+```
+
 `FormValidationManager` を渡すと、フォーム内の各入力の検証結果をまとめて追跡できます。
 
 ```vue
@@ -290,6 +300,20 @@ const articles = ref<any[]>([])
 | `--medium-icon-size` | `1.125rem` | アイコン全般（`mixin.scss` の既定） |
 
 定義例はデモの `demo/styles/base.scss` を参照。
+
+## 0.7.0 の変更
+
+- `DatePicker` / `DateSelector` が `ariaLabel` / `ariaLabelledBy` を受ける
+  （未指定なら従来どおり `name` から読み上げ名を作る）
+- `CheckBox` / `ToggleButton` が `<button>` の中に `<input>` を置かなくなった。
+  状態は `<button>` の `data-checked` / `disabled` で表し、送信用の入力は
+  チェック時だけ `<input type="hidden">` として `<button>` の外に描かれる。
+  `:has(input:checked)` などで見た目を上書きしていた場合は追従が要る
+- `CheckBox` が `isDisabled` のとき `<button disabled>` を出す（Tab で止まらなくなる）
+- `ArticleList` の `CardHeading` が `heading` を HTML として描画する
+  （WordPress の `title.rendered` のエンティティがそのまま出ていた）。
+  WP 以外から渡す場合は埋め込む前にサニタイズすること
+- `ModalBox` が開いている間、Tab / Shift+Tab をダイアログ内で循環させる（フォーカストラップ）
 
 ## 0.6.0 の破壊的変更
 

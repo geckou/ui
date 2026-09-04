@@ -1,6 +1,11 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
+    /**
+     * 見出し。**HTML 文字列として描画する**（WordPress の `title.rendered` は
+     * `&amp;` などにエンコード済みなので、テキストのまま出すとエンティティが見えてしまう）。
+     * WP 以外から渡す場合は、埋め込む前にサニタイズすること
+     */
     heading: string
     color?: string
     fontSize?: string
@@ -15,6 +20,7 @@ withDefaults(
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-v-html -- WordPress の title.rendered は HTML エンティティを含む（サニタイズ済み）ため、excerpt と同じく HTML として描画する -->
   <div
     :class="$style.heading"
     :style="{
@@ -23,9 +29,7 @@ withDefaults(
       '--heading-font-weight': fontWeight,
     }"
   >
-    <h2>
-      {{ heading }}
-    </h2>
+    <h2 v-html="heading" />
   </div>
 </template>
 

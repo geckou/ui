@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 import type { InputBoxStyleForEachStatus, Validates } from '../types'
 import {
   convertFullWidthToHalfWidth,
@@ -27,6 +27,19 @@ type Props = {
   validates?: Validates
   before?: ReactNode
   after?: ReactNode
+  /** input の id。combobox のように外から参照する必要があるときに渡す */
+  id?: string
+  /**
+   * input へそのまま渡す ARIA 属性とキー操作。
+   * SearchableSelectBox のような複合ウィジェットから使う（通常は指定しない）
+   */
+  role?: string
+  ariaLabel?: string
+  ariaExpanded?: boolean
+  ariaControls?: string
+  ariaActivedescendant?: string
+  ariaAutocomplete?: 'none' | 'inline' | 'list' | 'both'
+  onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void
 }
 
 export function TextBox({
@@ -43,6 +56,14 @@ export function TextBox({
   validates = [],
   before,
   after,
+  id,
+  role,
+  ariaLabel,
+  ariaExpanded,
+  ariaControls,
+  ariaActivedescendant,
+  ariaAutocomplete,
+  onKeyDown,
 }: Props) {
   const [errorMessages, setErrorMessages] = useState<string[]>([])
   const inputValue = value ?? ''
@@ -83,7 +104,15 @@ export function TextBox({
       {before}
       <input
         type={inputType}
+        id={id}
         name={name}
+        role={role}
+        aria-label={ariaLabel}
+        aria-expanded={ariaExpanded}
+        aria-controls={ariaControls}
+        aria-activedescendant={ariaActivedescendant}
+        aria-autocomplete={ariaAutocomplete}
+        onKeyDown={onKeyDown}
         value={inputValue}
         required={isRequired}
         placeholder={placeholder}

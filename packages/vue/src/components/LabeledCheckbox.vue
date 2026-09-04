@@ -83,7 +83,7 @@ const currentCssStyle = computed(() => {
   gap: 0.5em;
   cursor: pointer;
 
-  &:has(input:disabled) {
+  &:has(button:disabled) {
     cursor: auto;
   }
 
@@ -91,7 +91,7 @@ const currentCssStyle = computed(() => {
     color: var(--checked-color);
   }
 
-  &:has(input:checked) {
+  &:has(button[data-checked='true']) {
     .label {
       color: var(--text-color);
     }

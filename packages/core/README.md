@@ -81,6 +81,53 @@ store.getSnapshot() // { isAllValid: false, invalidNames: ['startedOn'] }
 - Vue: `FormValidationManager`（`@geckou/ui-vue`）
 - React: `useFormValidation`（`@geckou/ui-react`）
 
+### スクロールロック
+
+```ts
+import { createScrollLock } from '@geckou/ui-core'
+
+const lock = createScrollLock()
+lock.toggle(isOpen) // 真偽でロック・解除
+lock.release() // アンマウント時
+```
+
+モーダル表示中のページ全体のスクロールを止めます。1 コンポーネント 1 ハンドルを持ち、
+表示状態を `toggle()` に渡します。モーダルを重ねても解除順で壊れないよう内部でロック数を数え、
+最初のロックで元の値を控えて最後の解除で戻します。
+
+**スクロールバー幅を補正します。** バーが常時表示される環境（デスクトップの Windows / Linux 等）では
+`overflow: hidden` にした瞬間にバーの幅ぶん内容が横へずれるため、最初のロックで
+`window.innerWidth - document.documentElement.clientWidth` を `body` の `padding-right` に足し、
+最後の解除で元へ戻します（既存のインライン値があれば `calc()` で加算します）。
+
+利用側の CSS で `html { scrollbar-gutter: stable }` を指定している場合、
+この差は 0 になるので補正は入りません。固定配置の要素（追従ヘッダー等）も
+ずれないようにしたいときは `scrollbar-gutter` を使うほうが確実です。
+
+SSR（`document` が無い環境）では何もしません。
+
+### フォーカストラップ
+
+```ts
+import { handleTabKey, getFocusableElements } from '@geckou/ui-core'
+
+const onKeyDown = (event: KeyboardEvent) => {
+  handleTabKey(dialogElement, event, document.activeElement)
+}
+```
+
+`aria-modal="true"` を出していても、背景を `inert` にしていない限り Tab / Shift+Tab は
+ダイアログの外へ抜けます。`handleTabKey()` に `keydown` を渡すと、コンテナ内の
+フォーカス可能な要素の端で折り返します（末尾で Tab → 先頭、先頭で Shift+Tab → 末尾）。
+
+| 関数 | 説明 |
+|---|---|
+| `handleTabKey(container, event, activeElement?)` | Tab / Shift+Tab を端で折り返す。フォーカスを移して既定動作を止めたら `true` を返す。Tab 以外と `container` が無い場合は何もしない |
+| `getFocusableElements(container)` | コンテナ内のフォーカス可能な要素を DOM 順（= Tab 順）で返す。`inert` が付いたものは除く |
+| `FOCUSABLE_SELECTOR` | 上記で使うセレクタ（`tabindex="-1"` と `disabled` を除く） |
+
+`ModalBox`（Vue / React）はこれを使っています。
+
 ### 定数・型
 
 ```ts
@@ -91,6 +138,14 @@ import type { Validates, Option, StateVariation, DateObject } from '@geckou/ui-c
 `MESSAGES` はエラー文言の単一の入口です。Vue / React で文言がずれないよう、必ずここを参照します。
 
 型の一覧は [Vue パッケージの README](../vue/README.md#types) を参照してください。
+
+## 0.4.0 の変更
+
+- `focus-trap` を追加（`handleTabKey` / `getFocusableElements` / `FOCUSABLE_SELECTOR`）。
+  React / Vue の `ModalBox` が Tab の循環に使う
+- `scroll-lock` がロック時にスクロールバー幅を `padding-right` として補正する。
+  スクロールバーが常時表示される環境で、モーダルの開閉のたびにページが横へずれていた。
+  `body` の `padding-right` を自分で指定している場合は `calc()` で合成される
 
 ## テスト
 

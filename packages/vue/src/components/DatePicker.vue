@@ -12,6 +12,7 @@ import { FormValidationManager } from '@/scripts/form-validation-manager'
 import InputBox from '@/components/InputBox.vue'
 import CalendarIcon from '@/components/Icon/CalendarIcon.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
+import { nextUniqueId } from '@/scripts/unique-id'
 
 const emit = defineEmits<{
   (e: 'update:modelValue', newValue: string | null): void
@@ -28,6 +29,13 @@ const props = withDefaults(
     maxDate?: string
     size?: 'small' | 'medium'
     type?: 'date' | 'month'
+    /**
+     * 年月日それぞれの読み上げ名の土台。「の年」「の月」「の日」を後ろに繋げる。
+     * 可視ラベルがあるなら ariaLabelledBy でその要素を指すこと。
+     * どちらも無いときだけ name を使う（機械名でも無いよりはマシ）
+     */
+    ariaLabel?: string
+    ariaLabelledBy?: string
   }>(),
   {
     isDisabled: false,
@@ -36,8 +44,20 @@ const props = withDefaults(
     maxDate: '',
     size: 'medium',
     type: 'date',
+    ariaLabel: undefined,
+    ariaLabelledBy: undefined,
   }
 )
+
+// ariaLabelledBy を渡されたときは、その可視ラベルと「年 / 月 / 日」を並べて読ませる
+// （aria-labelledby は文字列を足せないので、単位だけを持つ要素を用意して連結する）
+const unitLabelId = nextUniqueId('date_picker_unit')
+const fieldLabel = (unit: '年' | '月' | '日') =>
+  props.ariaLabelledBy ? undefined : `${props.ariaLabel ?? props.name}の${unit}`
+const fieldLabelledBy = (unit: '年' | '月' | '日') =>
+  props.ariaLabelledBy
+    ? `${props.ariaLabelledBy} ${unitLabelId}_${unit}`
+    : undefined
 
 const dateObject = reactive({
   year: '',
@@ -163,7 +183,8 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
     <input
       v-model="dateObject.year"
       placeholder="年"
-      :aria-label="`${name}の年`"
+      :aria-label="fieldLabel('年')"
+      :aria-labelledby="fieldLabelledBy('年')"
       maxlength="4"
       type="text"
       :disabled="isDisabled"
@@ -172,7 +193,8 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
     <input
       v-model="dateObject.month"
       placeholder="月"
-      :aria-label="`${name}の月`"
+      :aria-label="fieldLabel('月')"
+      :aria-labelledby="fieldLabelledBy('月')"
       maxlength="2"
       type="text"
       :disabled="isDisabled"
@@ -182,17 +204,28 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       v-if="type === 'date'"
       v-model="dateObject.day"
       placeholder="日"
-      :aria-label="`${name}の日`"
+      :aria-label="fieldLabel('日')"
+      :aria-labelledby="fieldLabelledBy('日')"
       maxlength="2"
       type="text"
       :disabled="isDisabled"
     />
+    <span v-if="ariaLabelledBy" :class="$style.unit_labels">
+      <span :id="`${unitLabelId}_年`">の年</span>
+      <span :id="`${unitLabelId}_月`">の月</span>
+      <span :id="`${unitLabelId}_日`">の日</span>
+    </span>
     <ErrorMessage :errorMessages="errorMessage ? [errorMessage] : []" />
   </InputBox>
 </template>
 
 <style lang="scss" module>
 @use '@/assets/scss/mixin' as *;
+
+// aria-labelledby から参照するためだけの要素（画面には出さない）
+.unit_labels {
+  @include visually-hidden;
+}
 
 .icon {
   @include icon($color: var(--link-color));

@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import StandardCard from '@/components/ArticleList/Card/Standard.vue'
+import CardHeading from '@/components/ArticleList/Parts/CardHeading.vue'
 import ThumbnailImage from '@/components/ArticleList/Parts/ThumbnailImage.vue'
 import { returnAuthor } from '@/scripts/utils'
 import type { Article, PostConfig } from '@/types'
@@ -159,5 +160,25 @@ describe('ThumbnailImage', () => {
     expect(wrapper.find('img').attributes('srcset')).toBe(
       'https://example.com/f.jpg 1024w, https://example.com/t.jpg 640w'
     )
+  })
+})
+
+describe('CardHeading', () => {
+  // 回帰(#57): WP REST の title.rendered は HTML エンコード済みで返るため、
+  // テキスト描画すると &amp; や &#8217; がそのまま画面に出ていた
+  it('HTML エンティティをデコードして表示する', () => {
+    const wrapper = mount(CardHeading, {
+      props: { heading: 'A &amp; B &#8217;24' },
+    })
+
+    expect(wrapper.find('h2').text()).toBe('A & B \u201924')
+  })
+
+  it('title.rendered の HTML を描画する（excerpt と同じ扱い）', () => {
+    const wrapper = mount(CardHeading, {
+      props: { heading: '<em>強調</em>つきの見出し' },
+    })
+
+    expect(wrapper.find('h2 em').text()).toBe('強調')
   })
 })

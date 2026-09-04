@@ -8,6 +8,10 @@ type ToggleStyle = {
   off: BaseStyle
 }
 
+// 送信用の <input> を <button> の外へ出したため複数ルートになる。
+// 属性は自動継承されないので、明示的に button へ渡す
+defineOptions({ inheritAttrs: false })
+
 const emit = defineEmits<{
   (e: 'update:modelValue', newValue: boolean): void
 }>()
@@ -82,6 +86,7 @@ const currentCssStyle = computed(() => {
 
 <template>
   <button
+    v-bind="$attrs"
     :class="$style.toggle_button"
     :style="{
       '--text-color': currentCssStyle?.textColor,
@@ -95,19 +100,12 @@ const currentCssStyle = computed(() => {
     type="button"
     :disabled="isDisabled"
     role="switch"
+    :data-checked="isChecked"
     :aria-checked="isChecked"
     :aria-labelledby="ariaLabelledBy"
     :aria-label="ariaLabelledBy ? undefined : (ariaLabel ?? name)"
     @click.stop="!isDisabled ? (isChecked = !isChecked) : null"
   >
-    <!-- 値の送信専用。フォーカスできると Tab の停止がボタンと二重になるので外す -->
-    <input
-      v-model="isChecked"
-      type="checkbox"
-      tabindex="-1"
-      :name="name"
-      :disabled="isDisabled"
-    />
     <div
       :class="[$style.text, { [$style.on]: isChecked }]"
       :data-on="label.on"
@@ -115,11 +113,21 @@ const currentCssStyle = computed(() => {
     />
     <div :class="$style.handle" />
   </button>
+  <!--
+    値の送信専用。<button> の content model は interactive content を許さないので
+    中に <input> は置けない。ON のときだけ hidden として外に出す
+    （OFF なら送られない、というネイティブの挙動はそのまま）
+  -->
+  <input
+    v-if="isChecked"
+    type="hidden"
+    :name="name"
+    value="on"
+    :disabled="isDisabled"
+  />
 </template>
 
 <style lang="scss" module>
-@use '@/assets/scss/mixin' as *;
-
 :is(.toggle_button) {
   --handle-size: 1.5rem;
   --padding-size: calc(var(--border-size) + 2px);
@@ -137,10 +145,6 @@ const currentCssStyle = computed(() => {
   border: none;
   border-radius: var(--radius-size);
   cursor: pointer;
-
-  > input {
-    @include visually-hidden;
-  }
 }
 
 :is(.text) {

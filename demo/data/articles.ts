@@ -69,7 +69,9 @@ const SEEDS: Seed[] = [
     date: '2026-06-12T12:00:00',
   },
   {
-    title: 'WordPress REST API から一覧を組み立てる',
+    // WP REST の title.rendered は HTML エンコード済みで返る。
+    // CardHeading がエンティティをそのまま出さないことを確かめるためのデータ
+    title: 'WordPress REST API &amp; _embed で一覧を組み立てる&#8217;24',
     excerpt:
       '_embed を付けるだけでアイキャッチも著者もタームも取得できます。フロント側で扱いやすい形に整えるときの落とし穴も併せて。',
     categories: ['2', '4'],

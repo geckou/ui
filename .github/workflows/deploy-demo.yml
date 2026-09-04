@@ -5,10 +5,10 @@ on:
     branches: [production]
   workflow_dispatch:
 
+# 依存のコードを実行する build ジョブに公開権限を渡さないため、
+# pages: write / id-token: write は deploy ジョブにだけ付ける
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -43,6 +43,10 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

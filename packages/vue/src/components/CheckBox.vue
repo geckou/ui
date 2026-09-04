@@ -4,6 +4,10 @@ import { computed } from 'vue'
 import CheckIcon from '@/components/Icon/CheckIcon.vue'
 import { COLOR } from '@/const'
 
+// 送信用の <input> を <button> の外へ出したため複数ルートになる。
+// 属性は自動継承されないので、明示的に button へ渡す
+defineOptions({ inheritAttrs: false })
+
 const emit = defineEmits<{
   (e: 'update:modelValue', newValue: boolean): void
 }>()
@@ -59,6 +63,7 @@ const currentCssStyle = computed(() => {
 
 <template>
   <button
+    v-bind="$attrs"
     :class="$style.check_box"
     :style="{
       '--text-color': currentCssStyle?.textColor,
@@ -70,30 +75,33 @@ const currentCssStyle = computed(() => {
     }"
     type="button"
     role="checkbox"
+    :disabled="isDisabled"
+    :data-checked="isChecked"
     :aria-checked="isChecked"
     :aria-labelledby="ariaLabelledBy"
     :aria-label="ariaLabelledBy ? undefined : (ariaLabel ?? name)"
     @click.stop="!isDisabled ? (isChecked = !isChecked) : null"
   >
-    <!-- 値の送信専用。フォーカスできると Tab の停止がボタンと二重になるので外す -->
-    <input
-      v-model="isChecked"
-      type="checkbox"
-      tabindex="-1"
-      :name="name"
-      :value="value"
-      :disabled="isDisabled"
-    />
     <div :class="$style.check_container">
       <slot name="check" />
       <CheckIcon v-if="!$slots.check" />
     </div>
   </button>
+  <!--
+    値の送信専用。<button> の content model は interactive content を許さないので
+    中に <input> は置けない。チェック時だけ hidden として外に出す
+    （未チェックなら送られない、というネイティブの挙動はそのまま）
+  -->
+  <input
+    v-if="isChecked"
+    type="hidden"
+    :name="name"
+    :value="value ?? 'on'"
+    :disabled="isDisabled"
+  />
 </template>
 
 <style lang="scss" module>
-@use '@/assets/scss/mixin' as *;
-
 @keyframes pop {
   0% {
     scale: 1;
@@ -124,11 +132,7 @@ const currentCssStyle = computed(() => {
   background-color: var(--background-color);
   cursor: pointer;
 
-  > input {
-    @include visually-hidden;
-  }
-
-  &:has(input:disabled) {
+  &:disabled {
     pointer-events: none !important;
     position: relative;
 
@@ -141,7 +145,7 @@ const currentCssStyle = computed(() => {
     }
   }
 
-  &:has(input:checked) {
+  &[data-checked='true'] {
     background-color: var(--border-color);
     animation: pop var(--duration) ease-out;
 

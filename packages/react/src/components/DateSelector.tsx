@@ -2,7 +2,7 @@
 
 import type { CSSProperties, MouseEvent } from 'react'
 import type { FormValidationStore } from '@geckou/ui-core'
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { daysInMonth, splitDate } from '@geckou/ui-core'
 import { InputBox } from './InputBox'
 import { KeyboardArrowDownIcon } from './icons/KeyboardArrowDownIcon'
@@ -27,6 +27,13 @@ type Props = {
   /** 選べる年の下限・上限。既定は「今年 -100 〜 今年 -14」（生年月日向け） */
   minYear?: number
   maxYear?: number
+  /**
+   * 年月日それぞれの読み上げ名の土台。「の年」「の月」「の日」を後ろに繋げる。
+   * 可視ラベルがあるなら ariaLabelledBy でその要素を指すこと。
+   * どちらも無いときだけ name を使う（機械名でも無いよりはマシ）
+   */
+  ariaLabel?: string
+  ariaLabelledBy?: string
 }
 
 const EMPTY_BIRTHDAY: Birthday = { year: '', month: '', day: '' }
@@ -40,6 +47,8 @@ export function DateSelector({
   type = 'date',
   minYear,
   maxYear,
+  ariaLabel,
+  ariaLabelledBy,
 }: Props) {
   const [birthday, setBirthday] = useState<Birthday>(EMPTY_BIRTHDAY)
 
@@ -128,6 +137,14 @@ export function DateSelector({
     }
   }
 
+  // ariaLabelledBy を渡されたときは、その可視ラベルと「年 / 月 / 日」を並べて読ませる
+  // （aria-labelledby は文字列を足せないので、単位だけを持つ要素を用意して連結する）
+  const unitLabelId = useId()
+  const fieldLabelProps = (unit: '年' | '月' | '日') =>
+    ariaLabelledBy
+      ? { 'aria-labelledby': `${ariaLabelledBy} ${unitLabelId}-${unit}` }
+      : { 'aria-label': `${ariaLabel ?? name}の${unit}` }
+
   const wrapperClass = 'relative w-max [&:has(select:focus)>svg]:rotate-180'
   const iconClass =
     'pointer-events-none absolute inset-y-0 right-[var(--sp-small,0.375rem)] m-auto size-[var(--icon-medium,1.125rem)] fill-(--icon-color)'
@@ -142,7 +159,7 @@ export function DateSelector({
         <select
           value={birthday.year}
           name={`${name}-year`}
-          aria-label={`${name}の年`}
+          {...fieldLabelProps('年')}
           required={isRequired}
           onChange={(event) => selectItem('year', event.target.value)}
           className="w-[calc(5ch+var(--sp-medium,0.75rem)*2+var(--icon-medium,1.125rem))]! cursor-pointer p-[var(--sp-medium,0.75rem)]! pe-[calc(var(--sp-small,0.375rem)*2+var(--icon-medium,1.125rem))]!"
@@ -162,7 +179,7 @@ export function DateSelector({
         <select
           value={birthday.month}
           name={`${name}-month`}
-          aria-label={`${name}の月`}
+          {...fieldLabelProps('月')}
           required={isRequired}
           onChange={(event) => selectItem('month', event.target.value)}
           className={selectClass}
@@ -187,7 +204,7 @@ export function DateSelector({
           <select
             value={birthday.day}
             name={`${name}-day`}
-            aria-label={`${name}の日`}
+            {...fieldLabelProps('日')}
             required={isRequired}
             onChange={(event) => selectItem('day', event.target.value)}
             className={selectClass}
@@ -203,6 +220,13 @@ export function DateSelector({
           </select>
           <KeyboardArrowDownIcon className={iconClass} />
         </div>
+      )}
+      {ariaLabelledBy && (
+        <span className="sr-only">
+          <span id={`${unitLabelId}-年`}>の年</span>
+          <span id={`${unitLabelId}-月`}>の月</span>
+          <span id={`${unitLabelId}-日`}>の日</span>
+        </span>
       )}
       <button
         type="button"
