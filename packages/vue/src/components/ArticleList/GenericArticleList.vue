@@ -10,6 +10,7 @@ import TileCard from '@/components/ArticleList/Card/Tile.vue'
 import SimpleCard from '@/components/ArticleList/Card/Simple.vue'
 import RowCard from '@/components/ArticleList/Card/Row.vue'
 import NewsCard from '@/components/ArticleList/Card/News.vue'
+import GridCard from '@/components/ArticleList/Card/Grid.vue'
 import EntertainmentCard from '@/components/ArticleList/Card/Entertainment.vue'
 import GalleryCard from '@/components/ArticleList/Card/Gallery.vue'
 
@@ -44,6 +45,8 @@ const listItem = computed(() => {
       return RowCard
     case 'news':
       return NewsCard
+    case 'grid':
+      return GridCard
     case 'gallery':
       return GalleryCard
     case 'entertainment':
@@ -84,6 +87,10 @@ const listItem = computed(() => {
 
 .list {
   --list-gap: var(--sp-large);
+  // リセット CSS を持たないアプリでも箇条書きの点が出ないようにする
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
   grid-template-rows: 1fr;
   gap: var(--list-gap);

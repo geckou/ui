@@ -107,14 +107,6 @@ const dayOptions = computed(() => {
   }))
 })
 
-const openDropdown = (e: MouseEvent) => {
-  const target = e.currentTarget as HTMLElement
-  const select = target.firstElementChild as HTMLSelectElement
-  if (select) {
-    select.click()
-  }
-}
-
 const selectItem = (event: Event, key: 'year' | 'day' | 'month') => {
   const target = event.target as HTMLSelectElement
   const { value } = target
@@ -190,7 +182,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
 
 <template>
   <InputBox :class="$style.date_selector">
-    <div :class="[$style.selector_wrapper]" @click="openDropdown($event)">
+    <div :class="[$style.selector_wrapper]">
       <select
         :value="birthday.year"
         :name="`${name}-year`"
@@ -211,7 +203,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       </select>
       <KeyboardArrowDownIcon />
     </div>
-    <div :class="[$style.selector_wrapper]" @click="openDropdown($event)">
+    <div :class="[$style.selector_wrapper]">
       <select
         :value="birthday.month"
         :name="`${name}-month`"
@@ -231,11 +223,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       </select>
       <KeyboardArrowDownIcon />
     </div>
-    <div
-      v-if="type === 'date'"
-      :class="[$style.selector_wrapper]"
-      @click="openDropdown($event)"
-    >
+    <div v-if="type === 'date'" :class="[$style.selector_wrapper]">
       <select
         :value="birthday.day"
         :name="`${name}-day`"
