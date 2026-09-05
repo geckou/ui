@@ -128,7 +128,7 @@ export function DatePicker({
   // ariaLabelledBy を渡されたときは、その可視ラベルと「年 / 月 / 日」を並べて読ませる
   // （aria-labelledby は文字列を足せないので、単位だけを持つ要素を用意して連結する）
   const unitLabelId = useId()
-  const fieldLabelProps = (unit: '年' | '月' | '日') =>
+  const fieldLabelProps = (unit: '年' | '月' | '日' | 'カレンダー') =>
     ariaLabelledBy
       ? { 'aria-labelledby': `${ariaLabelledBy} ${unitLabelId}-${unit}` }
       : { 'aria-label': `${ariaLabel ?? name}の${unit}` }
@@ -144,7 +144,15 @@ export function DatePicker({
       isErrored={!!errorMessage}
       className={`flex w-full items-center leading-none ${isSmall ? 'h-[calc(var(--bv,0.375rem)*5)] px-[var(--sp-min,0.1875rem)]' : 'h-[calc(var(--bv,0.375rem)*6)] px-[var(--sp-small,0.375rem)]'}`}
     >
-      <div className="relative flex-none" style={iconStyle}>
+      {/*
+        カレンダー起動用の入力は opacity-0 で重ねている。アイコン側に
+        フォーカスリングを出さないと、キーボード操作で「見えない・輪郭も出ない」
+        タブ停止点になる（InputBox が *:focus の outline を消しているため）
+      */}
+      <div
+        className="relative flex-none rounded-[var(--radius-small,0.1875rem)] has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-(--icon-color)"
+        style={iconStyle}
+      >
         <CalendarIcon
           className={`pointer-events-none absolute inset-y-0 left-[var(--sp-small,0.375rem)] m-auto fill-(--icon-color) ${isSmall ? 'size-[var(--icon-small,0.9375rem)]' : 'size-[var(--icon-medium,1.125rem)]'}`}
         />
@@ -152,6 +160,7 @@ export function DatePicker({
           type={type}
           name={name}
           value={dateValue}
+          {...fieldLabelProps('カレンダー')}
           max={maxDate}
           min={minDate}
           required={isRequired}
@@ -196,6 +205,7 @@ export function DatePicker({
       )}
       {ariaLabelledBy && (
         <span className="sr-only">
+          <span id={`${unitLabelId}-カレンダー`}>のカレンダー</span>
           <span id={`${unitLabelId}-年`}>の年</span>
           <span id={`${unitLabelId}-月`}>の月</span>
           <span id={`${unitLabelId}-日`}>の日</span>

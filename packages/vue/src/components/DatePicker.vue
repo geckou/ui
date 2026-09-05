@@ -52,9 +52,10 @@ const props = withDefaults(
 // ariaLabelledBy を渡されたときは、その可視ラベルと「年 / 月 / 日」を並べて読ませる
 // （aria-labelledby は文字列を足せないので、単位だけを持つ要素を用意して連結する）
 const unitLabelId = nextUniqueId('date_picker_unit')
-const fieldLabel = (unit: '年' | '月' | '日') =>
+type FieldUnit = '年' | '月' | '日' | 'カレンダー'
+const fieldLabel = (unit: FieldUnit) =>
   props.ariaLabelledBy ? undefined : `${props.ariaLabel ?? props.name}の${unit}`
-const fieldLabelledBy = (unit: '年' | '月' | '日') =>
+const fieldLabelledBy = (unit: FieldUnit) =>
   props.ariaLabelledBy
     ? `${props.ariaLabelledBy} ${unitLabelId}_${unit}`
     : undefined
@@ -174,6 +175,8 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
         v-model="dateValue"
         :type="type"
         :name="name"
+        :aria-label="fieldLabel('カレンダー')"
+        :aria-labelledby="fieldLabelledBy('カレンダー')"
         :max="maxDate"
         :min="minDate"
         :required="isRequired"
@@ -211,6 +214,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       :disabled="isDisabled"
     />
     <span v-if="ariaLabelledBy" :class="$style.unit_labels">
+      <span :id="`${unitLabelId}_カレンダー`">のカレンダー</span>
       <span :id="`${unitLabelId}_年`">の年</span>
       <span :id="`${unitLabelId}_月`">の月</span>
       <span :id="`${unitLabelId}_日`">の日</span>
@@ -236,9 +240,18 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
   bottom: 0;
 }
 
+// カレンダー起動用の入力は opacity: 0 で重ねている。アイコン側にフォーカスリングを
+// 出さないと、キーボード操作で「見えない・輪郭も出ない」タブ停止点になる
+// （InputBox が *:focus の outline を消しているため）
 .date_input {
   flex: 0 0 auto;
   position: relative;
+  border-radius: var(--radius-small);
+
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--link-color);
+    outline-offset: 2px;
+  }
 
   > input {
     width: calc(var(--icon-medium) + var(--sp-small) * 2);

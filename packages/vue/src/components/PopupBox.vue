@@ -44,7 +44,12 @@ defineExpose({
 
 <template>
   <teleport to="body">
+    <!--
+      3 秒で消える通知。ライブリージョンにしないと支援技術に何も伝わらない
+      （要素は常時 DOM にあり内容だけ差し替わるので、role だけで読み上げ対象になる）
+    -->
     <div
+      role="status"
       :class="[
         $style.popup,
         $style[`x-${position.x}`],

@@ -11,6 +11,7 @@ import DateSelector from '@/components/DateSelector.vue'
 import InputBox from '@/components/InputBox.vue'
 import LabeledCheckbox from '@/components/LabeledCheckbox.vue'
 import ModalBox from '@/components/ModalBox.vue'
+import PopupBox from '@/components/PopupBox.vue'
 import PostedDate from '@/components/ArticleList/Parts/PostedDate.vue'
 import DropdownUi from '@/components/DropdownUi.vue'
 import RadioButtons from '@/components/RadioButtons.vue'
@@ -1157,6 +1158,24 @@ describe('ToggleButton', () => {
   })
 })
 
+describe('PopupBox', () => {
+  // 回帰(#68): 3 秒で消える通知なのにライブリージョンでなく、
+  // 支援技術には何も伝わっていなかった
+  it('ライブリージョンとして読み上げ対象になる', () => {
+    const wrapper = mount(PopupBox, {
+      slots: { default: '保存しました' },
+      attachTo: document.body,
+    })
+
+    const popup = document.querySelector('[role="status"]')
+
+    expect(popup).not.toBeNull()
+    expect(popup!.textContent).toBe('保存しました')
+
+    wrapper.unmount()
+  })
+})
+
 describe('DatePicker / DateSelector のアクセシブル名', () => {
   // 回帰(#59): name（フォームのフィールド名）から読み上げ名を作っていたため、
   // name="startedOn" だと「startedOnの年」と読まれていた
@@ -1196,6 +1215,34 @@ describe('DatePicker / DateSelector のアクセシブル名', () => {
     const unitId = labelledBy!.split(' ')[1]
 
     expect(wrapper.find(`#${unitId}`).text()).toBe('の年')
+  })
+
+  // 回帰(#68): カレンダー起動用の date 入力は opacity: 0 で重ねているだけで
+  // aria-label が無く、キーボード操作で「見えない・名前の無い」タブ停止点だった
+  it('DatePicker: カレンダー起動用の入力にもアクセシブル名がある', () => {
+    const wrapper = mount(DatePicker, {
+      props: { name: 'startedOn', modelValue: '', ariaLabel: '開始日' },
+    })
+
+    expect(wrapper.find('input[type="date"]').attributes('aria-label')).toBe(
+      '開始日のカレンダー'
+    )
+  })
+
+  it('DatePicker: カレンダー起動用の入力も ariaLabelledBy に追従する', () => {
+    const wrapper = mount(DatePicker, {
+      props: { name: 'startedOn', modelValue: '', ariaLabelledBy: 'label_id' },
+    })
+
+    const calendar = wrapper.find('input[type="date"]')
+    const labelledBy = calendar.attributes('aria-labelledby')
+
+    expect(calendar.attributes('aria-label')).toBeUndefined()
+    expect(labelledBy?.startsWith('label_id ')).toBe(true)
+
+    const unitId = labelledBy!.split(' ')[1]
+
+    expect(wrapper.find(`#${unitId}`).text()).toBe('のカレンダー')
   })
 
   it('DateSelector: ariaLabel を年月日のラベルに使う', () => {

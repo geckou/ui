@@ -18,6 +18,7 @@ import {
   RadioButtons,
   ToggleButton,
   ModalBox,
+  PopupBox,
   SlideDownUi,
   DropdownUi,
   useFormValidation,
@@ -1311,6 +1312,21 @@ describe('Vue 版との API 統一', () => {
   })
 })
 
+describe('PopupBox', () => {
+  // 回帰(#68): 3 秒で消える通知なのにライブリージョンでなく、
+  // 支援技術には何も伝わっていなかった
+  it('ライブリージョンとして読み上げ対象になる', () => {
+    act(() => {
+      root.render(<PopupBox>保存しました</PopupBox>)
+    })
+
+    const popup = document.querySelector('[role="status"]')
+
+    expect(popup).not.toBeNull()
+    expect(popup!.textContent).toBe('保存しました')
+  })
+})
+
 describe('DatePicker / DateSelector のアクセシブル名', () => {
   // 回帰(#59): name（フォームのフィールド名）から読み上げ名を作っていたため、
   // name="startedOn" だと「startedOnの年」と読まれていた
@@ -1351,6 +1367,35 @@ describe('DatePicker / DateSelector のアクセシブル名', () => {
     expect(
       container.querySelector(`[id="${labelledBy.split(' ')[1]}"]`)?.textContent
     ).toBe('の年')
+  })
+
+  // 回帰(#68): カレンダー起動用の date 入力は opacity-0 で重ねているだけで
+  // aria-label が無く、キーボード操作で「見えない・名前の無い」タブ停止点だった
+  it('DatePicker: カレンダー起動用の入力にもアクセシブル名がある', () => {
+    act(() => {
+      root.render(<DatePicker name="startedOn" value="" ariaLabel="開始日" />)
+    })
+
+    expect(
+      container.querySelector('input[type="date"]')!.getAttribute('aria-label')
+    ).toBe('開始日のカレンダー')
+  })
+
+  it('DatePicker: カレンダー起動用の入力も ariaLabelledBy に追従する', () => {
+    act(() => {
+      root.render(
+        <DatePicker name="startedOn" value="" ariaLabelledBy="label_id" />
+      )
+    })
+
+    const calendar = container.querySelector('input[type="date"]')!
+    const labelledBy = calendar.getAttribute('aria-labelledby')!
+
+    expect(calendar.getAttribute('aria-label')).toBeNull()
+    expect(labelledBy.startsWith('label_id ')).toBe(true)
+    expect(
+      container.querySelector(`[id="${labelledBy.split(' ')[1]}"]`)?.textContent
+    ).toBe('のカレンダー')
   })
 
   it('DateSelector: ariaLabel を年月日のラベルに使う', () => {

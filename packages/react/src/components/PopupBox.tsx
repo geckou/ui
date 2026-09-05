@@ -66,6 +66,9 @@ export function PopupBox({
 
   return createPortal(
     <div
+      // 3 秒で消える通知。ライブリージョンにしないと支援技術に何も伝わらない
+      // （要素は常時 DOM にあり内容だけ差し替わるので、role だけで読み上げ対象になる）
+      role="status"
       style={{ borderColor: COLOR.blue }}
       className={`pointer-events-none fixed z-50 h-max w-max max-w-40 rounded-[var(--radius-small,0.1875rem)] border bg-white p-[var(--sp-medium,0.75rem)] transition-[transform,opacity] duration-300 ${X_CLASSES[position.x]} ${Y_CLASSES[position.y]} ${isShown ? 'opacity-100' : 'opacity-0'}`}
     >
