@@ -301,6 +301,26 @@ const articles = ref<any[]>([])
 
 定義例はデモの `demo/styles/base.scss` を参照。
 
+## 0.11.0 の変更
+
+- `BasicButton` はローディング中に `disabled` にしない（押した瞬間にフォーカスが
+  `body` へ落ちるため）。代わりに `aria-disabled` / `aria-busy` を付け、
+  `pointer-events` と click ガードで押せなくする。**`:disabled` を前提に
+  スタイルを当てている場合は `[aria-disabled]` の追従が要る**
+- `BasicButton` のローディング中もアクセシブル名を保つ（`visibility: hidden` → `opacity: 0`）。
+  `LoadingSpinner` は `aria-hidden="true"`
+- `BasicButton` の hover 色が `color-mix()` になった（3 桁 hex 等で不正値になっていた）。
+  `cssStyle` の差し替えにも追従する（`hoverStyle` を `computed` に）
+- `PopupBox` は**表示している間だけ**スロットを描画する
+- `ModalBox` はマウント時点で `isShown` が true でもダイアログへフォーカスを移す
+- `ModalBox` の背景クリック判定が「押し始めも背景だったとき」だけになった
+- `RadioButtons` が `role="radiogroup"`、`CheckBoxes` が `role="group"` になり、
+  どちらも `ariaLabel` / `ariaLabelledBy` を受ける。エラーは `aria-describedby` で結び付く
+- `RadioButtons` が `cssStyle.textColor` を `--text-color` へ出す（React 版と揃えた）
+- `CheckButton` が `ariaLabel` / `ariaLabelledBy` を受ける
+- `CheckBoxes` の `errorColor` が `cssStyle` の差し替えに追従する
+- `ErrorMessage` が `id` を受ける
+
 ## 0.9.0 の変更
 
 - `ModalBox` を重ねたとき、Escape で閉じるのは**最前面の 1 枚だけ**になった

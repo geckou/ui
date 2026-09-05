@@ -169,6 +169,11 @@ import type { Validates, Option, StateVariation, DateObject } from '@geckou/ui-c
 
 型の一覧は [Vue パッケージの README](../vue/README.md#types) を参照してください。
 
+## 0.8.0 の変更
+
+- `RadioButtonStyle` に `textColor` を追加（選択中のラベル色。実装は両フレームワークとも
+  `--text-color` として出しているのに、型で渡せなかった）
+
 ## 0.6.0 の変更
 
 - `modal-stack` を追加（`createModalLayer`）。重なったモーダルのうち最前面の 1 枚を

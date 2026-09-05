@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick } from 'vue'
+import BasicButton from '@/components/BasicButton.vue'
 import CheckBox from '@/components/CheckBox.vue'
 import CheckBoxes from '@/components/CheckBoxes.vue'
 import CheckButton from '@/components/CheckButton.vue'
@@ -1192,16 +1193,23 @@ describe('ToggleButton', () => {
 describe('PopupBox', () => {
   // 回帰(#68): 3 秒で消える通知なのにライブリージョンでなく、
   // 支援技術には何も伝わっていなかった
-  it('ライブリージョンとして読み上げ対象になる', () => {
+  // 回帰(#81): 器だけをライブリージョンにして中身を常時描いていたため、
+  // opacity の切り替えでは通知されず、非表示中も文言が読めていた
+  it('表示するまで中身を持たず、表示で内容が入る', async () => {
     const wrapper = mount(PopupBox, {
       slots: { default: '保存しました' },
       attachTo: document.body,
     })
 
-    const popup = document.querySelector('[role="status"]')
+    const popup = () =>
+      [...document.querySelectorAll('[role="status"]')].at(-1) as HTMLElement
 
-    expect(popup).not.toBeNull()
-    expect(popup!.textContent).toBe('保存しました')
+    expect(popup()).not.toBeNull()
+    expect(popup().textContent?.trim()).toBe('')
+    ;(wrapper.vm as unknown as { showPopup: () => void }).showPopup()
+    await nextTick()
+
+    expect(popup().textContent).toContain('保存しました')
 
     wrapper.unmount()
   })
@@ -1330,6 +1338,8 @@ describe('ModalBox のフォーカストラップ', () => {
     document.body.appendChild(outside)
 
     const wrapper = mountModal()
+    // 開いた直後はダイアログ自身へフォーカスが移る（immediate な watch）
+    await nextTick()
     const focusable = wrapper.findAll('a, button')
     const last = focusable[focusable.length - 1]!.element as HTMLElement
 
@@ -1345,6 +1355,7 @@ describe('ModalBox のフォーカストラップ', () => {
 
   it('最初の要素で Shift+Tab したら最後の要素へ回る', async () => {
     const wrapper = mountModal()
+    await nextTick()
     const focusable = wrapper.findAll('a, button')
     const first = focusable[0]!.element as HTMLElement
 
@@ -1379,5 +1390,148 @@ describe('ModalBox のフォーカストラップ', () => {
 
     wrapper.unmount()
     outside.remove()
+  })
+})
+
+// 全体レビューで見つかったバグのリグレッションテスト
+describe('BasicButton のローディングと hover 色', () => {
+  it('ローディング中もアクセシブル名を保ち、disabled にしない', () => {
+    const wrapper = mount(BasicButton, {
+      props: { isLoading: true },
+      slots: { default: '送信' },
+    })
+
+    const button = wrapper.find('button')
+
+    // disabled にするとフォーカスが body へ落ちる（WAI-ARIA APG）
+    expect(button.attributes('disabled')).toBeUndefined()
+    expect(button.attributes('aria-disabled')).toBe('true')
+    expect(button.attributes('aria-busy')).toBe('true')
+    expect(button.text()).toContain('送信')
+  })
+
+  it('3 桁 hex でも hover 色が有効な値になる', () => {
+    const wrapper = mount(BasicButton, {
+      props: { cssStyle: { default: { backgroundColor: '#fff' } } },
+    })
+
+    // 以前は '#fffcc'（不正値）になり、hover で背景が消えていた
+    expect(wrapper.find('button').attributes('style')).toContain(
+      'color-mix(in srgb, #fff 80%, transparent)'
+    )
+  })
+
+  it('cssStyle を差し替えると hover 色が追従する', async () => {
+    const wrapper = mount(BasicButton, {
+      props: {
+        cssStyle: { default: {}, hover: { backgroundColor: 'rgb(1, 2, 3)' } },
+      },
+    })
+
+    await wrapper.setProps({
+      cssStyle: { default: {}, hover: { backgroundColor: 'rgb(4, 5, 6)' } },
+    })
+
+    expect(wrapper.find('button').attributes('style')).toContain('rgb(4, 5, 6)')
+  })
+})
+
+describe('グループのアクセシブル名', () => {
+  it('RadioButtons が radiogroup になり、名前とエラーを結び付ける', async () => {
+    const wrapper = mount(RadioButtons, {
+      props: {
+        modelValue: 'a',
+        isRequired: true,
+        ariaLabel: '種別',
+        options: [
+          { label: 'A', value: 'a' },
+          { label: 'B', value: 'b' },
+        ],
+      },
+    })
+
+    const group = wrapper.find('[role="radiogroup"]')
+    expect(group.exists()).toBe(true)
+    expect(group.attributes('aria-label')).toBe('種別')
+
+    await wrapper.setProps({ modelValue: '' })
+
+    const errorId = group.attributes('aria-describedby')
+    expect(errorId).toBeTruthy()
+    expect(wrapper.find(`#${errorId}`).text()).toContain('必須')
+  })
+
+  it('RadioButtons が cssStyle.textColor を --text-color へ出す', () => {
+    const wrapper = mount(RadioButtons, {
+      props: {
+        modelValue: 'a',
+        cssStyle: { default: { textColor: 'rgb(1, 2, 3)' } },
+        options: [{ label: 'A', value: 'a' }],
+      },
+    })
+
+    expect(wrapper.find('label').attributes('style')).toContain(
+      '--text-color: rgb(1, 2, 3)'
+    )
+  })
+
+  it('CheckBoxes が role="group" になる', () => {
+    const wrapper = mount(CheckBoxes, {
+      props: {
+        name: 'fruits',
+        ariaLabel: '果物',
+        options: [{ label: 'りんご', value: 'apple' }],
+      },
+    })
+
+    const group = wrapper.find('[role="group"]')
+    expect(group.exists()).toBe(true)
+    expect(group.attributes('aria-label')).toBe('果物')
+  })
+
+  it('CheckButton が ariaLabel を input へ渡す', () => {
+    const wrapper = mount(CheckButton, {
+      props: { name: 'favorite', ariaLabel: 'お気に入り' },
+    })
+
+    expect(wrapper.find('input').attributes('aria-label')).toBe('お気に入り')
+  })
+})
+
+describe('ModalBox / PopupBox の初期状態', () => {
+  it('最初から開いていてもダイアログへフォーカスを移す', async () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: true },
+      attachTo: document.body,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(document.activeElement).toBe(wrapper.find('[role="dialog"]').element)
+
+    wrapper.unmount()
+  })
+
+  it('ダイアログ内で押し始めて背景で離しても閉じない', async () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: true },
+      slots: { default: '<p>本文</p>' },
+      attachTo: document.body,
+    })
+
+    const overlay = wrapper.find('[aria-modal="true"]').element
+      .parentElement as HTMLElement
+
+    // ダイアログ内で pointerdown → 背景で click（テキスト選択のドラッグ）
+    wrapper
+      .find('p')
+      .element.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    await overlay.dispatchEvent(new Event('click', { bubbles: true }))
+    await nextTick()
+
+    expect(wrapper.emitted('close')).toBeUndefined()
+
+    wrapper.unmount()
   })
 })

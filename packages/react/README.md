@@ -108,6 +108,25 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
+## 0.8.0 の変更
+
+- `BasicButton` はローディング中に `disabled` にしない（押した瞬間にフォーカスが
+  `body` へ落ちるため）。代わりに `aria-disabled` / `aria-busy` を付け、
+  `pointer-events` と `onClick` ガードで押せなくする。**`:disabled` を前提に
+  スタイルを当てている場合は `[aria-disabled]` の追従が要る**
+- `BasicButton` のローディング中もアクセシブル名を保つ（`invisible` → `opacity-0`）。
+  `LoadingSpinner` は `aria-hidden="true"`
+- `BasicButton` の hover 色が `color-mix()` になった。`${色}cc` の文字列連結だったため、
+  3 桁 hex（`'#fff'`）・`rgb()`・名前色・`var()` では不正値になっていた
+- `PopupBox` は**表示している間だけ**子要素を描画する。常時 DOM にあると
+  `opacity` の切り替えでは支援技術に通知されず、非表示中も文言が読めていた
+- `ModalBox` は開いたままアンマウントされてもフォーカスを戻す
+- `ModalBox` の背景クリック判定が「押し始めも背景だったとき」だけになった。
+  ダイアログ内でテキスト選択を始めて背景で離すと閉じていた
+- `RadioButtons` が `role="radiogroup"` になり、`ariaLabel` / `ariaLabelledBy` を受ける。
+  エラーは `aria-describedby` で結び付く
+- `ErrorMessage` が `id` を受ける（`aria-describedby` から参照するため）
+
 ## 0.6.0 の変更
 
 - `ModalBox` を重ねたとき、Escape で閉じるのは**最前面の 1 枚だけ**になった

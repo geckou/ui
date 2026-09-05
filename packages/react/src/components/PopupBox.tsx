@@ -72,7 +72,12 @@ export function PopupBox({
       style={{ borderColor: COLOR.blue }}
       className={`pointer-events-none fixed z-50 h-max w-max max-w-40 rounded-[var(--radius-small,0.1875rem)] border bg-white p-[var(--sp-medium,0.75rem)] transition-[transform,opacity] duration-300 ${X_CLASSES[position.x]} ${Y_CLASSES[position.y]} ${isShown ? 'opacity-100' : 'opacity-0'}`}
     >
-      {children}
+      {/*
+        opacity の切り替えではライブリージョンは発火しない（内容が変わらないため）。
+        逆に非表示の間も文言がアクセシビリティツリーに残り、いつでも読めてしまう。
+        表示している間だけ子要素を描画して、内容の変化として通知させる
+      */}
+      {isShown && children}
     </div>,
     document.body
   )

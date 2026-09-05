@@ -1,5 +1,5 @@
 // @geckou/ui の移植時に修正したバグのリグレッションテスト
-import { StrictMode, act, useState } from 'react'
+import { StrictMode, act, createRef, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -14,6 +14,7 @@ import {
   TextArea,
   SelectBox,
   CheckButton,
+  BasicButton,
   CheckBox,
   RadioButtons,
   ToggleButton,
@@ -23,7 +24,7 @@ import {
   DropdownUi,
   useFormValidation,
 } from '../src'
-import type { DateRange } from '../src'
+import type { DateRange, PopupBoxHandle } from '../src'
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean
@@ -1340,15 +1341,23 @@ describe('Vue 版との API 統一', () => {
 describe('PopupBox', () => {
   // 回帰(#68): 3 秒で消える通知なのにライブリージョンでなく、
   // 支援技術には何も伝わっていなかった
-  it('ライブリージョンとして読み上げ対象になる', () => {
+  // 回帰(#81): 器だけをライブリージョンにして中身を常時描いていたため、
+  // opacity の切り替えでは通知されず、非表示中も文言が読めていた
+  it('表示するまで中身を持たず、表示で内容が入る', () => {
+    const ref = createRef<PopupBoxHandle>()
+
     act(() => {
-      root.render(<PopupBox>保存しました</PopupBox>)
+      root.render(<PopupBox ref={ref}>保存しました</PopupBox>)
     })
 
-    const popup = document.querySelector('[role="status"]')
+    const popup = () => document.querySelector('[role="status"]')
 
-    expect(popup).not.toBeNull()
-    expect(popup!.textContent).toBe('保存しました')
+    expect(popup()).not.toBeNull()
+    expect(popup()!.textContent).toBe('')
+
+    act(() => ref.current!.showPopup())
+
+    expect(popup()!.textContent).toBe('保存しました')
   })
 })
 
@@ -1549,5 +1558,158 @@ describe('ModalBox のフォーカストラップ', () => {
     expect(document.activeElement).toBe(trigger)
 
     trigger.remove()
+  })
+})
+
+// 全体レビューで見つかったバグのリグレッションテスト
+describe('BasicButton のローディングと hover 色', () => {
+  it('ローディング中もアクセシブル名を保ち、disabled にしない', () => {
+    act(() => {
+      root.render(<BasicButton isLoading>送信</BasicButton>)
+    })
+
+    const button = container.querySelector('button') as HTMLButtonElement
+
+    // disabled にするとフォーカスが body へ落ちる（WAI-ARIA APG）
+    expect(button.disabled).toBe(false)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    expect(button.getAttribute('aria-busy')).toBe('true')
+    // invisible（visibility: hidden）は a11y ツリーから外れる
+    expect(button.querySelector('.invisible')).toBe(null)
+    expect(button.textContent).toContain('送信')
+  })
+
+  it('ローディング中は onClick を呼ばない', () => {
+    const onClick = vi.fn()
+
+    act(() => {
+      root.render(
+        <BasicButton isLoading onClick={onClick}>
+          送信
+        </BasicButton>
+      )
+    })
+
+    act(() => {
+      container
+        .querySelector('button')!
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('3 桁 hex でも hover 色が有効な値になる', () => {
+    act(() => {
+      root.render(
+        <BasicButton cssStyle={{ default: { backgroundColor: '#fff' } }}>
+          送信
+        </BasicButton>
+      )
+    })
+
+    // 以前は '#fffcc'（不正値）になり、hover で背景が消えていた
+    expect(container.querySelector('button')!.getAttribute('style')).toContain(
+      'color-mix(in srgb, #fff 80%, transparent)'
+    )
+  })
+})
+
+describe('RadioButtons のグループ名', () => {
+  const options = [
+    { label: 'A', value: 'a' },
+    { label: 'B', value: 'b' },
+  ]
+
+  it('radiogroup になり、名前とエラーを結び付ける', () => {
+    function Controlled() {
+      const [value, setValue] = useState<string | number>('a')
+
+      return (
+        <>
+          <RadioButtons
+            value={value}
+            onChange={setValue}
+            options={options}
+            isRequired
+            ariaLabel="種別"
+          />
+          <button type="button" onClick={() => setValue('')}>
+            消す
+          </button>
+        </>
+      )
+    }
+
+    act(() => {
+      root.render(<Controlled />)
+    })
+
+    const group = container.querySelector('[role="radiogroup"]')!
+    expect(group.getAttribute('aria-label')).toBe('種別')
+    expect(group.getAttribute('aria-required')).toBe('true')
+
+    act(() => {
+      container
+        .querySelector('button')!
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    const errorId = group.getAttribute('aria-describedby')
+    expect(errorId).toBeTruthy()
+    expect(document.getElementById(errorId!)!.textContent).toContain('必須')
+  })
+})
+
+describe('ModalBox の閉じ方', () => {
+  it('開いたままアンマウントされてもフォーカスを戻す', () => {
+    const trigger = document.createElement('button')
+    document.body.appendChild(trigger)
+    trigger.focus()
+
+    act(() => {
+      root.render(
+        <ModalBox isShown onClose={() => {}}>
+          <p>本文</p>
+        </ModalBox>
+      )
+    })
+    expect(document.activeElement).not.toBe(trigger)
+
+    // ルーティング等で開いたまま消えると、フォーカスが body へ落ちていた
+    act(() => root.render(<></>))
+    expect(document.activeElement).toBe(trigger)
+
+    trigger.remove()
+  })
+
+  it('ダイアログ内で押し始めて背景で離しても閉じない', () => {
+    const onClose = vi.fn()
+
+    act(() => {
+      root.render(
+        <ModalBox isShown onClose={onClose}>
+          <p>本文</p>
+        </ModalBox>
+      )
+    })
+
+    const overlay = container.firstElementChild as HTMLElement
+    const paragraph = container.querySelector('p') as HTMLElement
+
+    act(() => {
+      paragraph.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+      overlay.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(onClose).not.toHaveBeenCalled()
+
+    // 背景を押して背景で離したときは閉じる
+    act(() => {
+      overlay.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+      overlay.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(onClose).toHaveBeenCalledTimes(1)
   })
 })
