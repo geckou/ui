@@ -16,6 +16,13 @@ export const FOCUSABLE_SELECTOR = [
   'input:not([disabled]):not([type="hidden"])',
   'select:not([disabled])',
   'textarea:not([disabled])',
+  // 既定でフォーカスを受ける要素。漏らすと、ダイアログの末尾がリッチエディタ
+  // （contenteditable）や埋め込み（iframe）のときにその手前で折り返してしまう
+  '[contenteditable]:not([contenteditable="false"])',
+  'audio[controls]',
+  'video[controls]',
+  'summary',
+  'iframe',
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ')
 

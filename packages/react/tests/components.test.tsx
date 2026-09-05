@@ -15,6 +15,8 @@ import {
   SelectBox,
   CheckButton,
   CheckBox,
+  CheckBoxes,
+  ErrorMessage,
   RadioButtons,
   ToggleButton,
   ModalBox,
@@ -1549,5 +1551,219 @@ describe('ModalBox のフォーカストラップ', () => {
     expect(document.activeElement).toBe(trigger)
 
     trigger.remove()
+  })
+})
+
+// 全体レビューで見つかったバグのリグレッションテスト
+describe('ネイティブ送信の値', () => {
+  it('CheckBoxes は選択肢ごとの value を hidden へ入れる', () => {
+    act(() => {
+      root.render(
+        <form>
+          <CheckBoxes
+            name="fruits"
+            options={[
+              { label: 'りんご', value: 'apple' },
+              { label: 'みかん', value: 'orange' },
+            ]}
+            value={['apple', 'orange']}
+          />
+        </form>
+      )
+    })
+
+    const form = container.querySelector('form') as HTMLFormElement
+
+    // 修正前は全て value="on" で、どれが選ばれたか区別できなかった
+    expect([...new FormData(form).getAll('fruits')]).toEqual([
+      'apple',
+      'orange',
+    ])
+  })
+})
+
+describe('DatePicker の年月日欄', () => {
+  const field = (label: string) =>
+    container.querySelector(`input[aria-label="${label}"]`) as HTMLInputElement
+
+  it('不正な値になったら送信値を空にして親へ通知する', () => {
+    const onChange = vi.fn()
+
+    act(() => {
+      root.render(
+        <DatePicker name="date" value="2024-05-10" onChange={onChange} />
+      )
+    })
+
+    act(() => setInputValue(field('dateの月'), '13'))
+
+    // 修正前は valid のときだけ更新していたため、13 月を表示したまま
+    // 隠しの native input と親の値は 2024-05-10 のままだった
+    expect(onChange).toHaveBeenLastCalledWith('')
+    expect(
+      (container.querySelector('input[type="date"]') as HTMLInputElement).value
+    ).toBe('')
+  })
+
+  it('入力途中ではエラー文言を出さず、欄を離れた時点で出す', () => {
+    act(() => {
+      root.render(<DatePicker name="date" />)
+    })
+
+    act(() => setInputValue(field('dateの年'), '2'))
+    expect(container.textContent).not.toContain('年は4桁')
+
+    act(() =>
+      field('dateの年').dispatchEvent(
+        new FocusEvent('focusout', { bubbles: true })
+      )
+    )
+    expect(container.textContent).toContain('年は4桁')
+  })
+
+  it('1 桁の月・日は欄を離れた時点で 2 桁へ正規化する', () => {
+    const onChange = vi.fn()
+
+    act(() => {
+      root.render(<DatePicker name="date" onChange={onChange} />)
+    })
+
+    act(() => setInputValue(field('dateの年'), '2024'))
+    act(() => setInputValue(field('dateの月'), '1'))
+    act(() => setInputValue(field('dateの日'), '5'))
+    act(() =>
+      field('dateの日').dispatchEvent(
+        new FocusEvent('focusout', { bubbles: true })
+      )
+    )
+
+    expect(field('dateの月').value).toBe('01')
+    expect(onChange).toHaveBeenLastCalledWith('2024-01-05')
+    expect(container.textContent).not.toContain('月は2桁')
+  })
+})
+
+describe('SelectBox の値とエラー状態', () => {
+  const options = [
+    { label: 'ゼロ', value: 0 },
+    { label: 'イチ', value: 1 },
+  ]
+
+  it('isDisabled でも値 0 のラベルを表示する', () => {
+    act(() => {
+      root.render(
+        <SelectBox name="number" options={options} value={0} isDisabled />
+      )
+    })
+
+    const select = container.querySelector('select') as HTMLSelectElement
+
+    // 修正前は同じ value の disabled option を先に挿入していたため、
+    // プレースホルダが選択された状態になっていた
+    expect(select.selectedOptions[0].textContent).toBe('ゼロ')
+  })
+
+  it('必須エラーで aria-invalid を付ける', () => {
+    act(() => {
+      root.render(<SelectBox name="number" options={options} isRequired />)
+    })
+
+    const select = container.querySelector('select') as HTMLSelectElement
+    expect(select.getAttribute('aria-invalid')).toBe(null)
+
+    act(() =>
+      select.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+    )
+    expect(select.getAttribute('aria-invalid')).toBe('true')
+  })
+})
+
+describe('SearchableSelectBox の選択肢', () => {
+  const options = [
+    { label: 'りんご', value: 'apple', isDisabled: true },
+    { label: 'みかん', value: 'orange' },
+  ]
+
+  it('isDisabled の選択肢は候補に出さない', () => {
+    act(() => {
+      root.render(
+        <SearchableSelectBox name="fruit" options={options} value="" />
+      )
+    })
+
+    const input = container.querySelector(
+      'input[name="fruit"]'
+    ) as HTMLInputElement
+    act(() => setInputValue(input, 'ん'))
+
+    expect(
+      [...container.querySelectorAll('[role="option"]')].map(
+        (node) => node.textContent
+      )
+    ).toEqual(['みかん'])
+  })
+
+  it('確定後の入力欄には value ではなくラベルを出す', () => {
+    const onChange = vi.fn()
+
+    act(() => {
+      root.render(
+        <SearchableSelectBox
+          name="fruit"
+          options={options}
+          value=""
+          onChange={onChange}
+        />
+      )
+    })
+
+    const input = container.querySelector(
+      'input[name="fruit"]'
+    ) as HTMLInputElement
+    act(() => setInputValue(input, 'みか'))
+    act(() => {
+      container
+        .querySelector('[role="option"]')!
+        .dispatchEvent(
+          new MouseEvent('pointerdown', { bubbles: true, cancelable: true })
+        )
+    })
+
+    expect(onChange).toHaveBeenLastCalledWith('orange')
+    expect(input.value).toBe('みかん')
+  })
+})
+
+describe('マークアップの細部', () => {
+  it('ErrorMessage は同じ文言を複数受け取っても両方描画する', () => {
+    act(() => {
+      root.render(<ErrorMessage errorMessages={['必須です', '必須です']} />)
+    })
+
+    expect(container.querySelectorAll('[role="alert"] span')).toHaveLength(2)
+  })
+
+  it('SlideDownUi のトリガーは button の中に div を持たない', () => {
+    act(() => {
+      root.render(<SlideDownUi trigger={<span>開く</span>}>本文</SlideDownUi>)
+    })
+
+    expect(container.querySelector('button div')).toBe(null)
+  })
+
+  it('DateRangePicker は非正規化の値でも範囲を誤判定しない', () => {
+    act(() => {
+      root.render(
+        <DateRangePicker
+          name="period"
+          value={{ start: '2024-1-5', end: '2024-01-06' }}
+        />
+      )
+    })
+
+    // 文字列比較のままだと '2024-1-5' > '2024-01-06' が真になっていた
+    expect(container.textContent).not.toContain(
+      '終了日より後の日付は選べません'
+    )
   })
 })

@@ -301,6 +301,21 @@ const articles = ref<any[]>([])
 
 定義例はデモの `demo/styles/base.scss` を参照。
 
+## 0.10.0 の変更
+
+- `DatePicker` の年月日欄は**入力中にエラー文言を出さない**。判定は入力のたびに
+  更新し、文言は欄を離れた時点（blur）で出す。あわせて 1 桁の月・日は blur で
+  2 桁へ正規化する（「1」→「01」）。年に「2」と打った瞬間に
+  `role="alert"` で「年は4桁の数字で入力してください」が読み上げられていたのが直る
+- `DatePicker` の年月日欄が不正なとき、`update:modelValue` が空文字になる
+  （これまでは valid のときだけ更新していたため、画面と送信値が食い違っていた）
+- `SelectBox` が `isDisabled` かつ値が `0` / `'NA'` のときにプレースホルダを
+  出す分岐を削除した。0 は正当な選択値として扱う
+- `SelectBox` がエラー時に `InputBox` へ `isErrored` を渡し、`aria-invalid` を付ける
+- `TextArea` の `autoAdjustHeight` が `box-sizing` を見て高さを補正する
+  （border-box のリセット CSS を当てた環境で 2rem 足りなかった）
+- `DateRangePicker` は範囲の比較前に日付を正規化する
+
 ## 0.9.0 の変更
 
 - `ModalBox` を重ねたとき、Escape で閉じるのは**最前面の 1 枚だけ**になった

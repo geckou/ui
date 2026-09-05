@@ -23,6 +23,24 @@ type Props = {
   autoAdjustHeight?: boolean
 }
 
+/**
+ * autoAdjustHeight のための高さ。
+ *
+ * scrollHeight は padding を含み border を含まない。box-sizing によって
+ * height が指す範囲が違うので、固定値（以前は padding 決め打ちの 2rem）ではなく
+ * 実際の計算値から補正する。border-box のリセット CSS を当てた環境で
+ * 2rem 足りず、末尾がスクロールになっていた
+ */
+function contentHeight(textarea: HTMLTextAreaElement): number {
+  const style = getComputedStyle(textarea)
+  const sum = (...values: string[]) =>
+    values.reduce((total, value) => total + (parseFloat(value) || 0), 0)
+
+  return style.boxSizing === 'border-box'
+    ? textarea.scrollHeight + sum(style.borderTopWidth, style.borderBottomWidth)
+    : textarea.scrollHeight - sum(style.paddingTop, style.paddingBottom)
+}
+
 export function TextArea({
   name,
   value,
@@ -52,8 +70,9 @@ export function TextArea({
 
   useEffect(() => {
     if (autoAdjustHeight && textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = `calc(${textareaRef.current.scrollHeight}px - 2rem)`
+      const textarea = textareaRef.current
+      textarea.style.height = 'auto'
+      textarea.style.height = `${contentHeight(textarea)}px`
     }
 
     if (!hasChanged.current) {

@@ -17,6 +17,7 @@ type Props = {
   cssStyle?: InputBoxStyleForEachStatus
   /** combobox のアクセシブル名。可視ラベルがあるならそちらを ariaLabelledBy で指すこと */
   ariaLabel?: string
+  ariaLabelledBy?: string
 }
 
 export function SearchableSelectBox({
@@ -30,8 +31,16 @@ export function SearchableSelectBox({
   searchTarget = 'label',
   cssStyle,
   ariaLabel,
+  ariaLabelledBy,
 }: Props) {
-  const [searchWord, setSearchWord] = useState(value)
+  /**
+   * 入力欄に出す文字列。value が選択肢の value と一致するならラベルを引き当てる。
+   * 一致しなければ入力中の語なのでそのまま出す（確定後に ID が出てしまう問題）
+   */
+  const toDisplayValue = (raw: string) =>
+    options.find((option) => String(option.value) === raw)?.label ?? raw
+
+  const [searchWord, setSearchWord] = useState(() => toDisplayValue(value))
   const [isOpened, setIsOpened] = useState(false)
   // ↑↓ で移動している候補。-1 は「どれも指していない」
   const [activeIndex, setActiveIndex] = useState(-1)
@@ -47,7 +56,8 @@ export function SearchableSelectBox({
       return
     }
     lastValueProp.current = value
-    setSearchWord(value)
+    setSearchWord(toDisplayValue(value))
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 外部からの値変更時のみ同期する
   }, [value])
 
   useEffect(() => {
@@ -62,13 +72,16 @@ export function SearchableSelectBox({
     return () => document.removeEventListener('pointerdown', handleClickOutside)
   }, [])
 
+  // isDisabled の選択肢は候補に出さない。出したまま選べてしまっていた
+  const selectableOptions = options.filter((option) => !option.isDisabled)
+
   const filteredOptions = searchWord
-    ? options.filter((option) =>
+    ? selectableOptions.filter((option) =>
         String(option[searchTarget])
           .toLowerCase()
           .includes(searchWord.toLowerCase())
       )
-    : options
+    : selectableOptions
 
   const handleInputChange = (newValue: string | number) => {
     const word = String(newValue)
@@ -83,8 +96,13 @@ export function SearchableSelectBox({
   }
 
   const selectOption = (option: Option) => {
+    if (option.isDisabled) {
+      return
+    }
+
     const newValue = option.value.toString()
-    setSearchWord(newValue)
+    // 入力欄には可視ラベルを出し、通知は value で行う
+    setSearchWord(option.label)
     setIsOpened(false)
     setActiveIndex(-1)
     onChange?.(newValue)
@@ -160,6 +178,7 @@ export function SearchableSelectBox({
         cssStyle={cssStyle}
         role="combobox"
         ariaLabel={ariaLabel}
+        ariaLabelledBy={ariaLabelledBy}
         ariaAutocomplete="list"
         ariaExpanded={isListShown}
         ariaControls={listboxId}
