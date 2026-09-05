@@ -173,3 +173,17 @@ describe('handleTabKey', () => {
     expect(handleTabKey(null, event, null)).toBe(false)
   })
 })
+
+// 回帰: ダイアログ末尾がリッチエディタ（contenteditable）や埋め込みだと、
+// セレクタに入っておらずその手前で先頭へ折り返して到達できなかった
+describe('FOCUSABLE_SELECTOR', () => {
+  it.each([
+    '[contenteditable]:not([contenteditable="false"])',
+    'audio[controls]',
+    'video[controls]',
+    'summary',
+    'iframe',
+  ])('%s を含む', (selector) => {
+    expect(FOCUSABLE_SELECTOR.split(', ')).toContain(selector)
+  })
+})

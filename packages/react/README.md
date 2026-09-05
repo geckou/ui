@@ -108,6 +108,28 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
+## 0.7.0 の変更
+
+- `CheckBox` / `LabeledCheckbox` に `value` を追加。`CheckBoxes` は各選択肢の
+  `value` を送信用の hidden へ渡すようになった。これまでは全て `value="on"` で、
+  ネイティブ送信（Server Actions / `<form action>`）でどれが選ばれたか区別できなかった
+- `DatePicker` の年月日欄は**入力中にエラー文言を出さない**。判定は入力のたびに
+  更新し、文言は欄を離れた時点（blur）で出す。あわせて 1 桁の月・日は blur で
+  2 桁へ正規化する（「1」→「01」）
+- `DatePicker` の年月日欄が不正なとき、送信値と `onChange` が空文字になる
+  （これまでは valid のときだけ更新していたため、画面と送信値が食い違っていた）
+- `SelectBox` が `isDisabled` かつ値が `0` / `'NA'` のときにプレースホルダを
+  出す分岐を削除した。0 は正当な選択値として扱う
+- `SelectBox` がエラー時に `InputBox` へ `isErrored` を渡し、`aria-invalid` を付ける
+- `SearchableSelectBox` は `isDisabled` の選択肢を候補に出さず、確定後の入力欄には
+  `value` ではなく**ラベル**を表示する（通知は従来どおり `value`）。
+  `ariaLabelledBy` を追加（`TextBox` にも追加）
+- `TextArea` の `autoAdjustHeight` が `box-sizing` を見て高さを補正する
+  （border-box のリセット CSS を当てた環境で 2rem 足りなかった）
+- `DateRangePicker` は範囲の比較前に日付を正規化する
+- `ErrorMessage` は同じ文言を複数受け取っても重複キーの警告を出さない
+- `SlideDownUi` のトリガーが `<button>` の中に `<div>` を置かなくなった
+
 ## 0.6.0 の変更
 
 - `ModalBox` を重ねたとき、Escape で閉じるのは**最前面の 1 枚だけ**になった

@@ -36,6 +36,7 @@ import {
   formatDateValue,
   splitDate,
   composeDateValue,
+  normalizeDateObject,
   validateDateObject,
   daysInMonth,
 } from '@geckou/ui-core'
@@ -46,6 +47,7 @@ import {
 | `formatDateValue(value, type?)` | `YYYY-MM-DD`（`type='month'` なら `YYYY-MM`）へ正規化。**`toISOString()` を使わないためタイムゾーンで日付がずれない**。不正な文字列は空文字を返す |
 | `splitDate(value)` | `YYYY-MM-DD` を `{ year, month, day }` へ分解 |
 | `composeDateValue(dateObject, type?)` | 年月日から日付文字列を組み立てる。要素が欠けていれば空文字 |
+| `normalizeDateObject(dateObject)` | 月・日を 2 桁へゼロ埋めする（`'1'` → `'01'`）。入力途中の値を検証する前に通す |
 | `validateDateObject(dateObject, { type, isRequired })` | 桁数・月の範囲・その月に存在する日かを検証し `{ isValid, message }` を返す |
 | `daysInMonth(year, month)` | 指定した年月の日数（`month` は 1 始まり。うるう年を考慮） |
 
@@ -124,7 +126,7 @@ const onKeyDown = (event: KeyboardEvent) => {
 |---|---|
 | `handleTabKey(container, event, activeElement?)` | Tab / Shift+Tab を端で折り返す。フォーカスを移して既定動作を止めたら `true` を返す。Tab 以外と `container` が無い場合は何もしない |
 | `getFocusableElements(container)` | コンテナ内のフォーカス可能な要素を DOM 順（= Tab 順）で返す。`inert` が付いたものは除く |
-| `FOCUSABLE_SELECTOR` | 上記で使うセレクタ（`tabindex="-1"` と `disabled` を除く） |
+| `FOCUSABLE_SELECTOR` | 上記で使うセレクタ（`tabindex="-1"` と `disabled` を除く。`contenteditable` / `audio[controls]` / `video[controls]` / `summary` / `iframe` を含む） |
 
 `ModalBox`（Vue / React）はこれを使っています。
 
@@ -168,6 +170,13 @@ import type { Validates, Option, StateVariation, DateObject } from '@geckou/ui-c
 `MESSAGES` はエラー文言の単一の入口です。Vue / React で文言がずれないよう、必ずここを参照します。
 
 型の一覧は [Vue パッケージの README](../vue/README.md#types) を参照してください。
+
+## 0.7.0 の変更
+
+- `normalizeDateObject()` を追加（`DatePicker` が blur 時の正規化に使う）
+- `FOCUSABLE_SELECTOR` に `[contenteditable]` / `audio[controls]` / `video[controls]` /
+  `summary` / `iframe` を追加。ダイアログ末尾がリッチエディタや埋め込みのときに
+  その手前で折り返していたのが直る
 
 ## 0.6.0 の変更
 

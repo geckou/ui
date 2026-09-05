@@ -7,6 +7,12 @@ import { COLOR } from '../constants'
 
 type Props = {
   name: string
+  /**
+   * ネイティブ送信時の値。既定は 'on'（<input type="checkbox"> と同じ）。
+   * 同じ name を共有する複数のチェックボックスでは、これを指定しないと
+   * FormData からどれが選ばれたか区別できない
+   */
+  value?: string | number
   checked?: boolean
   onChange?: (newValue: boolean) => void
   isDisabled?: boolean
@@ -23,6 +29,7 @@ type Props = {
 
 export function CheckBox({
   name,
+  value,
   checked,
   onChange,
   isDisabled,
@@ -91,7 +98,12 @@ export function CheckBox({
         （未チェックなら送られない、というネイティブの挙動はそのまま）
       */}
       {isChecked && (
-        <input type="hidden" name={name} value="on" disabled={isDisabled} />
+        <input
+          type="hidden"
+          name={name}
+          value={value ?? 'on'}
+          disabled={isDisabled}
+        />
       )}
     </>
   )
