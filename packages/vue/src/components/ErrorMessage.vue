@@ -3,6 +3,8 @@ import { COLOR } from '@/const'
 const { red: cautionColor } = COLOR
 
 defineProps<{
+  /** aria-describedby から参照させたいときに渡す */
+  id?: string
   cssStyle?: {
     textColor: string | undefined
     backgroundColor: string | undefined
@@ -14,6 +16,7 @@ defineProps<{
 <template>
   <div
     v-show="errorMessages && errorMessages.length"
+    :id="id"
     role="alert"
     :class="$style.error_messages"
     :style="{
@@ -21,7 +24,8 @@ defineProps<{
       '--error-background-color': cssStyle?.backgroundColor || cautionColor,
     }"
   >
-    <span v-for="message in errorMessages" :key="message">
+    <!-- 同じ文言の validates を複数渡せるので、キーは位置で振る -->
+    <span v-for="(message, index) in errorMessages" :key="index">
       {{ message }}
     </span>
   </div>

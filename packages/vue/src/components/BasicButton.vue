@@ -33,7 +33,27 @@ const currentCssStyle = computed(() => {
   }
 })
 
-const hoverStyle = props.cssStyle?.hover || {}
+// props の差し替えに追従させる（setup 時に一度読むだけだと hover 色が古いまま残る）
+const hoverStyle = computed(() => props.cssStyle?.hover || {})
+
+// 半透明のホバー色。以前は `${color}cc` と文字列連結していたため、
+// 3 桁 hex（'#fff' → '#fffcc'）・rgb() ・名前色・var() では不正値になっていた
+const translucent = (color?: string) =>
+  color && `color-mix(in srgb, ${color} 80%, transparent)`
+
+// ローディング中は disabled にしない。押した瞬間にフォーカスが body へ落ちるため
+// （WAI-ARIA APG が避けるべきとしているパターン）。押せないことは
+// aria-disabled と pointer-events で表し、キーボードの Enter はここで止める
+const handleClick = (event: MouseEvent): void => {
+  if (!props.isLoading) {
+    return
+  }
+
+  // type="submit" のときに送信させない。親のリスナーも同じ要素に付くため
+  // stopImmediatePropagation で止める
+  event.preventDefault()
+  event.stopImmediatePropagation()
+}
 </script>
 
 <template>
@@ -50,8 +70,7 @@ const hoverStyle = props.cssStyle?.hover || {}
       '--hover-text-color': hoverStyle?.textColor || currentCssStyle?.textColor,
       '--hover-background-color':
         hoverStyle?.backgroundColor ||
-        (currentCssStyle?.backgroundColor &&
-          `${currentCssStyle?.backgroundColor}cc`),
+        translucent(currentCssStyle?.backgroundColor),
       '--hover-background-image':
         hoverStyle?.backgroundImage || currentCssStyle?.backgroundImage,
       '--hover-border-color':
@@ -64,9 +83,16 @@ const hoverStyle = props.cssStyle?.hover || {}
       '--duration': `${duration || 0.3}s`,
     }"
     :type="buttonType || 'button'"
-    :disabled="isDisabled || isLoading"
+    :disabled="isDisabled"
+    :aria-disabled="isDisabled || isLoading || undefined"
+    :aria-busy="isLoading || undefined"
+    @click="handleClick"
   >
-    <div v-show="isLoading" :class="$style.loading_animation">
+    <div
+      v-show="isLoading"
+      :class="$style.loading_animation"
+      aria-hidden="true"
+    >
       <slot v-if="$slots.loading" name="loading" />
       <LoadingSpinner v-else />
     </div>
@@ -120,8 +146,10 @@ const hoverStyle = props.cssStyle?.hover || {}
   }
 
   &.loading {
+    // visibility: hidden はアクセシビリティツリーから外れるため、
+    // ローディング中のボタンが「名前の無いボタン」になっていた。見た目だけ消す
     > *:not(:is(.loading_animation)) {
-      visibility: hidden;
+      opacity: 0;
     }
   }
 }

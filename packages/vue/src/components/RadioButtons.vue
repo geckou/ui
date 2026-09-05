@@ -21,15 +21,27 @@ const props = withDefaults(
     isRequired?: boolean
     cssStyle?: RadioButtonStyleForEachStatus
     isDisableAnimation?: boolean
+    /**
+     * ラジオグループ自体のアクセシブル名。
+     * 可視ラベル（見出し等）があるなら ariaLabelledBy でその要素を指すこと
+     */
+    ariaLabel?: string
+    ariaLabelledBy?: string
   }>(),
   {
     name: undefined,
     cssStyle: undefined,
+    ariaLabel: undefined,
+    ariaLabelledBy: undefined,
   }
 )
 
 // name を省略したときの一意な既定値
 const groupName = props.name ?? nextUniqueId('radio_group')
+
+// グループ名とエラーを結び付ける。fieldset / legend も role="radiogroup" も
+// 無かったため、支援技術には「何のラジオか」が伝わっていなかった
+const errorId = nextUniqueId('radio_group_error')
 
 const errorMessages = ref<Array<string>>([])
 
@@ -73,12 +85,20 @@ watch(
 </script>
 
 <template>
-  <div :class="$style.radios">
+  <div
+    :class="$style.radios"
+    role="radiogroup"
+    :aria-label="ariaLabelledBy ? undefined : ariaLabel"
+    :aria-labelledby="ariaLabelledBy"
+    :aria-required="isRequired || undefined"
+    :aria-describedby="errorMessages.length ? errorId : undefined"
+  >
     <label
       v-for="option in options"
       :key="option.value"
       :class="$style.radio"
       :style="{
+        '--text-color': currentCssStyle?.textColor,
         '--border-color': currentCssStyle?.border?.color,
         '--border-size': currentCssStyle?.border?.size,
         '--background-color': currentCssStyle?.backgroundColor,
@@ -98,7 +118,7 @@ watch(
         {{ option.label }}
       </span>
     </label>
-    <ErrorMessage :errorMessages="errorMessages" />
+    <ErrorMessage :id="errorId" :errorMessages="errorMessages" />
   </div>
 </template>
 

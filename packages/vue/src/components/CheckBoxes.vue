@@ -5,6 +5,7 @@ import { MESSAGES } from '@geckou/ui-core'
 import LabeledCheckbox from '@/components/LabeledCheckbox.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import { COLOR } from '@/const'
+import { nextUniqueId } from '@/scripts/unique-id'
 
 const emit = defineEmits<{
   (e: 'update:modelValue', newValue: SelectValue[]): void
@@ -18,12 +19,24 @@ const props = withDefaults(
     isDisabled?: boolean
     isRequired?: boolean
     cssStyle?: CheckBoxStyleForEachStatus
+    /**
+     * チェックボックス群自体のアクセシブル名。
+     * 可視ラベル（見出し等）があるなら ariaLabelledBy でその要素を指すこと
+     */
+    ariaLabel?: string
+    ariaLabelledBy?: string
   }>(),
   {
     modelValue: undefined,
     cssStyle: undefined,
+    ariaLabel: undefined,
+    ariaLabelledBy: undefined,
   }
 )
+
+// グループ名とエラーを結び付ける（role="group" が無く、支援技術には
+// 「何のチェックボックス群か」が伝わっていなかった）
+const errorId = nextUniqueId('check_boxes_error')
 
 const checkBoxes = ref(
   props.options.map((option) => ({
@@ -110,7 +123,8 @@ watch(
   { deep: true }
 )
 
-const errorColor = {
+// props の差し替えに追従させる（setup 時に一度読むだけだと古い色が残る）
+const errorColor = computed(() => ({
   ...(props.cssStyle?.error ?? {}),
   textColor: COLOR.white,
   backgroundColor: COLOR.red,
@@ -119,11 +133,17 @@ const errorColor = {
     size: '1px',
     radius: '.25rem',
   },
-}
+}))
 </script>
 
 <template>
-  <div :class="$style.check_boxes">
+  <div
+    :class="$style.check_boxes"
+    role="group"
+    :aria-label="ariaLabelledBy ? undefined : ariaLabel"
+    :aria-labelledby="ariaLabelledBy"
+    :aria-describedby="errorMessage ? errorId : undefined"
+  >
     <!-- key / name にラベルを使うとラベル重複で衝突する。
          name はグループ共通にし、区別は value で行う（ネイティブ送信の作法） -->
     <template v-for="(checkBox, index) in checkBoxes" :key="checkBox.value">
@@ -137,6 +157,7 @@ const errorColor = {
       />
     </template>
     <ErrorMessage
+      :id="errorId"
       :errorMessages="errorMessage ? [errorMessage] : []"
       :cssStyle="{
         textColor: errorColor.textColor,

@@ -43,6 +43,11 @@ export function BasicButton({
 
   const hoverStyle = cssStyle?.hover || {}
 
+  // 半透明のホバー色。以前は `${color}cc` と文字列連結していたため、
+  // 3 桁 hex（'#fff' → '#fffcc'）・rgb() ・名前色・var() では不正値になっていた
+  const translucent = (color?: string) =>
+    color && `color-mix(in srgb, ${color} 80%, transparent)`
+
   const style = {
     '--text-color': currentCssStyle.textColor,
     '--background-color': currentCssStyle.backgroundColor,
@@ -52,8 +57,7 @@ export function BasicButton({
     '--hover-text-color': hoverStyle.textColor || currentCssStyle.textColor,
     '--hover-background-color':
       hoverStyle.backgroundColor ||
-      (currentCssStyle.backgroundColor &&
-        `${currentCssStyle.backgroundColor}cc`),
+      translucent(currentCssStyle.backgroundColor),
     '--hover-background-image':
       hoverStyle.backgroundImage || currentCssStyle.backgroundImage,
     '--hover-radius-size':
@@ -65,17 +69,38 @@ export function BasicButton({
   return (
     <button
       type={buttonType}
-      disabled={isDisabled || isLoading}
-      onClick={onClick}
+      // ローディング中は disabled にしない。押した瞬間にフォーカスが body へ
+      // 落ちるため（WAI-ARIA APG が避けるべきとしているパターン）。
+      // 押せないことは aria-disabled と pointer-events で表す
+      disabled={isDisabled}
+      aria-disabled={isDisabled || isLoading || undefined}
+      aria-busy={isLoading || undefined}
+      onClick={(event) => {
+        if (isLoading) {
+          // type="submit" のときに送信させない
+          event.preventDefault()
+          return
+        }
+
+        onClick?.(event)
+      }}
       style={style}
-      className="relative inline-flex w-max cursor-pointer items-center justify-center rounded-(--radius-size) border-none bg-(--background-color) px-8 py-4 leading-none text-(--text-color) shadow-(--button-shadow) transition-all duration-(--duration) enabled:hover:rounded-(--hover-radius-size) enabled:hover:bg-(--hover-background-color) enabled:hover:text-(--hover-text-color) enabled:hover:shadow-(--hover-button-shadow) disabled:pointer-events-none disabled:before:pointer-events-auto disabled:before:absolute disabled:before:inset-0 disabled:before:cursor-not-allowed disabled:before:content-['']"
+      className="relative inline-flex w-max cursor-pointer items-center justify-center rounded-(--radius-size) border-none bg-(--background-color) px-8 py-4 leading-none text-(--text-color) shadow-(--button-shadow) transition-all duration-(--duration) enabled:hover:rounded-(--hover-radius-size) enabled:hover:bg-(--hover-background-color) enabled:hover:text-(--hover-text-color) enabled:hover:shadow-(--hover-button-shadow) disabled:pointer-events-none disabled:before:pointer-events-auto disabled:before:absolute disabled:before:inset-0 disabled:before:cursor-not-allowed disabled:before:content-[''] aria-disabled:pointer-events-none aria-disabled:before:pointer-events-auto aria-disabled:before:absolute aria-disabled:before:inset-0 aria-disabled:before:cursor-not-allowed aria-disabled:before:content-['']"
     >
       {isLoading && (
-        <span className="absolute inset-0 m-auto flex max-h-[calc(100%-1.5rem)] items-center justify-center fill-current text-current [&_*]:max-h-full [&_*]:fill-current">
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 m-auto flex max-h-[calc(100%-1.5rem)] items-center justify-center fill-current text-current [&_*]:max-h-full [&_*]:fill-current"
+        >
           {loading ?? <LoadingSpinner />}
         </span>
       )}
-      <span className={isLoading ? 'invisible' : undefined}>{children}</span>
+      {/*
+        invisible（visibility: hidden）はアクセシビリティツリーから外れるため、
+        ローディング中のボタンが「名前の無いボタン」になっていた。
+        見た目だけ消す opacity-0 にする
+      */}
+      <span className={isLoading ? 'opacity-0' : undefined}>{children}</span>
     </button>
   )
 }
