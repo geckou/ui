@@ -23,6 +23,7 @@ import {
   DropdownUi,
   useFormValidation,
 } from '../src'
+import type { DateRange } from '../src'
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean
@@ -1282,13 +1283,15 @@ describe('Vue 版との API 統一', () => {
   it('DateRangePicker: value が {start, end}、name は <name>Start / <name>End', () => {
     const onChange = vi.fn()
 
+    // 回帰(#70): DateRangePicker.tsx で export しているのに index.ts から
+    // 再エクスポートしておらず、利用側で value / onChange の型を書けなかった。
+    // tsconfig.test.json が tests も型検査するので、公開の入口（../src）から
+    // 取れないとここで落ちる
+    const value: DateRange = { start: '2024-01-01', end: '2024-01-31' }
+
     act(() => {
       root.render(
-        <DateRangePicker
-          name="period"
-          value={{ start: '2024-01-01', end: '2024-01-31' }}
-          onChange={onChange}
-        />
+        <DateRangePicker name="period" value={value} onChange={onChange} />
       )
     })
 
