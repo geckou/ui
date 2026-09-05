@@ -68,12 +68,14 @@ watch(
     :cssStyle="cssStyle"
     :class="$style.select_box"
     :isDisabled="isDisabled"
+    :isErrored="!!errorMessages.length"
   >
     <select
       v-model="selectedValue"
       :name="name"
       :disabled="isDisabled"
       :required="isRequired"
+      :aria-invalid="errorMessages.length > 0 || undefined"
       :class="$style.select"
       @blur="validateValue()"
     >
@@ -81,14 +83,6 @@ watch(
         {{ placeholder || '選択しない' }}
       </option>
       <option v-else disabled selected value="">
-        {{ placeholder || '選択してください' }}
-      </option>
-      <option
-        v-if="['0', 'NA'].includes(selectedValue.toString()) && isDisabled"
-        disabled
-        selected
-        :value="selectedValue"
-      >
         {{ placeholder || '選択してください' }}
       </option>
       <template

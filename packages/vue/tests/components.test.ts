@@ -959,9 +959,67 @@ describe('DatePicker', () => {
     await byLabel(wrapper, 'startedOnの年').setValue('2024')
     await byLabel(wrapper, 'startedOnの月').setValue('13')
     await byLabel(wrapper, 'startedOnの日').setValue('01')
+    await byLabel(wrapper, 'startedOnの日').trigger('blur')
 
     expect(wrapper.text()).toContain('月は01から12の間で入力してください')
     expect(manager.isAllValid.value).toBe(false)
+  })
+
+  // 回帰: 入力のたびに検証していたため、年に「2」と打った瞬間に
+  // 「年は4桁の数字で入力してください」が role="alert" で読み上げられていた
+  it('入力途中ではエラー文言を出さない（判定だけ更新する）', async () => {
+    const manager = new FormValidationManager()
+    const wrapper = mount(DatePicker, {
+      props: {
+        name: 'startedOn',
+        modelValue: '',
+        formValidationManager: manager,
+      },
+    })
+
+    await byLabel(wrapper, 'startedOnの年').setValue('2')
+
+    expect(wrapper.text()).not.toContain('年は4桁の数字で入力してください')
+    expect(manager.isAllValid.value).toBe(false)
+
+    await byLabel(wrapper, 'startedOnの年').trigger('blur')
+
+    expect(wrapper.text()).toContain('年は4桁の数字で入力してください')
+  })
+
+  it('1 桁の月・日は欄を離れた時点で 2 桁へ正規化する', async () => {
+    const wrapper = mount(DatePicker, {
+      props: { name: 'startedOn', modelValue: '' },
+    })
+
+    await byLabel(wrapper, 'startedOnの年').setValue('2024')
+    await byLabel(wrapper, 'startedOnの月').setValue('1')
+    await byLabel(wrapper, 'startedOnの日').setValue('5')
+    await byLabel(wrapper, 'startedOnの日').trigger('blur')
+
+    expect(wrapper.text()).not.toContain('月は2桁の数字で入力してください')
+    expect(
+      (byLabel(wrapper, 'startedOnの月').element as HTMLInputElement).value
+    ).toBe('01')
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual(['2024-01-05'])
+  })
+
+  // 回帰: 不正な値のときに送信値を更新していなかったため、
+  // 画面に「13 月」を表示したまま前の日付が親へ残っていた
+  it('年月日欄が不正になったら送信値を空にする', async () => {
+    const wrapper = mount(DatePicker, {
+      props: { name: 'startedOn', modelValue: '2024-05-10' },
+    })
+
+    await byLabel(wrapper, 'startedOnの月').setValue('13')
+
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([''])
+    expect(
+      (
+        wrapper.find('input[aria-label="startedOnのカレンダー"]')
+          .element as HTMLInputElement
+      ).value
+    ).toBe('')
   })
 
   it('正しい値に直すと有効に戻る', async () => {
@@ -977,6 +1035,7 @@ describe('DatePicker', () => {
     await byLabel(wrapper, 'startedOnの年').setValue('2024')
     await byLabel(wrapper, 'startedOnの月').setValue('13')
     await byLabel(wrapper, 'startedOnの日').setValue('01')
+    await byLabel(wrapper, 'startedOnの日').trigger('blur')
     expect(manager.isAllValid.value).toBe(false)
 
     await byLabel(wrapper, 'startedOnの月').setValue('12')

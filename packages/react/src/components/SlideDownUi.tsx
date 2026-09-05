@@ -108,7 +108,8 @@ export function SlideDownUi({
           toggleBox()
         }}
       >
-        <div className="w-full text-left">{trigger}</div>
+        {/* button の content model は phrasing content のみ。div は置けない */}
+        <span className="block w-full text-left">{trigger}</span>
         {!isHiddenArrow && (
           <KeyboardArrowDownIcon
             className={`size-[var(--icon-medium,1.125rem)] flex-none text-(--link-color) transition-all duration-100 ${isOpenedContents ? 'rotate-180' : ''}`}

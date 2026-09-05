@@ -35,6 +35,8 @@ type Props = {
    */
   role?: string
   ariaLabel?: string
+  /** 可視ラベルがあるなら、その要素の id をここで指す（ariaLabel より優先） */
+  ariaLabelledBy?: string
   ariaExpanded?: boolean
   ariaControls?: string
   ariaActivedescendant?: string
@@ -59,6 +61,7 @@ export function TextBox({
   id,
   role,
   ariaLabel,
+  ariaLabelledBy,
   ariaExpanded,
   ariaControls,
   ariaActivedescendant,
@@ -107,7 +110,8 @@ export function TextBox({
         id={id}
         name={name}
         role={role}
-        aria-label={ariaLabel}
+        aria-label={ariaLabelledBy ? undefined : ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         aria-expanded={ariaExpanded}
         aria-controls={ariaControls}
         aria-activedescendant={ariaActivedescendant}
