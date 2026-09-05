@@ -301,6 +301,19 @@ const articles = ref<any[]>([])
 
 定義例はデモの `demo/styles/base.scss` を参照。
 
+## 0.12.0 の変更
+
+- `GenericArticleList` が `theme='grid'` を実装した（型には含まれるのに switch に無く、
+  黙って Standard になっていた）。`<ul>` の `list-style` もリセットする
+- `CategoryList` / `MetadataList` が引き当てに失敗した値（空文字）を描かない。
+  `categoryData` を渡し忘れると、ID の数だけ空の `<li>` が並んでいた
+- `MetadataList` の `icon.name` が prop の変更に追従する（setup 時の一度きりだった）
+- `News` / `Row` カードが `isPickUpItem` を宣言した（`ispickupitem` 属性として
+  `<a>` に落ちていた）
+- `News` カードの `AuthorInfo` へ渡す文字サイズを `text.fontSize` に直した
+  （`fontSize` は prop ではなく、小さくなっていなかった）
+- `DateSelector` の使われていないクリックハンドラ（`openDropdown`）を削除
+
 ## 0.9.0 の変更
 
 - `ModalBox` を重ねたとき、Escape で閉じるのは**最前面の 1 枚だけ**になった

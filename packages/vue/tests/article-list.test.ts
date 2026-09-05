@@ -3,6 +3,9 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import StandardCard from '@/components/ArticleList/Card/Standard.vue'
+import NewsCard from '@/components/ArticleList/Card/News.vue'
+import GenericArticleList from '@/components/ArticleList/GenericArticleList.vue'
+import MetadataList from '@/components/ArticleList/Parts/MetadataList.vue'
 import CardHeading from '@/components/ArticleList/Parts/CardHeading.vue'
 import CategoryList from '@/components/ArticleList/Parts/CategoryList.vue'
 import ThumbnailImage from '@/components/ArticleList/Parts/ThumbnailImage.vue'
@@ -210,5 +213,78 @@ describe('CategoryList', () => {
     })
 
     expect(wrapper.text()).toContain('デザイン')
+  })
+})
+
+// 全体レビューで見つかったバグのリグレッションテスト
+describe('MetadataList / CategoryList の空要素', () => {
+  it('引き当てられない categoryIds では空の li を描かない', () => {
+    const wrapper = mount(CategoryList, {
+      props: { categoryIds: [1, 2, 3], categoryData: [] },
+    })
+
+    // categoryData を渡し忘れると、ID の数だけ空の li が出ていた
+    expect(wrapper.findAll('li')).toHaveLength(0)
+    expect(wrapper.find('ul').exists()).toBe(false)
+  })
+
+  it('MetadataList は空文字を除外する', () => {
+    const wrapper = mount(MetadataList, {
+      props: { metadata: ['', 'デザイン', ''] },
+    })
+
+    expect(wrapper.findAll('li').map((li) => li.text())).toEqual(['デザイン'])
+  })
+
+  it('MetadataList のアイコンは icon.name の変更に追従する', async () => {
+    const wrapper = mount(MetadataList, {
+      props: { metadata: ['デザイン'], icon: { name: 'FolderIcon' } },
+    })
+
+    const first = wrapper.find('svg').html()
+
+    await wrapper.setProps({ icon: { name: 'TagIcon' } })
+
+    expect(wrapper.find('svg').html()).not.toBe(first)
+  })
+})
+
+describe('カードの属性と theme', () => {
+  const article = {
+    ...baseArticle,
+    title: { rendered: '記事タイトル' },
+  } as Article
+
+  it('News カードは isPickUpItem を DOM 属性として落とさない', () => {
+    const wrapper = mount(NewsCard, {
+      props: {
+        article,
+        path: '/article/1',
+        isPickUpItem: true,
+        postConfig,
+        categories: [],
+      },
+    })
+
+    expect(wrapper.find('a').attributes('ispickupitem')).toBeUndefined()
+  })
+
+  it("theme='grid' で Grid カードを描く", () => {
+    const wrapper = mount(GenericArticleList, {
+      props: {
+        articles: [article],
+        theme: 'grid' as const,
+        categories: [],
+        columnNumber: 4,
+        settings: {
+          domainToUse: '',
+          isEnabledPickUp: false,
+          postConfig,
+        },
+      },
+    })
+
+    // switch に grid が無く、黙って Standard になっていた
+    expect(wrapper.findComponent({ name: 'Grid' }).exists()).toBe(true)
   })
 })

@@ -10,9 +10,12 @@ import TagList from '@/components/ArticleList/Parts/TagList.vue'
 import PostedDate from '@/components/ArticleList/Parts/PostedDate.vue'
 import ExcerptText from '@/components/ArticleList/Parts/ExcerptText.vue'
 
+// isPickUpItem は GenericArticleList が全カードへ渡す。宣言しないと
+// ispickupitem 属性として <a> に落ちる
 defineProps<{
   article: Article
   path: string
+  isPickUpItem?: boolean
   postConfig: PostConfig
   categories: Category[]
 }>()
