@@ -169,6 +169,11 @@ import type { Validates, Option, StateVariation, DateObject } from '@geckou/ui-c
 
 型の一覧は [Vue パッケージの README](../vue/README.md#types) を参照してください。
 
+## 0.6.0 の変更
+
+- `modal-stack` を追加（`createModalLayer`）。重なったモーダルのうち最前面の 1 枚を
+  DOM の包含関係で決める。React / Vue の `ModalBox` が Escape / Tab の担当判定に使う
+
 ## 0.4.0 の変更
 
 - `focus-trap` を追加（`handleTabKey` / `getFocusableElements` / `FOCUSABLE_SELECTOR`）。

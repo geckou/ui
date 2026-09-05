@@ -301,6 +301,19 @@ const articles = ref<any[]>([])
 
 定義例はデモの `demo/styles/base.scss` を参照。
 
+## 0.9.0 の変更
+
+- `ModalBox` を重ねたとき、Escape で閉じるのは**最前面の 1 枚だけ**になった
+  （従来は内側と外側の `close` が両方 emit されていた）。あわせて自分が Escape を
+  処理したら `preventDefault()` する。外側で Escape を見ているアプリ側のハンドラが
+  一緒に反応しなくなるので、`defaultPrevented` を見ずに閉じている処理があれば追従が要る
+- `DatePicker` のカレンダー起動用入力にアクセシブル名（「◯◯のカレンダー」）が付き、
+  キーボードで到達したときアイコン側に可視フォーカスが出る
+- `PopupBox` が `role="status"`（ライブリージョン）になり、支援技術に通知が伝わる
+- `SlideDownUi` が `close` を公開（React の `SlideDownUiHandle` と揃えた）。
+  外側クリックと違い `isDisableClickOutside` は見ない
+- `PostedDate` の `<time>` に `datetime` が付く（無効な `date` のときは属性ごと出さない）
+
 ## 0.7.0 の変更
 
 - `DatePicker` / `DateSelector` が `ariaLabel` / `ariaLabelledBy` を受ける
