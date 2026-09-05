@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, watch } from 'vue'
-import { MESSAGES } from '@geckou/ui-core'
+import { formatDateValue, MESSAGES } from '@geckou/ui-core'
 import { FormValidationManager } from '@/scripts/form-validation-manager'
 import DatePicker from '@/components/DatePicker.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
@@ -41,10 +41,22 @@ const props = withDefaults(
 const startDate = computed(() => props.modelValue.start)
 const endDate = computed(() => props.modelValue.end)
 
+// 比較の前に正規化する（'2024-1-5' のような値をそのまま文字列比較すると
+// '2024-1-5' > '2024-01-06' が真になり、判定が狂う）
+const normalizedStart = computed(() =>
+  formatDateValue(startDate.value, props.type)
+)
+const normalizedEnd = computed(() => formatDateValue(endDate.value, props.type))
+
 // minDate / maxDate はネイティブの入力にしか効かないので、年月日欄から
 // 開始 > 終了 を入力しても弾かれない。ここで範囲そのものを検証する
 const isRangeValid = computed(
-  () => !(startDate.value && endDate.value && startDate.value > endDate.value)
+  () =>
+    !(
+      normalizedStart.value &&
+      normalizedEnd.value &&
+      normalizedStart.value > normalizedEnd.value
+    )
 )
 
 const rangeName = computed(() => `${props.name}Range`)
@@ -80,7 +92,7 @@ const updateEnd = (newValue: string | null) =>
       :isRequired="isRequired"
       :formValidationManager="formValidationManager"
       :minDate="minDate"
-      :maxDate="endDate || maxDate"
+      :maxDate="normalizedEnd || maxDate"
       :size="size"
       :type="type"
       @update:modelValue="updateStart"
@@ -92,7 +104,7 @@ const updateEnd = (newValue: string | null) =>
       :isDisabled="isDisabled"
       :isRequired="isRequired"
       :formValidationManager="formValidationManager"
-      :minDate="startDate || minDate"
+      :minDate="normalizedStart || minDate"
       :maxDate="maxDate"
       :size="size"
       :type="type"

@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import type { FormValidationStore } from '@geckou/ui-core'
-import { MESSAGES } from '@geckou/ui-core'
+import { formatDateValue, MESSAGES } from '@geckou/ui-core'
 import { DatePicker } from './DatePicker'
 import { ErrorMessage } from './ErrorMessage'
 import { useRegisterValidation } from '../hooks/useFormValidation'
@@ -47,8 +47,16 @@ export function DateRangePicker({
   type = 'date',
 }: Props) {
   // min / max はネイティブの入力にしか効かないので、年月日欄から
-  // 開始 > 終了 を入力しても弾かれない。ここで範囲そのものを検証する
-  const isRangeValid = !(value.start && value.end && value.start > value.end)
+  // 開始 > 終了 を入力しても弾かれない。ここで範囲そのものを検証する。
+  // 比較の前に正規化する（'2024-1-5' のような値をそのまま文字列比較すると
+  // '2024-1-5' > '2024-01-06' が真になり、判定が狂う）
+  const normalizedStart = formatDateValue(value.start, type)
+  const normalizedEnd = formatDateValue(value.end, type)
+  const isRangeValid = !(
+    normalizedStart &&
+    normalizedEnd &&
+    normalizedStart > normalizedEnd
+  )
 
   useRegisterValidation(formValidationStore, `${name}Range`, isRangeValid)
 
@@ -77,7 +85,7 @@ export function DateRangePicker({
           formValidationStore={formValidationStore}
           minDate={minDate}
           // 終了日より後は選べない
-          maxDate={value.end || maxDate}
+          maxDate={normalizedEnd || maxDate}
           size={size}
           type={type}
           onChange={handleStartChange}
@@ -92,7 +100,7 @@ export function DateRangePicker({
           isRequired={isRequired}
           formValidationStore={formValidationStore}
           // 開始日より前は選べない
-          minDate={value.start || minDate}
+          minDate={normalizedStart || minDate}
           maxDate={maxDate}
           size={size}
           type={type}

@@ -9,6 +9,8 @@ import { COLOR } from '../constants'
 type Props = {
   name: string
   label: string
+  /** ネイティブ送信時の値（→ CheckBox の value） */
+  value?: string | number
   checked?: boolean
   onChange?: (newValue: boolean) => void
   isDisabled?: boolean
@@ -19,6 +21,7 @@ type Props = {
 export function LabeledCheckbox({
   name,
   label,
+  value,
   checked,
   onChange,
   isDisabled,
@@ -48,6 +51,7 @@ export function LabeledCheckbox({
       <span className="pointer-events-none">
         <CheckBox
           name={name}
+          value={value}
           checked={isChecked}
           onChange={onChange}
           isDisabled={isDisabled}

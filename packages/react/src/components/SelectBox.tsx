@@ -91,12 +91,14 @@ export function SelectBox({
       cssStyle={cssStyle}
       className="inline-flex [&>select]:flex-auto [&>select]:cursor-pointer [&>select]:pe-8"
       isDisabled={isDisabled}
+      isErrored={!!errorMessages.length}
     >
       <select
         name={name}
         value={selectedValue}
         disabled={isDisabled}
         required={isRequired}
+        aria-invalid={errorMessages.length > 0 || undefined}
         onChange={(event) => handleChange(event.target.value)}
         onBlur={() => validateValue()}
       >
@@ -104,11 +106,6 @@ export function SelectBox({
           <option value="">{placeholder || '選択しない'}</option>
         ) : (
           <option disabled value="">
-            {placeholder || '選択してください'}
-          </option>
-        )}
-        {['0', 'NA'].includes(selectedValue.toString()) && isDisabled && (
-          <option disabled value={selectedValue}>
             {placeholder || '選択してください'}
           </option>
         )}

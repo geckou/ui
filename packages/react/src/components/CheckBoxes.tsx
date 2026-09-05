@@ -80,6 +80,7 @@ export function CheckBoxes({
         <LabeledCheckbox
           key={option.value}
           name={name}
+          value={option.value}
           label={option.label}
           checked={checkedValues.includes(option.value)}
           onChange={(checked) => toggleValue(option.value, checked)}
