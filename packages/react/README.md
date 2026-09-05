@@ -108,6 +108,21 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
+## 0.6.0 の変更
+
+- `ModalBox` を重ねたとき、Escape で閉じるのは**最前面の 1 枚だけ**になった
+  （従来は内側と外側の `onClose` が両方呼ばれていた）。あわせて自分が Escape を
+  処理したら `preventDefault()` する。外側で Escape を見ているアプリ側のハンドラが
+  一緒に反応しなくなるので、`defaultPrevented` を見ずに閉じている処理があれば追従が要る
+- `SearchableSelectBox` が候補 0 件のときは Escape を握らない（`preventDefault()` しない）。
+  `ModalBox` の中で「何にもマッチしない語を入れた状態だと Escape を 2 回押す必要がある」
+  のが直る
+- `DatePicker` のカレンダー起動用入力にアクセシブル名（「◯◯のカレンダー」）が付き、
+  キーボードで到達したときアイコン側に可視フォーカスが出る
+- `PopupBox` が `role="status"`（ライブリージョン）になり、支援技術に通知が伝わる
+- `DateRange` 型を公開の入口から export するようにした
+  （`import type { DateRange } from '@geckou/ui-react'`）
+
 ## 0.5.0 の変更
 
 - `DatePicker` / `DateSelector` が `ariaLabel` / `ariaLabelledBy` を受ける
