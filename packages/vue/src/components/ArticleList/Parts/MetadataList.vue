@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import FolderIcon from '@/components/Icon/Folder.vue'
 import TagIcon from '@/components/Icon/Tag.vue'
 
@@ -36,17 +37,23 @@ const props = withDefaults(
   }
 )
 
-const iconName = props.icon.name === 'FolderIcon' ? FolderIcon : TagIcon
+// props の差し替えに追従させる（setup 時に一度読むだけだとアイコンが変わらない）
+const iconComponent = computed(() =>
+  props.icon.name === 'FolderIcon' ? FolderIcon : TagIcon
+)
+
+// 引き当てに失敗した値（空文字）は描かない。空の <li> が並ぶだけになる
+const items = computed(() => props.metadata.filter((item) => item !== ''))
 </script>
 
 <template>
   <div
-    v-if="metadata.length"
+    v-if="items.length"
     :class="$style.metadata_list"
     :style="{ '--icon-color': icon.color }"
   >
     <component
-      :is="iconName"
+      :is="iconComponent"
       v-if="icon.name"
       :class="$style.icon"
       :style="{
@@ -59,8 +66,8 @@ const iconName = props.icon.name === 'FolderIcon' ? FolderIcon : TagIcon
     />
     <ul :class="$style.list">
       <li
-        v-for="item in metadata"
-        :key="item"
+        v-for="(item, index) in items"
+        :key="`${index}_${item}`"
         :class="[
           $style.list_item,
           $style[label.shape ?? 'square'],

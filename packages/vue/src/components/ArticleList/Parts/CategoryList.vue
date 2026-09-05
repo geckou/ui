@@ -31,10 +31,14 @@ const returnCatNameFromCatId = (
     ? (categories.find((category) => String(category.id) === String(categoryId))
         ?.name ?? '')
     : ''
+// 引き当てられなかった ID は落とす。空文字のまま渡すと、その数だけ空の <li> が
+// 描かれ（categoryData を渡し忘れると全記事で発生）、key も空文字で重複する
 const categories: ComputedRef<string[]> = computed(() =>
-  props.categoryIds.map((id: string | number) =>
-    returnCatNameFromCatId(props.categoryData, id)
-  )
+  props.categoryIds
+    .map((id: string | number) =>
+      returnCatNameFromCatId(props.categoryData, id)
+    )
+    .filter((name) => name !== '')
 )
 </script>
 
