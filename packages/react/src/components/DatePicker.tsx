@@ -7,6 +7,7 @@ import {
   MESSAGES,
   composeDateValue,
   formatDateValue,
+  normalizeDateObject,
   splitDate,
   validateDateObject,
 } from '@geckou/ui-core'
@@ -102,18 +103,38 @@ export function DatePicker({
     onChange?.(newValue)
   }
 
-  const handleObjectChange = (key: keyof DateObject, newValue: string) => {
-    const next = { ...dateObject, [key]: newValue }
-    setDateObject(next)
+  /**
+   * 年月日欄の内容を送信値へ反映する。
+   *
+   * 不正なら送信値を空にする。以前は valid のときだけ更新していたため、
+   * 「13 月」を表示したまま隠しの native input と親の値が前の日付のまま残り、
+   * フォームは古い日付を送っていた
+   */
+  const applyObject = (next: DateObject, showError: boolean) => {
     const { isValid, message } = validateObject(next)
-    setErrorMessage(message)
     setIsObjectValid(isValid)
+    // 入力途中（年に「2」まで打った状態）でエラーを出さない。文言は blur で出す
+    setErrorMessage(showError ? message : '')
 
-    if (isValid) {
-      const joined = composeDateValue(next, type)
+    const joined = isValid ? composeDateValue(next, type) : ''
+
+    if (joined !== dateValue) {
       setDateValue(joined)
       onChange?.(joined)
     }
+  }
+
+  const handleObjectChange = (key: keyof DateObject, newValue: string) => {
+    const next = { ...dateObject, [key]: newValue }
+    setDateObject(next)
+    applyObject(next, false)
+  }
+
+  // 欄を離れた時点で「1」→「01」に正規化してから検証する
+  const handleObjectBlur = () => {
+    const normalized = normalizeDateObject(dateObject)
+    setDateObject(normalized)
+    applyObject(normalized, true)
   }
 
   // 年月日欄の不正値（月 13 等）はエラー文言を出すだけで、登録する validity は
@@ -177,6 +198,7 @@ export function DatePicker({
         type="text"
         disabled={isDisabled}
         onChange={(event) => handleObjectChange('year', event.target.value)}
+        onBlur={handleObjectBlur}
         className={`w-[calc(var(--sp-medium,0.75rem)*2+5ch)]! ${textInputClass}`}
       />
       /
@@ -188,6 +210,7 @@ export function DatePicker({
         type="text"
         disabled={isDisabled}
         onChange={(event) => handleObjectChange('month', event.target.value)}
+        onBlur={handleObjectBlur}
         className={`w-[calc(var(--sp-medium,0.75rem)*2+3ch)]! ${textInputClass}`}
       />
       {type === 'date' && <span>/</span>}
@@ -200,6 +223,7 @@ export function DatePicker({
           type="text"
           disabled={isDisabled}
           onChange={(event) => handleObjectChange('day', event.target.value)}
+          onBlur={handleObjectBlur}
           className={`w-[calc(var(--sp-medium,0.75rem)*2+3ch)]! ${textInputClass}`}
         />
       )}

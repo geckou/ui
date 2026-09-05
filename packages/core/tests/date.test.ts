@@ -3,6 +3,7 @@ import {
   composeDateValue,
   daysInMonth,
   formatDateValue,
+  normalizeDateObject,
   splitDate,
   validateDateObject,
 } from '../src/date.js'
@@ -202,5 +203,28 @@ describe('validateDateObject', () => {
         { type: 'month' }
       )
     ).toEqual(valid)
+  })
+})
+
+describe('normalizeDateObject', () => {
+  it('1 桁の月・日を 2 桁へゼロ埋めする', () => {
+    expect(normalizeDateObject({ year: '2024', month: '1', day: '5' })).toEqual(
+      {
+        year: '2024',
+        month: '01',
+        day: '05',
+      }
+    )
+  })
+
+  it('空や数字でない値、2 桁の値はそのまま返す', () => {
+    expect(normalizeDateObject({ year: '24', month: '', day: 'a' })).toEqual({
+      year: '24',
+      month: '',
+      day: 'a',
+    })
+    expect(
+      normalizeDateObject({ year: '2024', month: '12', day: '31' })
+    ).toEqual({ year: '2024', month: '12', day: '31' })
   })
 })

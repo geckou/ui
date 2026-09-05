@@ -119,6 +119,23 @@ export function composeDateValue(
 }
 
 /**
+ * 月・日を 2 桁へゼロ埋めする（'1' → '01'）。年はそのまま。
+ *
+ * 入力途中の値をそのまま検証すると「月は2桁の数字で入力してください」になるため、
+ * 欄を離れた時点でこれを通してから検証する
+ */
+export function normalizeDateObject(dateObject: DateObject): DateObject {
+  const padPart = (value: string) =>
+    value.length === 1 && isNumeric(value) ? pad(Number(value)) : value
+
+  return {
+    year: dateObject.year,
+    month: padPart(dateObject.month),
+    day: padPart(dateObject.day),
+  }
+}
+
+/**
  * 年・月・日の入力内容を検証する。
  * type='month' のときは日を見ない。
  */

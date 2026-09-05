@@ -53,6 +53,24 @@ const validateValue = () => {
   })
 }
 
+/**
+ * autoAdjustHeight のための高さ。
+ *
+ * scrollHeight は padding を含み border を含まない。box-sizing によって
+ * height が指す範囲が違うので、固定値（以前は padding 決め打ちの 2rem）ではなく
+ * 実際の計算値から補正する。border-box のリセット CSS を当てた環境で
+ * 2rem 足りず、末尾がスクロールになっていた
+ */
+const contentHeight = (textarea: HTMLTextAreaElement): number => {
+  const style = getComputedStyle(textarea)
+  const sum = (...values: string[]) =>
+    values.reduce((total, value) => total + (parseFloat(value) || 0), 0)
+
+  return style.boxSizing === 'border-box'
+    ? textarea.scrollHeight + sum(style.borderTopWidth, style.borderBottomWidth)
+    : textarea.scrollHeight - sum(style.paddingTop, style.paddingBottom)
+}
+
 const adjustTextareaHeight = () => {
   if (!props.autoAdjustHeight) {
     return
@@ -61,7 +79,7 @@ const adjustTextareaHeight = () => {
   nextTick(() => {
     if (textareaRef.value) {
       textareaRef.value.style.height = 'auto'
-      textareaRef.value.style.height = `calc(${textareaRef.value.scrollHeight}px - 2rem)`
+      textareaRef.value.style.height = `${contentHeight(textareaRef.value)}px`
     }
   })
 }

@@ -5,6 +5,7 @@ import {
   MESSAGES,
   composeDateValue as composeDate,
   formatDateValue,
+  normalizeDateObject,
   splitDate,
   validateDateObject,
 } from '@geckou/ui-core'
@@ -104,29 +105,60 @@ const setDateObject = (value: string): void => {
 const composeDateValue = (): string =>
   composeDate({ ...dateObject }, props.type)
 
-watch(
-  () => dateValue.value,
-  (newValue) => {
-    setDateObject(newValue)
-    const { isValid, message } = validateInput(newValue)
-    errorMessage.value = message
-    emit('update:modelValue', newValue)
-    setValid(isValid)
-  }
-)
+/** カレンダー（native の date / month 入力）からの変更 */
+const handleDateValueInput = (event: Event): void => {
+  const newValue = (event.target as HTMLInputElement).value
+  dateValue.value = newValue
+  setDateObject(newValue)
 
-watch(
-  () => dateObject,
-  (newValue) => {
-    const { isValid, message } = validateObject(newValue)
-    errorMessage.value = message
-    setValid(isValid)
-    if (isValid) {
-      dateValue.value = composeDateValue()
-    }
-  },
-  { deep: true }
-)
+  const { isValid, message } = validateInput(newValue)
+  errorMessage.value = message
+  setValid(isValid)
+  emit('update:modelValue', newValue)
+}
+
+/**
+ * 年月日欄の内容を送信値へ反映する。
+ *
+ * 以前は dateObject の deep watch で検証していたため、年に「2」と打った瞬間に
+ * 「年は4桁の数字で入力してください」が role="alert" で読み上げられていた。
+ * 入力中は判定だけを更新し、文言は欄を離れた時点（showError）で出す。
+ *
+ * 不正なら送信値を空にする。valid のときだけ更新すると、不正な表示のまま
+ * 前の日付が親とネイティブ送信に残る
+ */
+const applyObject = (showError: boolean): void => {
+  const { isValid, message } = validateObject(dateObject)
+  setValid(isValid)
+  errorMessage.value = showError ? message : ''
+
+  const composed = isValid ? composeDateValue() : ''
+  if (composed === dateValue.value) {
+    return
+  }
+
+  // dateValue の変更を watch で受けると setDateObject が入力途中の年月日欄を
+  // 書き戻してしまうため、ここでは直接 emit する
+  dateValue.value = composed
+  emit('update:modelValue', composed)
+}
+
+const handleObjectInput = (
+  key: 'year' | 'month' | 'day',
+  event: Event
+): void => {
+  dateObject[key] = (event.target as HTMLInputElement).value
+  applyObject(false)
+}
+
+// 欄を離れた時点で「1」→「01」に正規化してから検証する
+const handleObjectBlur = (): void => {
+  const normalized = normalizeDateObject({ ...dateObject })
+  dateObject.year = normalized.year
+  dateObject.month = normalized.month
+  dateObject.day = normalized.day
+  applyObject(true)
+}
 
 const applyModelValue = (value: string): void => {
   if (!value) {
@@ -144,6 +176,13 @@ const applyModelValue = (value: string): void => {
 
   dateValue.value = formatted
   setDateObject(formatted)
+  errorMessage.value = ''
+  setValid(validateInput(formatted).isValid)
+
+  // 正規化した値は親へ返す（'2024-1-5' → '2024-01-05'）
+  if (formatted !== value) {
+    emit('update:modelValue', formatted)
+  }
 }
 
 watch(
@@ -172,7 +211,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       <CalendarIcon :class="$style.icon" />
       <input
         ref="datePicker"
-        v-model="dateValue"
+        :value="dateValue"
         :type="type"
         :name="name"
         :aria-label="fieldLabel('カレンダー')"
@@ -181,10 +220,11 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
         :min="minDate"
         :required="isRequired"
         :disabled="isDisabled"
+        @input="handleDateValueInput"
       />
     </div>
     <input
-      v-model="dateObject.year"
+      :value="dateObject.year"
       placeholder="年"
       :aria-label="fieldLabel('年')"
       :aria-labelledby="fieldLabelledBy('年')"
@@ -192,26 +232,32 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       type="text"
       :disabled="isDisabled"
       :class="$style.year"
+      @input="handleObjectInput('year', $event)"
+      @blur="handleObjectBlur"
     />/
     <input
-      v-model="dateObject.month"
+      :value="dateObject.month"
       placeholder="月"
       :aria-label="fieldLabel('月')"
       :aria-labelledby="fieldLabelledBy('月')"
       maxlength="2"
       type="text"
       :disabled="isDisabled"
+      @input="handleObjectInput('month', $event)"
+      @blur="handleObjectBlur"
     />
     <span v-if="type === 'date'">/</span>
     <input
       v-if="type === 'date'"
-      v-model="dateObject.day"
+      :value="dateObject.day"
       placeholder="日"
       :aria-label="fieldLabel('日')"
       :aria-labelledby="fieldLabelledBy('日')"
       maxlength="2"
       type="text"
       :disabled="isDisabled"
+      @input="handleObjectInput('day', $event)"
+      @blur="handleObjectBlur"
     />
     <span v-if="ariaLabelledBy" :class="$style.unit_labels">
       <span :id="`${unitLabelId}_カレンダー`">のカレンダー</span>
