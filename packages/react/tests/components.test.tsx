@@ -343,6 +343,28 @@ describe('SearchableSelectBox', () => {
     expect(container.querySelectorAll('[role="option"]')).toHaveLength(0)
     expect(input().getAttribute('aria-expanded')).toBe('false')
   })
+
+  // 回帰(#73): 判定が isOpened だったため、何にもマッチしない語を入れた状態
+  // （リストは出ていないが isOpened は true）でも Escape を握っていた。
+  // ModalBox の中では preventDefault だけが走り、閉じるのに 2 回押す必要があった
+  it('候補が 0 件のときは Escape を握らない', () => {
+    renderBox('')
+
+    act(() => setInputValue(input(), 'マッチしない語'))
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(0)
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      bubbles: true,
+      cancelable: true,
+    })
+
+    act(() => {
+      input().dispatchEvent(event)
+    })
+
+    expect(event.defaultPrevented).toBe(false)
+  })
 })
 
 describe('FileInput', () => {
