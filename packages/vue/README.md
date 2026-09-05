@@ -307,7 +307,7 @@ const articles = ref<any[]>([])
   黙って Standard になっていた）。`<ul>` の `list-style` もリセットする
 - `CategoryList` / `MetadataList` が引き当てに失敗した値（空文字）を描かない。
   `categoryData` を渡し忘れると、ID の数だけ空の `<li>` が並んでいた
-- `MetadataList` の `icon.name`、`CheckBoxes` の `errorColor` が prop の変更に追従する
+- `MetadataList` の `icon.name` が prop の変更に追従する（setup 時の一度きりだった）
 - `News` / `Row` カードが `isPickUpItem` を宣言した（`ispickupitem` 属性として
   `<a>` に落ちていた）
 - `News` カードの `AuthorInfo` へ渡す文字サイズを `text.fontSize` に直した
