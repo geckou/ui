@@ -20,6 +20,12 @@ type Props = {
   isRequired?: boolean
   cssStyle?: RadioButtonStyleForEachStatus
   isDisableAnimation?: boolean
+  /**
+   * ラジオグループ自体のアクセシブル名。
+   * 可視ラベル（見出し等）があるなら ariaLabelledBy でその要素を指すこと
+   */
+  ariaLabel?: string
+  ariaLabelledBy?: string
 }
 
 export function RadioButtons({
@@ -31,6 +37,8 @@ export function RadioButtons({
   isRequired,
   cssStyle,
   isDisableAnimation,
+  ariaLabel,
+  ariaLabelledBy,
 }: Props) {
   const selectedValue = value ?? ''
 
@@ -56,6 +64,9 @@ export function RadioButtons({
   // ラジオグループとして機能しなかった（フォーム送信・キーボード操作）
   const generatedName = useId()
   const groupName = name ?? generatedName
+  // グループ名とエラーを結び付ける。fieldset / legend も role="radiogroup" も
+  // 無かったため、支援技術には「何のラジオか」が伝わっていなかった
+  const errorId = useId()
   const baseStyle = isDisabled ? cssStyle?.disabled : cssStyle?.default
 
   const currentCssStyle = {
@@ -77,7 +88,14 @@ export function RadioButtons({
   } as CSSProperties
 
   return (
-    <div className="relative flex flex-wrap items-center gap-4">
+    <div
+      role="radiogroup"
+      aria-label={ariaLabelledBy ? undefined : ariaLabel}
+      aria-labelledby={ariaLabelledBy}
+      aria-required={isRequired || undefined}
+      aria-describedby={errorMessages ? errorId : undefined}
+      className="relative flex flex-wrap items-center gap-4"
+    >
       <style>
         {
           '@keyframes uiRadioPop{0%{scale:1}10%{scale:.8}50%{scale:1.2}100%{scale:1}}'
@@ -110,7 +128,7 @@ export function RadioButtons({
           </label>
         )
       })}
-      <ErrorMessage errorMessages={errorMessages} />
+      <ErrorMessage id={errorId} errorMessages={errorMessages} />
     </div>
   )
 }

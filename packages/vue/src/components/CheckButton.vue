@@ -14,9 +14,18 @@ const props = withDefaults(
     isDisabled?: boolean
     cssStyle?: CheckBoxStyleForEachStatus
     isDisableAnimation?: boolean
+    /**
+     * アクセシブル名。可視ラベルがあるなら ariaLabelledBy でその要素を指すこと。
+     * 文言を持たない label で包むだけだったため、
+     * スクリーンリーダーでは「チェックボックス」としか読まれなかった
+     */
+    ariaLabel?: string
+    ariaLabelledBy?: string
   }>(),
   {
     cssStyle: () => ({ default: {} }),
+    ariaLabel: undefined,
+    ariaLabelledBy: undefined,
   }
 )
 
@@ -58,6 +67,8 @@ watch(
       v-model="isChecked"
       type="checkbox"
       :name="name"
+      :aria-label="ariaLabelledBy ? undefined : (ariaLabel ?? name)"
+      :aria-labelledby="ariaLabelledBy"
       :disabled="isDisabled"
     />
     <div :class="$style.check_container">

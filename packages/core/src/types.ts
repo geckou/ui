@@ -41,6 +41,8 @@ export type CheckBoxStyleForEachStatus = StyleForEachStatus<CheckBoxStyle>
 export type RadioButtonStyle = {
   border?: Omit<BorderStyle, 'radius'>
   backgroundColor?: string
+  /** 選択中のラベルの色（--text-color） */
+  textColor?: string
 }
 
 export type RadioButtonStyleForEachStatus = StyleForEachStatus<RadioButtonStyle>

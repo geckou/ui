@@ -65,8 +65,29 @@ watch(
         : (document.activeElement as HTMLElement | null)
     await nextTick()
     dialog.value?.focus()
-  }
+  },
+  // マウント時点で isShown が true のときも実行する。immediate が無かったため、
+  // 最初から開いた状態で描画するとフォーカスが body に残っていた（React 版と乖離）
+  { immediate: true }
 )
+
+// 背景のクリック判定。click は mousedown / mouseup の共通祖先で発火するため、
+// ダイアログ内でテキスト選択を始めて背景で離すと閉じてしまう。
+// 押し始めも背景だったときだけ閉じる
+let pressedOnBackdrop = false
+
+const handleOverlayPointerDown = (event: PointerEvent): void => {
+  pressedOnBackdrop = event.target === event.currentTarget
+}
+
+const handleOverlayClick = (): void => {
+  const startedOnBackdrop = pressedOnBackdrop
+  pressedOnBackdrop = false
+
+  if (startedOnBackdrop) {
+    requestClose()
+  }
+}
 
 // inert は HTML の boolean 属性で、値に関係なく「存在すれば有効」。
 // Vue は false を inert="false" として出すため、そのまま渡すと
@@ -124,7 +145,8 @@ onBeforeUnmount(() => {
     :class="[$style.overlay, { [$style.display]: isShown }]"
     :aria-hidden="!isShown"
     :inert="isInert"
-    @click.self="requestClose"
+    @pointerdown="handleOverlayPointerDown"
+    @click.self="handleOverlayClick"
   >
     <div
       ref="dialog"

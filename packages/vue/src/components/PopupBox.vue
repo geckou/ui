@@ -45,8 +45,9 @@ defineExpose({
 <template>
   <teleport to="body">
     <!--
-      3 秒で消える通知。ライブリージョンにしないと支援技術に何も伝わらない
-      （要素は常時 DOM にあり内容だけ差し替わるので、role だけで読み上げ対象になる）
+      3 秒で消える通知。ライブリージョンにしないと支援技術に何も伝わらない。
+      role を持つ器は常設し、中身は表示している間だけ描く（opacity の切り替えでは
+      内容が変わらないので通知されず、非表示の間も文言が読めてしまう）
     -->
     <div
       role="status"
@@ -57,7 +58,7 @@ defineExpose({
         { [$style.show]: isShown },
       ]"
     >
-      <slot />
+      <slot v-if="isShown" />
     </div>
   </teleport>
 </template>

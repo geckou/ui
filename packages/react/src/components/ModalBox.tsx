@@ -78,19 +78,26 @@ export function ModalBox({
   // （戻さないとフォーカスが body に落ち、キーボード操作の位置を見失う）
   const lastFocused = useRef<HTMLElement | null>(null)
 
-  useEffect(() => {
-    if (isShown) {
-      // StrictMode（開発時）は effect を 2 回走らせる。素直に毎回取り直すと、
-      // 2 回目は 1 回目の dialogRef.focus() 後なので lastFocused がダイアログ自身になり、
-      // 閉じたとき inert なダイアログへ focus() して復帰しない。未設定のときだけ取る
-      lastFocused.current ??= document.activeElement as HTMLElement | null
-      dialogRef.current?.focus()
+  // 背景のクリック判定。押し始めが背景だったかを覚えておく（→ onPointerDown）
+  const pressedOnBackdrop = useRef(false)
 
+  useEffect(() => {
+    if (!isShown) {
       return
     }
 
-    lastFocused.current?.focus()
-    lastFocused.current = null
+    // StrictMode（開発時）は effect を 2 回走らせる。素直に毎回取り直すと、
+    // 2 回目は 1 回目の dialogRef.focus() 後なので lastFocused がダイアログ自身になり、
+    // 閉じたとき inert なダイアログへ focus() して復帰しない。未設定のときだけ取る
+    lastFocused.current ??= document.activeElement as HTMLElement | null
+    dialogRef.current?.focus()
+
+    // 復帰は cleanup で行う。isShown が false になったときだけ実行していたため、
+    // 開いたままアンマウントされる（ルーティング等）とフォーカスが body へ落ちていた
+    return () => {
+      lastFocused.current?.focus()
+      lastFocused.current = null
+    }
   }, [isShown])
 
   // Escape で閉じ、Tab / Shift+Tab はダイアログ内で循環させる
@@ -141,8 +148,17 @@ export function ModalBox({
       }`}
       aria-hidden={!isShown}
       inert={!isShown}
+      // click は mousedown / mouseup の共通祖先で発火する。ダイアログ内で
+      // テキスト選択を始めて背景で指を離すと、target === currentTarget が真になり
+      // 入力途中のフォームごと閉じていた。押し始めも背景だったときだけ閉じる
+      onPointerDown={(event) => {
+        pressedOnBackdrop.current = event.target === event.currentTarget
+      }}
       onClick={(event) => {
-        if (event.target === event.currentTarget) {
+        const startedOnBackdrop = pressedOnBackdrop.current
+        pressedOnBackdrop.current = false
+
+        if (startedOnBackdrop && event.target === event.currentTarget) {
           onClose()
         }
       }}

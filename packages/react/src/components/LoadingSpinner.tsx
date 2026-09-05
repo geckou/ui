@@ -1,6 +1,12 @@
 export function LoadingSpinner() {
   return (
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    // 装飾。読み上げ対象にしない（状態は呼び出し側の aria-busy で伝える）
+    <svg
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
       <g>
         <circle cx="12" cy="2.5" r="1.5" opacity=".14" />
         <circle cx="16.75" cy="3.77" r="1.5" opacity=".29" />
