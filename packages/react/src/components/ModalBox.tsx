@@ -2,7 +2,11 @@
 
 import type { ReactNode } from 'react'
 import { useEffect, useId, useRef } from 'react'
-import { createScrollLock, handleTabKey } from '@geckou/ui-core'
+import {
+  createModalLayer,
+  createScrollLock,
+  handleTabKey,
+} from '@geckou/ui-core'
 
 type Props = {
   isShown: boolean
@@ -58,6 +62,18 @@ export function ModalBox({
     return () => lock.release()
   }, [isShown])
 
+  // 重なっているモーダルのうち、キー入力を処理してよいのは最前面のものだけ。
+  // 判定は @geckou/ui-core に置いて Vue 版と共有している
+  const modalLayer = useRef(createModalLayer())
+
+  useEffect(() => {
+    const layer = modalLayer.current
+
+    layer.toggle(isShown, dialogRef.current)
+
+    return () => layer.release()
+  }, [isShown])
+
   // 開く前にフォーカスしていた要素。閉じたらここへ戻す
   // （戻さないとフォーカスが body に落ち、キーボード操作の位置を見失う）
   const lastFocused = useRef<HTMLElement | null>(null)
@@ -86,6 +102,12 @@ export function ModalBox({
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      // 重ねたモーダルで内側の Escape が外側まで閉じていた。ハンドラは全部
+      // document に付いていて実行順が当てにならないので、最前面かどうかで決める
+      if (!modalLayer.current.isTopmost()) {
+        return
+      }
+
       // 子（SearchableSelectBox の候補リスト等）がキー入力を処理した印。
       // 尊重しないと、候補を閉じる Escape でダイアログまで閉じてしまう
       // （Tab も同様にスキップする。現状 Tab を握る子はいない）
@@ -94,6 +116,9 @@ export function ModalBox({
       }
 
       if (event.key === 'Escape') {
+        // 自分が処理した印を残す。これが無いと、外側で Escape を見ている
+        // アプリ側のハンドラまで一緒に反応する
+        event.preventDefault()
         onClose()
 
         return

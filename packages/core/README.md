@@ -128,6 +128,36 @@ const onKeyDown = (event: KeyboardEvent) => {
 
 `ModalBox`（Vue / React）はこれを使っています。
 
+### モーダルの重なり順
+
+```ts
+import { createModalLayer } from '@geckou/ui-core'
+
+const layer = createModalLayer()
+layer.toggle(isOpen, dialogElement) // 表示状態と、判定に使う要素（要素は必須）
+layer.isTopmost() // キー入力を処理してよいのは true のときだけ
+layer.release() // アンマウント時
+```
+
+モーダルを重ねたとき、Escape や Tab を処理してよいのは最前面の 1 枚だけです。
+`ModalBox` はハンドラを `document` に bubble で登録するため、重なると全部が同じ
+イベントを受け取ります。実行順は DOM の深さではなく登録順で決まる（React は
+`onClose` の同一性が変わると再登録され、effect は子から先に走る）ので、
+順序には頼れません。
+
+判定の決め手は **DOM の包含関係**です。入れ子のモーダルは内側が外側の中に
+描画されるので、他のレイヤーを内包しているものは外側だと分かります。
+互いに内包しない（入れ子でない）モーダルが並んだときだけ、後から開いたものを
+最前面とします。
+
+| メソッド | 説明 |
+|---|---|
+| `toggle(shouldBeActive, element)` | 真偽で登録・解除する。`element` は最前面判定に使う要素（ダイアログ本体）。省略可にすると要素の無いレイヤーが積まれて包含判定が効かなくなるため必須（未取得なら明示的に `null`） |
+| `isTopmost()` | このレイヤーが最前面か。登録していなければ `false` |
+| `release()` | アンマウント時に呼ぶ。登録中なら解除する |
+
+`ModalBox`（Vue / React）はこれを使っています。
+
 ### 定数・型
 
 ```ts

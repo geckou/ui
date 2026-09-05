@@ -781,6 +781,60 @@ describe('キーボードアクセシビリティ', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
+  // 回帰: モーダルを重ねると両方のハンドラが同じ Escape を受け取り、
+  // 内側を閉じるつもりが外側まで閉じていた。ハンドラは両方 document に
+  // 付いていて実行順は登録順で決まるため、外側が先に開く実際の使い方で試す
+  it('ModalBox: 入れ子のとき Escape で閉じるのは内側だけ', () => {
+    const onCloseOuter = vi.fn()
+    const onCloseInner = vi.fn()
+
+    function NestedModals({ isInnerShown }: { isInnerShown: boolean }) {
+      return (
+        <ModalBox isShown onClose={onCloseOuter}>
+          <ModalBox isShown={isInnerShown} onClose={onCloseInner}>
+            <p>内側</p>
+          </ModalBox>
+        </ModalBox>
+      )
+    }
+
+    // 先に外側だけを開く（= 外側のハンドラが先に document へ登録される）
+    act(() => root.render(<NestedModals isInnerShown={false} />))
+    act(() => root.render(<NestedModals isInnerShown />))
+
+    act(() => {
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
+      )
+    })
+
+    expect(onCloseInner).toHaveBeenCalledTimes(1)
+    expect(onCloseOuter).not.toHaveBeenCalled()
+  })
+
+  // 自分が Escape を処理したら印を残す（外側で Escape を見ているアプリ側の
+  // ハンドラまで一緒に反応しないように）
+  it('ModalBox: Escape を処理したら preventDefault する', () => {
+    act(() => {
+      root.render(
+        <ModalBox isShown onClose={() => {}}>
+          <p>本文</p>
+        </ModalBox>
+      )
+    })
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      cancelable: true,
+    })
+
+    act(() => {
+      document.dispatchEvent(event)
+    })
+
+    expect(event.defaultPrevented).toBe(true)
+  })
+
   it('ModalBox: 非表示時は inert、閉じるボタンにアクセシブル名がある', () => {
     function renderModal(isShown: boolean) {
       act(() => {
