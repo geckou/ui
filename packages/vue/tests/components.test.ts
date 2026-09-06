@@ -426,29 +426,48 @@ describe('DropdownUi / SlideDownUi の a11y', () => {
       attachTo: document.body,
     })
 
-    const trigger = wrapper.find('button')
-    await trigger.trigger('click')
-    expect(wrapper.vm.isContentsOpened).toBe(true)
+    try {
+      const trigger = wrapper.find('button')
+      await trigger.trigger('click')
+      expect(wrapper.vm.isContentsOpened).toBe(true)
 
-    await wrapper.findAll('button')[1]!.trigger('keydown', { key: 'Escape' })
+      // ModalBox の中でダイアログまで閉じないよう preventDefault する。
+      // trigger() の合成イベントでは defaultPrevented を見られないので自前で投げる
+      const event = new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true,
+        cancelable: true,
+      })
+      wrapper.findAll('button')[1]!.element.dispatchEvent(event)
+      await nextTick()
 
-    expect(wrapper.vm.isContentsOpened).toBe(false)
-    expect(document.activeElement).toBe(trigger.element)
-
-    wrapper.unmount()
+      expect(wrapper.vm.isContentsOpened).toBe(false)
+      expect(document.activeElement).toBe(trigger.element)
+      expect(event.defaultPrevented).toBe(true)
+    } finally {
+      wrapper.unmount()
+    }
   })
 
-  it('DropdownUi: 閉じているときの Escape では何もしない', async () => {
+  it('DropdownUi: 閉じているときの Escape は握らない', async () => {
     const wrapper = mount(DropdownUi, {
       slots: { trigger: 'trigger', contents: 'contents' },
       attachTo: document.body,
     })
 
-    await wrapper.find('button').trigger('keydown', { key: 'Escape' })
+    try {
+      const event = new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true,
+        cancelable: true,
+      })
+      wrapper.find('button').element.dispatchEvent(event)
+      await nextTick()
 
-    expect(wrapper.vm.isContentsOpened).toBe(false)
-
-    wrapper.unmount()
+      expect(event.defaultPrevented).toBe(false)
+    } finally {
+      wrapper.unmount()
+    }
   })
 
   it('DropdownUi / SlideDownUi: トリガーが aria-controls でパネルを指す', () => {
@@ -477,6 +496,14 @@ describe('DropdownUi / SlideDownUi の a11y', () => {
     slideDown.unmount()
   })
 
+  it('DropdownUi: contents が無ければ aria-haspopup も付けない', () => {
+    const wrapper = mount(DropdownUi, { slots: { trigger: 'trigger' } })
+    const trigger = wrapper.find('button')
+
+    expect(trigger.attributes('aria-controls')).toBeUndefined()
+    expect(trigger.attributes('aria-haspopup')).toBeUndefined()
+  })
+
   // 回帰: 高さを onUpdated でしか測っていなかったため、スロットの中の
   // 子コンポーネントが自前の状態で伸縮すると高さがずれていた
   it('DropdownUi: 中身の伸縮を ResizeObserver で拾う', async () => {
@@ -497,24 +524,27 @@ describe('DropdownUi / SlideDownUi の a11y', () => {
       attachTo: document.body,
     })
 
-    expect(callbacks).toHaveLength(1)
+    // 途中で expect が落ちてもグローバルを戻す（後続テストへ影響させない）
+    try {
+      expect(callbacks).toHaveLength(1)
 
-    await wrapper.find('button').trigger('click')
+      await wrapper.find('button').trigger('click')
 
-    const panel = wrapper.find('[id$="_panel"]')
-    const inner = panel.element.firstElementChild as HTMLElement
+      const panel = wrapper.find('[id$="_panel"]')
+      const inner = panel.element.firstElementChild as HTMLElement
 
-    Object.defineProperty(inner, 'clientHeight', {
-      configurable: true,
-      value: 120,
-    })
-    callbacks[0]!()
-    await nextTick()
+      Object.defineProperty(inner, 'clientHeight', {
+        configurable: true,
+        value: 120,
+      })
+      callbacks[0]!()
+      await nextTick()
 
-    expect(panel.attributes('style')).toContain('120px')
-
-    wrapper.unmount()
-    globalThis.ResizeObserver = original
+      expect(panel.attributes('style')).toContain('120px')
+    } finally {
+      wrapper.unmount()
+      globalThis.ResizeObserver = original
+    }
   })
 })
 

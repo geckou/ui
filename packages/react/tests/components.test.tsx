@@ -1040,6 +1040,17 @@ describe('キーボードアクセシビリティ', () => {
     expect(triggers[1]!.hasAttribute('aria-haspopup')).toBe(false)
   })
 
+  it('DropdownUi: contents が無ければ aria-haspopup も付けない', () => {
+    act(() => {
+      root.render(<DropdownUi trigger={<span>メニュー</span>} />)
+    })
+
+    const trigger = container.querySelector('button')!
+
+    expect(trigger.hasAttribute('aria-controls')).toBe(false)
+    expect(trigger.hasAttribute('aria-haspopup')).toBe(false)
+  })
+
   it('FileInput: ファイル選択 input が sr-only、削除ボタンにアクセシブル名がある', () => {
     const file = new File(['data'], 'photo.png', { type: 'image/png' })
     act(() => {

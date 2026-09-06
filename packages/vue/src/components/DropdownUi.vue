@@ -87,7 +87,7 @@ defineExpose({ isContentsOpened, close: closeDropDown })
       :class="$style.button"
       :disabled="isDisabled"
       :aria-expanded="isContentsOpened"
-      aria-haspopup="true"
+      :aria-haspopup="$slots.contents ? 'true' : undefined"
       :aria-controls="$slots.contents ? panelId : undefined"
       type="button"
       :style="{

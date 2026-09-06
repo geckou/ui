@@ -122,7 +122,9 @@ export function DropdownUi({
         type="button"
         disabled={isDisabled}
         aria-expanded={isContentsOpened}
-        aria-haspopup="true"
+        // contents が無ければポップアップは開かない。aria-controls と
+        // 同じ条件にしないと「ポップアップを持つ」と誤って伝わる
+        aria-haspopup={contents ? true : undefined}
         aria-controls={contents ? panelId : undefined}
         style={{ ...style, cursor: isInactive ? 'auto' : 'pointer' }}
         className="flex size-full items-center gap-[var(--sp-small,0.375rem)] text-(--trigger-color)"
