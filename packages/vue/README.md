@@ -317,6 +317,12 @@ const articles = ref<any[]>([])
 - `TabUI` が Home / End で端のタブへ飛べるようになった
 - `TabUI` は `tabs` が差し替わって選択中の key が消えたとき、先頭のタブへ寄せて
   `update:activeKey` を emit する（これまではどのパネルも出なくなっていた）
+- `Icon/*` の svg 全般（`SelectBox` / `DateSelector` の矢印、`DropdownUi` /
+  `SlideDownUi` のシェブロン、`ModalBox` の閉じるアイコン、`MetadataList` の
+  フォルダ / タグ）に `aria-hidden="true"` と `focusable="false"` が付き、
+  スクリーンリーダーの読み上げ対象から外れる
+- `NoImage` は要素ごと `aria-hidden="true"` になった（「No Image」の文字も
+  読み上げない。画像が無いこと自体は伝える情報ではないため）
 
 ## 0.13.0 の変更
 

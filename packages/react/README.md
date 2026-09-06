@@ -119,6 +119,9 @@ yarn workspace @geckou/ui-react test
 - `TabUI` が Home / End で端のタブへ飛べるようになった
 - `TabUI` は `tabs` が差し替わって選択中の key が消えたとき、先頭のタブへ寄せる
   （これまではどのパネルも出なくなっていた）
+- 装飾のアイコン（`SelectBox` / `DateSelector` の矢印、`DropdownUi` / `SlideDownUi` の
+  シェブロン、`ModalBox` の閉じるアイコン）に `aria-hidden="true"` と
+  `focusable="false"` が付き、スクリーンリーダーの読み上げ対象から外れる
 - `ModalBox` は**表示している間だけ** children を描画し、`document.body` へ
   Portal する（`PopupBox` と同じ形）。閉じている間も children の effect
   （データ取得等）が走っていたのと、`transform` / `filter` を持つ祖先の中で
