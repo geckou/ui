@@ -92,11 +92,13 @@ export function ModalBox({
   useEffect(() => {
     const layer = modalLayer.current
 
-    layer.toggle(isShown, dialogRef.current)
+    // isMounted も見る。Portal の都合で最初の描画は null を返すため、
+    // isShown だけを見ると element: null のレイヤーが積まれる。
+    // 最前面判定は DOM の包含関係で決めるので、要素の無いレイヤーは
+    // 誰も内包せず「最も内側」と見なされ、isTopmost() が壊れる
+    layer.toggle(isShown && isMounted, dialogRef.current)
 
     return () => layer.release()
-    // isMounted も見る。Portal の都合で最初の描画は null になるため、
-    // isShown だけを見ると dialogRef が空のまま登録される
   }, [isShown, isMounted])
 
   // 開く前にフォーカスしていた要素。閉じたらここへ戻す
@@ -129,7 +131,9 @@ export function ModalBox({
   // （role="dialog" は自前で実装する必要がある。背景は inert にしていないので、
   //  トラップが無いと Tab で外のリンクやボタンへ抜ける）
   useEffect(() => {
-    if (!isShown) {
+    // レイヤーに登録されていない間は isTopmost() が false なので実害は無いが、
+    // 描画されていないダイアログのために document へ登録する意味も無い
+    if (!isShown || !isMounted) {
       return
     }
 
@@ -162,7 +166,7 @@ export function ModalBox({
     document.addEventListener('keydown', handleKeyDown)
 
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isShown, onClose])
+  }, [isShown, isMounted, onClose])
 
   // 閉じている間は描かない。常時マウントしていると children の effect
   // （データ取得等）が閉じたままでも走る。
