@@ -310,6 +310,13 @@ const articles = ref<any[]>([])
 - `DropdownUi` / `SlideDownUi` の中身の高さを `ResizeObserver` で測るようにした。
   `onUpdated` だけでは、スロットの中の子コンポーネントが自前の状態で伸縮したときに
   高さがずれていた
+- `TabUI` が `update:activeKey` を emit するようになり、`v-model:activeKey` で
+  親が選択状態を持てる（`activeKey` を渡さなければ従来どおり内部の状態だけで動く）
+- `TabUI` のパネルが `tabindex="0"` になり、パネルにフォーカス可能な要素が
+  無くてもキーボードで内容へ到達できる（APG の Tabs パターン）
+- `TabUI` が Home / End で端のタブへ飛べるようになった
+- `TabUI` は `tabs` が差し替わって選択中の key が消えたとき、先頭のタブへ寄せて
+  `update:activeKey` を emit する（これまではどのパネルも出なくなっていた）
 - `DatePicker` の年月日欄に `inputmode="numeric"` が付く（モバイルで数字キーボードが出る）
 - `TextBox` / `TextArea` の `maxLength` の既定値（30 / 100）を廃止し、**未指定なら無制限**にした。
   指定していない利用側で入力が黙って切られていたため。従来の上限が必要な場所には
