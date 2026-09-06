@@ -2,6 +2,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import type { CheckBoxStyleForEachStatus } from '../types'
+import { CheckPopKeyframes } from './keyframes'
 import { CheckIcon } from './icons/CheckIcon'
 
 type Props = {
@@ -36,11 +37,7 @@ export function CheckButton({
 
   return (
     <>
-      <style>
-        {
-          '@keyframes uiCheckPop{0%{scale:1}10%{scale:.8}50%{scale:1.1}100%{scale:1}}'
-        }
-      </style>
+      <CheckPopKeyframes />
       <label
         style={style}
         className={`relative flex h-6 w-6 cursor-pointer items-center justify-center rounded-(--radius-size) shadow-[0_0_0_var(--border-size)_var(--border-color)_inset] has-[input:disabled]:pointer-events-none has-[input:disabled]:before:pointer-events-auto has-[input:disabled]:before:absolute has-[input:disabled]:before:inset-0 has-[input:disabled]:before:cursor-not-allowed has-[input:disabled]:before:content-[''] has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-(--border-color) ${isChecked ? 'animate-[uiCheckPop_var(--duration)_ease-out] bg-(--border-color)' : 'bg-(--background-color)'}`}

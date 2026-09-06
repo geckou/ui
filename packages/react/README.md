@@ -122,6 +122,10 @@ yarn workspace @geckou/ui-react test
 - 装飾のアイコン（`SelectBox` / `DateSelector` の矢印、`DropdownUi` / `SlideDownUi` の
   シェブロン、`ModalBox` の閉じるアイコン）に `aria-hidden="true"` と
   `focusable="false"` が付き、スクリーンリーダーの読み上げ対象から外れる
+- `CheckBox` / `CheckButton` / `RadioButtons` の keyframes を、React 19 の
+  `<style href precedence>` で `<head>` へ hoist するようにした。これまでは
+  コンポーネントごとに `<style>` を描いていたため、N 個置くと N 個 DOM に入っていた。
+  hoist 後は何個置いても 1 つ
 - `ModalBox` は**表示している間だけ** children を描画し、`document.body` へ
   Portal する（`PopupBox` と同じ形）。閉じている間も children の effect
   （データ取得等）が走っていたのと、`transform` / `filter` を持つ祖先の中で
