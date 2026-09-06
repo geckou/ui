@@ -114,6 +114,11 @@ yarn workspace @geckou/ui-react test
   `preventDefault()` するので、`ModalBox` の中に置いてもダイアログまで閉じない
 - `DropdownUi` / `SlideDownUi` のトリガーに `aria-controls` が付き、
   `DropdownUi` には `aria-haspopup="true"` も付く
+- `TabUI` のパネルが `tabIndex={0}` になり、パネルにフォーカス可能な要素が
+  無くてもキーボードで内容へ到達できる（APG の Tabs パターン）
+- `TabUI` が Home / End で端のタブへ飛べるようになった
+- `TabUI` は `tabs` が差し替わって選択中の key が消えたとき、先頭のタブへ寄せる
+  （これまではどのパネルも出なくなっていた）
 
 ## 0.8.0 の変更
 
