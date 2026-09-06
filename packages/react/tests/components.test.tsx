@@ -1716,6 +1716,58 @@ describe('ModalBox の閉じ方', () => {
   })
 })
 
+// 回帰: コンポーネントごとに素の <style> を描いていたため、
+// N 個置くと N 個の <style> が DOM に入っていた
+describe('keyframes の hoist', () => {
+  const styleCount = (keyframe: string) =>
+    [...document.querySelectorAll('style')].filter((style) =>
+      style.textContent?.includes(keyframe)
+    ).length
+
+  it('CheckBox / CheckButton を何個置いても <style> は 1 つ', () => {
+    act(() => {
+      root.render(
+        <>
+          <CheckBox name="a" checked onChange={() => {}} />
+          <CheckBox name="b" checked onChange={() => {}} />
+          <CheckBox name="c" checked onChange={() => {}} />
+          <CheckButton name="d" checked onChange={() => {}} />
+        </>
+      )
+    })
+
+    expect(styleCount('uiCheckPop')).toBe(1)
+  })
+
+  it('RadioButtons を複数置いても <style> は 1 つ', () => {
+    const options = [{ label: 'a', value: 'a' }]
+
+    act(() => {
+      root.render(
+        <>
+          <RadioButtons name="r1" options={options} value="a" />
+          <RadioButtons name="r2" options={options} value="a" />
+        </>
+      )
+    })
+
+    expect(styleCount('uiRadioPop')).toBe(1)
+  })
+
+  it('hoist 先は <head>（コンポーネントの隣ではない）', () => {
+    act(() => {
+      root.render(<CheckBox name="a" checked onChange={() => {}} />)
+    })
+
+    const hoisted = [...document.head.querySelectorAll('style')].filter(
+      (style) => style.textContent?.includes('uiCheckPop')
+    )
+
+    expect(hoisted).toHaveLength(1)
+    expect(container.querySelector('style')).toBeNull()
+  })
+})
+
 describe('ネイティブ送信の値', () => {
   it('CheckBoxes は選択肢ごとの value を hidden へ入れる', () => {
     act(() => {

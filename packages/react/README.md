@@ -108,6 +108,13 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
+## 0.9.0 の変更
+
+- `CheckBox` / `CheckButton` / `RadioButtons` の keyframes を、React 19 の
+  `<style href precedence>` で `<head>` へ hoist するようにした。これまでは
+  コンポーネントごとに `<style>` を描いていたため、N 個置くと N 個 DOM に入っていた。
+  hoist 後は何個置いても 1 つ
+
 ## 0.8.0 の変更
 
 - `BasicButton` はローディング中に `disabled` にしない（押した瞬間にフォーカスが
