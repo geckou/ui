@@ -350,6 +350,70 @@ describe('TabUI', () => {
   })
 })
 
+// 回帰: 装飾のアイコンに aria-hidden が無く、スクリーンリーダーが
+// 読み上げ対象にしていた（SelectBox / DateSelector の矢印、
+// Dropdown / SlideDown のシェブロン、ModalBox の閉じるアイコン）
+describe('装飾 SVG の aria-hidden', () => {
+  const isDecorative = (svg: {
+    attributes: (name: string) => string | undefined
+  }) =>
+    svg.attributes('aria-hidden') === 'true' &&
+    svg.attributes('focusable') === 'false'
+
+  it('SelectBox の矢印は読み上げ対象にならない', () => {
+    const wrapper = mount(SelectBox, {
+      props: {
+        name: 's',
+        modelValue: '',
+        options: [{ label: 'a', value: 'a' }],
+      },
+    })
+
+    const svgs = wrapper.findAll('svg')
+
+    expect(svgs.length).toBeGreaterThan(0)
+    expect(svgs.every(isDecorative)).toBe(true)
+  })
+
+  it('DateSelector の矢印は読み上げ対象にならない', () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'd', modelValue: '' },
+    })
+
+    const svgs = wrapper.findAll('svg')
+
+    expect(svgs.length).toBeGreaterThan(0)
+    expect(svgs.every(isDecorative)).toBe(true)
+  })
+
+  it('SlideDownUi のシェブロンは読み上げ対象にならない', () => {
+    const wrapper = mount(SlideDownUi, {
+      props: { title: 't' },
+      slots: { default: '<p>本文</p>' },
+    })
+
+    const svgs = wrapper.findAll('svg')
+
+    expect(svgs.length).toBeGreaterThan(0)
+    expect(svgs.every(isDecorative)).toBe(true)
+  })
+
+  it('ModalBox の閉じるアイコンは読み上げ対象にならない', () => {
+    const wrapper = mount(ModalBox, {
+      props: { isShown: true },
+      slots: { default: '<p>本文</p>' },
+      attachTo: document.body,
+    })
+
+    const svgs = wrapper.findAll('svg')
+
+    expect(svgs.length).toBeGreaterThan(0)
+    expect(svgs.every(isDecorative)).toBe(true)
+
+    wrapper.unmount()
+  })
+})
+
 describe('TextBox のバリデーション', () => {
   // v-model 相当。emit を受けて modelValue を戻さないと内部の値が更新されない
   const mountTextBox = (props: { name: string } & Record<string, unknown>) => {
