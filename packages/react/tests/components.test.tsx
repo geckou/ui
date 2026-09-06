@@ -536,7 +536,8 @@ describe('装飾 SVG の aria-hidden', () => {
       )
     })
 
-    const svgs = Array.from(container.querySelectorAll('svg'))
+    // ModalBox は document.body へ Portal するので container からは辿れない
+    const svgs = Array.from(modalOverlay()!.querySelectorAll('svg'))
 
     expect(svgs.length).toBeGreaterThan(0)
     expect(
