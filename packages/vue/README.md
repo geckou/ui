@@ -295,9 +295,10 @@ const articles = ref<any[]>([])
 | `--z-index-nav` | `70` | ModalBox の閉じるボタン（+1 で重ねる） |
 | `--contents-max-width` | `1440px` | ModalBox の最大幅、PopupBox の左右位置 |
 | `--global-header-height` | `0px` | PopupBox の上端 |
-| `--mobile-lower-width` | `430px` | PopupBox の最大幅 |
-| `--small-icon-size` | `0.9375rem` | ArticleList のアイコン |
-| `--medium-icon-size` | `1.125rem` | アイコン全般（`mixin.scss` の既定） |
+| `--mobile-lower-width` | `430px` | ModalBox（`size="small"`）の最大幅。PopupBox の最大幅にも効くが、そちらは**この値の 1/2** |
+| `--desktop-lower-width` | `992px` | ModalBox（既定）の最大幅 |
+| `--icon-small` | `0.9375rem` | MetadataList のアイコン |
+| `--icon-medium` | `1.125rem` | アイコン全般（`mixin.scss` の既定） |
 
 定義例はデモの `demo/styles/base.scss` を参照。
 
@@ -323,6 +324,13 @@ const articles = ref<any[]>([])
   スクリーンリーダーの読み上げ対象から外れる
 - `NoImage` は要素ごと `aria-hidden="true"` になった（「No Image」の文字も
   読み上げない。画像が無いこと自体は伝える情報ではないため）
+- アイコンサイズのトークンを `--icon-small` / `--icon-medium` に統一した。
+  `mixin.scss` と `MetadataList` だけが `--small-icon-size` / `--medium-icon-size` を
+  見ており、利用側で 2 系統を定義する必要があった。**`--small-icon-size` /
+  `--medium-icon-size` しか定義していない場合は、`--icon-small` / `--icon-medium` へ
+  差し替えること**（値はどちらもフォールバック付きなので、未定義でも崩れはしない）
+- `ModalBox` の `--desktop-lower-width` / `--mobile-lower-width` にフォールバック値が付いた
+  （PopupBox と揃えた）。未定義だとモーダルが 100% 幅になっていた
 - `DatePicker` の年月日欄に `inputmode="numeric"` が付く（モバイルで数字キーボードが出る）
 - `TextBox` / `TextArea` の `maxLength` の既定値（30 / 100）を廃止し、**未指定なら無制限**にした。
   指定していない利用側で入力が黙って切られていたため。従来の上限が必要な場所には
