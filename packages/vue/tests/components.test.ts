@@ -286,6 +286,68 @@ describe('TabUI', () => {
     expect(selectedKey(wrapper)).toBe('tabA')
     wrapper.unmount()
   })
+
+  // 回帰: パネルにフォーカス可能な要素が無いと、キーボードで内容へ到達できない
+  // （APG の Tabs パターン）
+  it('パネルが tabindex="0" でキーボードの停止点になる', () => {
+    const wrapper = mount(TabUI, { props: { tabs } })
+
+    const panels = wrapper.findAll('[role="tabpanel"]')
+
+    expect(panels).toHaveLength(2)
+    expect(panels.every((panel) => panel.attributes('tabindex') === '0')).toBe(
+      true
+    )
+  })
+
+  it('Home / End で端のタブへ飛ぶ', async () => {
+    const wrapper = mount(TabUI, { props: { tabs }, attachTo: document.body })
+    const tablist = wrapper.find('[role="tablist"]')
+
+    await tablist.trigger('keydown', { key: 'End' })
+    expect(selectedKey(wrapper)).toBe('tabB')
+
+    await tablist.trigger('keydown', { key: 'Home' })
+    expect(selectedKey(wrapper)).toBe('tabA')
+
+    wrapper.unmount()
+  })
+
+  // 回帰: emit が無く、親がアクティブタブを知る手段が無かった
+  it('タブを選ぶと update:activeKey を emit する', async () => {
+    const wrapper = mount(TabUI, { props: { tabs } })
+
+    await wrapper.findAll('[role="tab"]')[1]!.trigger('click')
+
+    expect(wrapper.emitted('update:activeKey')).toEqual([['tabB']])
+  })
+
+  it('activeKey を渡せば親が選択状態を決められる（v-model:activeKey）', async () => {
+    const wrapper = mount(TabUI, { props: { tabs, activeKey: 'tabB' } })
+
+    expect(selectedKey(wrapper)).toBe('tabB')
+
+    await wrapper.setProps({ activeKey: 'tabA' })
+    expect(selectedKey(wrapper)).toBe('tabA')
+  })
+
+  // 回帰: initialIndex は初回しか見ないため、tabs が差し替わって現在の key が
+  // 消えるとパネルが何も出なくなっていた
+  it('tabs が差し替わって選択中の key が消えたら先頭へ寄せ、親へも伝える', async () => {
+    const wrapper = mount(TabUI, { props: { tabs, initialIndex: 1 } })
+
+    expect(selectedKey(wrapper)).toBe('tabB')
+
+    await wrapper.setProps({
+      tabs: [
+        { key: 'tabA', label: 'A' },
+        { key: 'tabC', label: 'C' },
+      ],
+    })
+
+    expect(selectedKey(wrapper)).toBe('tabA')
+    expect(wrapper.emitted('update:activeKey')).toEqual([['tabA']])
+  })
 })
 
 // 回帰: 装飾のアイコンに aria-hidden が無く、スクリーンリーダーが
