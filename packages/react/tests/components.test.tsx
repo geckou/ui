@@ -457,7 +457,11 @@ describe('装飾 SVG の aria-hidden', () => {
 
     expect(svgs.length).toBeGreaterThan(0)
     expect(
-      svgs.every((svg) => svg.getAttribute('aria-hidden') === 'true')
+      svgs.every(
+        (svg) =>
+          svg.getAttribute('aria-hidden') === 'true' &&
+          svg.getAttribute('focusable') === 'false'
+      )
     ).toBe(true)
   })
 })
