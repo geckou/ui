@@ -76,8 +76,11 @@ Geckou が自社の制作案件で使うために開発しているコンポー�
   --main-color   : #1c4ac9;  /* カテゴリラベルなどの塗り */
   --link-color   : #1c4ac9;
   --checked-color: #1c4ac9;  /* チェックボックス・ラジオの選択色 */
+  --sub-color    : #e7ecfb;  /* Rounded カードのタグ */
   --text-color   : #15143a;
   --gray         : #656a7d;  /* 補助テキスト */
+  --light-gray   : #e5e5e5;  /* NoImage の背景 */
+  --base-color   : #f3f4f8;  /* CardContainer の背景 */
   --white        : #fff;     /* 画像上の文字色などに使用 */
   --black-rgb    : 0, 8, 26; /* 影の生成に使用 */
   --border-color : rgba(21, 20, 58, .12);
@@ -103,17 +106,26 @@ Geckou が自社の制作案件で使うために開発しているコンポー�
   --radius-size       : 4px;
   --radius-small      : 4px;
   --animation-duration: .3s;
+
+  /* 幅（ModalBox / PopupBox の最大幅） */
+  --mobile-lower-width : 430px;
+  --desktop-lower-width: 992px;
+  --contents-max-width : 1440px;
 }
 ```
 
 | 変数 | 用途 |
 |------|------|
 | `--primary-color` / `--main-color` / `--link-color` | ブランドカラー。見出し、リンク、カテゴリラベルの塗り |
+| `--sub-color` | `Rounded` カードのタグの背景・アイコン |
 | `--text-color` / `--gray` / `--disable-text-color` | 本文・補助テキスト・非活性テキスト |
+| `--light-gray` / `--base-color` | `NoImage` の背景、`CardContainer` の背景 |
 | `--white` / `--black-rgb` | 画像上の文字色、影の生成 |
 | `--border-color` / `--light-border-color` | 枠線 |
 | `--bv` と `--sp-*` | 余白の基準値と段階 |
 | `--fs-small` / `--fs-large` | 小さめ・大きめの文字サイズ |
+| `--icon-small` / `--icon-medium` | アイコンのサイズ |
+| `--mobile-lower-width` / `--desktop-lower-width` / `--contents-max-width` | `ModalBox` の最大幅（`size` prop で切り替え）、`PopupBox` の左右位置 |
 
 記事一覧コンポーネントはコンテナクエリでレイアウトを切り替えるため、
 親要素に `container-type: inline-size` を指定してください。

@@ -77,11 +77,9 @@
   --transition-duration: 0.2s;
   --duration: 0.2s;
   --icon-size: calc(var(--bv) * 3);
-  --small-icon-size: calc(var(--bv) * 2);
-  --medium-icon-size: calc(var(--bv) * 3);
+  --icon-small: calc(var(--bv) * 2);
+  --icon-medium: calc(var(--bv) * 3);
   --large-icon-size: calc(var(--bv) * 5);
-  --icon-small: var(--small-icon-size);
-  --icon-medium: var(--medium-icon-size);
   --radius-size: 4px;
   --radius-small: 4px;
   --border-size: 1px;
