@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties, ReactNode, Ref } from 'react'
-import { useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { useEffect, useId, useImperativeHandle, useRef, useState } from 'react'
 import { KeyboardArrowDownIcon } from './icons/KeyboardArrowDownIcon'
 import { COLOR } from '../constants'
 
@@ -37,6 +37,10 @@ export function SlideDownUi({
   const [contentsHeight, setContentsHeight] = useState(0)
   const rootRef = useRef<HTMLDivElement>(null)
   const contentsRef = useRef<HTMLDivElement>(null)
+
+  // aria-controls でトリガーとパネルを結ぶための id。
+  // 1 画面に複数置いても衝突しないよう useId から作る
+  const panelId = `${useId()}-panel`
 
   const toggleBox = () => setIsOpenedContents((current) => !current)
 
@@ -102,6 +106,7 @@ export function SlideDownUi({
         type="button"
         disabled={isDisabled}
         aria-expanded={isOpenedContents}
+        aria-controls={panelId}
         className="relative grid w-full cursor-pointer grid-cols-[1fr_auto] items-center justify-items-start text-(--link-color)"
         onClick={(event) => {
           event.preventDefault()
@@ -117,6 +122,7 @@ export function SlideDownUi({
         )}
       </button>
       <div
+        id={panelId}
         style={{
           height: isOpenedContents ? `${contentsHeight}px` : 0,
           transitionDuration: `${duration}s`,

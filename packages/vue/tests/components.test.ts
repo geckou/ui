@@ -417,6 +417,107 @@ describe('SelectBox', () => {
   })
 })
 
+describe('DropdownUi / SlideDownUi の a11y', () => {
+  // 回帰: 閉じる手段が外側クリックか内容クリックだけで、Escape が効かず
+  // トリガーへフォーカスも戻らなかった
+  it('DropdownUi: Escape で閉じ、トリガーへフォーカスが戻る', async () => {
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: '<button>項目</button>' },
+      attachTo: document.body,
+    })
+
+    const trigger = wrapper.find('button')
+    await trigger.trigger('click')
+    expect(wrapper.vm.isContentsOpened).toBe(true)
+
+    await wrapper.findAll('button')[1]!.trigger('keydown', { key: 'Escape' })
+
+    expect(wrapper.vm.isContentsOpened).toBe(false)
+    expect(document.activeElement).toBe(trigger.element)
+
+    wrapper.unmount()
+  })
+
+  it('DropdownUi: 閉じているときの Escape では何もしない', async () => {
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: 'contents' },
+      attachTo: document.body,
+    })
+
+    await wrapper.find('button').trigger('keydown', { key: 'Escape' })
+
+    expect(wrapper.vm.isContentsOpened).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  it('DropdownUi / SlideDownUi: トリガーが aria-controls でパネルを指す', () => {
+    const dropdown = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: 'contents' },
+      attachTo: document.body,
+    })
+    const slideDown = mount(SlideDownUi, {
+      slots: { trigger: 'trigger', default: '本文' },
+      attachTo: document.body,
+    })
+
+    for (const wrapper of [dropdown, slideDown]) {
+      const controls = wrapper.find('button').attributes('aria-controls')
+
+      expect(controls).toBeDefined()
+      expect(wrapper.element.querySelector(`[id="${controls}"]`)).not.toBeNull()
+    }
+
+    // ポップアップを開くトリガーであることを伝える（SlideDownUi は
+    // ディスクロージャなので付けない）
+    expect(dropdown.find('button').attributes('aria-haspopup')).toBe('true')
+    expect(slideDown.find('button').attributes('aria-haspopup')).toBeUndefined()
+
+    dropdown.unmount()
+    slideDown.unmount()
+  })
+
+  // 回帰: 高さを onUpdated でしか測っていなかったため、スロットの中の
+  // 子コンポーネントが自前の状態で伸縮すると高さがずれていた
+  it('DropdownUi: 中身の伸縮を ResizeObserver で拾う', async () => {
+    const callbacks: Array<() => void> = []
+    const original = globalThis.ResizeObserver
+
+    globalThis.ResizeObserver = class {
+      constructor(callback: () => void) {
+        callbacks.push(callback)
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver
+
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: 'contents' },
+      attachTo: document.body,
+    })
+
+    expect(callbacks).toHaveLength(1)
+
+    await wrapper.find('button').trigger('click')
+
+    const panel = wrapper.find('[id$="_panel"]')
+    const inner = panel.element.firstElementChild as HTMLElement
+
+    Object.defineProperty(inner, 'clientHeight', {
+      configurable: true,
+      value: 120,
+    })
+    callbacks[0]!()
+    await nextTick()
+
+    expect(panel.attributes('style')).toContain('120px')
+
+    wrapper.unmount()
+    globalThis.ResizeObserver = original
+  })
+})
+
 describe('DropdownUi / SlideDownUi の外側クリック', () => {
   // 修正前は v-click-outside ディレクティブに頼っていたが app.directive() の登録が
   // どこにも無く、「Failed to resolve directive: click-outside」で無効化されていた

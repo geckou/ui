@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, onUpdated } from 'vue'
+import { ref, onBeforeUnmount, onMounted } from 'vue'
 import IconChevronDown from '@/components/Icon/KeyboardArrowDownIcon.vue'
 import { useClickOutside } from '@/scripts/use-click-outside'
+import { nextUniqueId } from '@/scripts/unique-id'
 withDefaults(
   defineProps<{
     isHiddenArrow?: boolean
@@ -20,9 +21,28 @@ withDefaults(
 const isContentsOpened = ref(false)
 const root = ref<HTMLElement | null>(null)
 const contents = ref<HTMLElement | null>(null)
+const trigger = ref<HTMLButtonElement | null>(null)
 const contentsHeight = ref(0)
+
+// aria-controls でトリガーとパネルを結ぶための id
+const panelId = nextUniqueId('dropdown') + '_panel'
+
 const toggleBox = () => (isContentsOpened.value = !isContentsOpened.value)
 const closeDropDown = () => (isContentsOpened.value = false)
+
+// Escape で閉じ、トリガーへフォーカスを戻す。戻さないと、閉じた瞬間に
+// フォーカスが body へ落ちてキーボード操作の位置を見失う
+const closeAndRefocus = (event: KeyboardEvent) => {
+  if (!isContentsOpened.value) {
+    return
+  }
+
+  // 自分が処理した印を残す。ModalBox の中に置いたとき、
+  // ダイアログまで一緒に閉じるのを防ぐ
+  event.preventDefault()
+  closeDropDown()
+  trigger.value?.focus()
+}
 
 const updateContentsHeight = () => {
   const contentsValue = contents.value
@@ -33,18 +53,42 @@ const updateContentsHeight = () => {
 
 useClickOutside(root, () => closeDropDown())
 
-onMounted(() => updateContentsHeight())
-onUpdated(() => updateContentsHeight())
+// onUpdated はこのコンポーネントが再描画されたときしか走らない。
+// スロットの中の子コンポーネントが自前の状態で伸縮すると高さがずれるため、
+// 要素そのものを ResizeObserver で見る
+let observer: ResizeObserver | null = null
+
+onMounted(() => {
+  updateContentsHeight()
+
+  const contentsValue = contents.value
+
+  if (!contentsValue || typeof ResizeObserver === 'undefined') {
+    return
+  }
+
+  observer = new ResizeObserver(updateContentsHeight)
+  observer.observe(contentsValue)
+})
+
+onBeforeUnmount(() => observer?.disconnect())
 // React 版（DropdownUiHandle）と揃えて close も公開する
 defineExpose({ isContentsOpened, close: closeDropDown })
 </script>
 
 <template>
-  <div ref="root" :class="$style.drop_down_box">
+  <div
+    ref="root"
+    :class="$style.drop_down_box"
+    @keydown.escape="closeAndRefocus"
+  >
     <button
+      ref="trigger"
       :class="$style.button"
       :disabled="isDisabled"
       :aria-expanded="isContentsOpened"
+      aria-haspopup="true"
+      :aria-controls="$slots.contents ? panelId : undefined"
       type="button"
       :style="{
         '--trigger-color':
@@ -63,6 +107,7 @@ defineExpose({ isContentsOpened, close: closeDropDown })
     </button>
     <div
       v-if="$slots.contents"
+      :id="panelId"
       :class="$style.contents"
       :inert="!isContentsOpened || undefined"
       :style="{
