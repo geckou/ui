@@ -126,6 +126,80 @@ describe('TabUI', () => {
     )
     expect(selected).toEqual(['true', 'false'])
   })
+
+  // 回帰: パネルにフォーカス可能な要素が無いと、キーボードで内容へ到達できない
+  // （APG の Tabs パターン）
+  it('パネルが tabIndex=0 でキーボードの停止点になる', () => {
+    renderTabs()
+
+    const panels = [...container.querySelectorAll('[role="tabpanel"]')]
+
+    expect(panels).toHaveLength(2)
+    expect(
+      panels.every((panel) => panel.getAttribute('tabindex') === '0')
+    ).toBe(true)
+  })
+
+  it('Home / End で端のタブへ飛ぶ', () => {
+    renderTabs()
+    const tablist = container.querySelector('[role="tablist"]')!
+    const selected = () =>
+      [...container.querySelectorAll('[role="tab"]')].map((tab) =>
+        tab.getAttribute('aria-selected')
+      )
+
+    act(() => {
+      tablist.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'End', bubbles: true })
+      )
+    })
+    expect(selected()).toEqual(['false', 'true'])
+
+    act(() => {
+      tablist.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Home', bubbles: true })
+      )
+    })
+    expect(selected()).toEqual(['true', 'false'])
+  })
+
+  // 回帰: 選択中の key を state に持ちきりだったため、tabs が差し替わって
+  // その key が消えるとどのパネルも出なくなっていた
+  it('tabs が差し替わって選択中の key が消えたら先頭へ寄せる', () => {
+    function renderWith(nextTabs: typeof tabs) {
+      act(() => {
+        root.render(
+          <TabUI
+            tabs={nextTabs}
+            initialIndex={1}
+            panelSlots={{
+              firstContents: <p>panel1</p>,
+              secondContents: <p>panel2</p>,
+              thirdContents: <p>panel3</p>,
+            }}
+          />
+        )
+      })
+    }
+
+    renderWith(tabs)
+    expect(
+      [...container.querySelectorAll('[role="tab"]')].map((tab) =>
+        tab.getAttribute('aria-selected')
+      )
+    ).toEqual(['false', 'true'])
+
+    renderWith([
+      { key: 'first', label: 'タブ1' },
+      { key: 'third', label: 'タブ3' },
+    ])
+
+    const visiblePanel = [
+      ...container.querySelectorAll('[role="tabpanel"]'),
+    ].find((panel) => !panel.hasAttribute('hidden'))
+
+    expect(visiblePanel?.textContent).toBe('panel1')
+  })
 })
 
 describe('DateSelector', () => {
