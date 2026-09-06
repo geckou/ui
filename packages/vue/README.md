@@ -303,6 +303,13 @@ const articles = ref<any[]>([])
 
 ## 0.14.0 の変更
 
+- `DropdownUi` が Escape で閉じ、トリガーへフォーカスを戻す。処理したときは
+  `preventDefault()` するので、`ModalBox` の中に置いてもダイアログまで閉じない
+- `DropdownUi` / `SlideDownUi` のトリガーに `aria-controls` が付き、
+  `DropdownUi` には `aria-haspopup="true"` も付く
+- `DropdownUi` / `SlideDownUi` の中身の高さを `ResizeObserver` で測るようにした。
+  `onUpdated` だけでは、スロットの中の子コンポーネントが自前の状態で伸縮したときに
+  高さがずれていた
 - `Icon/*` の svg 全般（`SelectBox` / `DateSelector` の矢印、`DropdownUi` /
   `SlideDownUi` のシェブロン、`ModalBox` の閉じるアイコン、`MetadataList` の
   フォルダ / タグ）に `aria-hidden="true"` と `focusable="false"` が付き、
