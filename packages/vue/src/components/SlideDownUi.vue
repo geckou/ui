@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import { ref, onMounted, onUpdated, watch } from 'vue'
+import { ref, onBeforeUnmount, onMounted, watch } from 'vue'
 import IconChevronDown from '@/components/Icon/KeyboardArrowDownIcon.vue'
 import { useClickOutside } from '@/scripts/use-click-outside'
+import { nextUniqueId } from '@/scripts/unique-id'
 const props = withDefaults(
   defineProps<{
     isOpened?: boolean | null
@@ -21,6 +22,10 @@ const isOpenedContents = ref(props.isOpened || false)
 const root: Ref<HTMLElement | null> = ref(null)
 const contents: Ref<HTMLElement | null> = ref(null)
 const contentsHeight = ref(0)
+
+// aria-controls でトリガーとパネルを結ぶための id
+const panelId = nextUniqueId('slide_down') + '_panel'
+
 const toggleBox = () => (isOpenedContents.value = !isOpenedContents.value)
 
 const close = () => (isOpenedContents.value = false)
@@ -40,8 +45,25 @@ const updateContentsHeight = () => {
 
 useClickOutside(root, () => closeDropDown())
 
-onMounted(() => updateContentsHeight())
-onUpdated(() => updateContentsHeight())
+// onUpdated はこのコンポーネントが再描画されたときしか走らない。
+// スロットの中の子コンポーネントが自前の状態で伸縮すると高さがずれるため、
+// 要素そのものを ResizeObserver で見る（React 版と同じ）
+let observer: ResizeObserver | null = null
+
+onMounted(() => {
+  updateContentsHeight()
+
+  const contentsValue = contents.value
+
+  if (!contentsValue || typeof ResizeObserver === 'undefined') {
+    return
+  }
+
+  observer = new ResizeObserver(updateContentsHeight)
+  observer.observe(contentsValue)
+})
+
+onBeforeUnmount(() => observer?.disconnect())
 watch(
   () => props.isOpened,
   (newValue) => {
@@ -65,6 +87,7 @@ defineExpose({ isOpenedContents, close })
       :class="$style.trigger"
       :disabled="isDisabled"
       :aria-expanded="isOpenedContents"
+      :aria-controls="panelId"
       type="button"
       @click.prevent="toggleBox"
     >
@@ -74,6 +97,7 @@ defineExpose({ isOpenedContents, close })
       <IconChevronDown v-if="!isHiddenArrow" :class="$style.icon" />
     </button>
     <div
+      :id="panelId"
       :style="{ height: isOpenedContents ? `${contentsHeight}px` : 0 }"
       :class="$style.contents"
       :inert="!isOpenedContents || undefined"

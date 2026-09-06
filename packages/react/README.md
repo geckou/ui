@@ -110,6 +110,10 @@ yarn workspace @geckou/ui-react test
 
 ## 0.9.0 の変更
 
+- `DropdownUi` が Escape で閉じ、トリガーへフォーカスを戻す。処理したときは
+  `preventDefault()` するので、`ModalBox` の中に置いてもダイアログまで閉じない
+- `DropdownUi` / `SlideDownUi` のトリガーに `aria-controls` が付き、
+  `DropdownUi` には `aria-haspopup="true"` も付く
 - `ModalBox` は**表示している間だけ** children を描画し、`document.body` へ
   Portal する（`PopupBox` と同じ形）。閉じている間も children の effect
   （データ取得等）が走っていたのと、`transform` / `filter` を持つ祖先の中で
