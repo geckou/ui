@@ -12,7 +12,8 @@ export default defineConfig({
   },
   test: {
     root: __dirname,
-    include: ['tests/**/*.test.tsx'],
+    // .tsx だけにすると、.test.ts を置いたときに黙って走らない
+    include: ['tests/**/*.test.{ts,tsx}'],
     environment: 'jsdom',
   },
 })

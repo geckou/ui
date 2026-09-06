@@ -108,6 +108,13 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
+## 0.9.0 の変更
+
+- `DropdownUi` が Escape で閉じ、トリガーへフォーカスを戻す。処理したときは
+  `preventDefault()` するので、`ModalBox` の中に置いてもダイアログまで閉じない
+- `DropdownUi` / `SlideDownUi` のトリガーに `aria-controls` が付き、
+  `DropdownUi` には `aria-haspopup="true"` も付く
+
 ## 0.8.0 の変更
 
 - `BasicButton` はローディング中に `disabled` にしない（押した瞬間にフォーカスが
