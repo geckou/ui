@@ -108,6 +108,14 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
+## 0.9.0 の変更
+
+- `TabUI` のパネルが `tabIndex={0}` になり、パネルにフォーカス可能な要素が
+  無くてもキーボードで内容へ到達できる（APG の Tabs パターン）
+- `TabUI` が Home / End で端のタブへ飛べるようになった
+- `TabUI` は `tabs` が差し替わって選択中の key が消えたとき、先頭のタブへ寄せる
+  （これまではどのパネルも出なくなっていた）
+
 ## 0.8.0 の変更
 
 - `BasicButton` はローディング中に `disabled` にしない（押した瞬間にフォーカスが
