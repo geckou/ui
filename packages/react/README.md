@@ -110,6 +110,10 @@ yarn workspace @geckou/ui-react test
 
 ## 0.9.0 の変更
 
+- `DropdownUi` が Escape で閉じ、トリガーへフォーカスを戻す。処理したときは
+  `preventDefault()` するので、`ModalBox` の中に置いてもダイアログまで閉じない
+- `DropdownUi` / `SlideDownUi` のトリガーに `aria-controls` が付き、
+  `DropdownUi` には `aria-haspopup="true"` も付く
 - `CheckBox` / `CheckButton` / `RadioButtons` の keyframes を、React 19 の
   `<style href precedence>` で `<head>` へ hoist するようにした。これまでは
   コンポーネントごとに `<style>` を描いていたため、N 個置くと N 個 DOM に入っていた。

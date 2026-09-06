@@ -288,3 +288,111 @@ describe('カードの属性と theme', () => {
     expect(wrapper.findComponent({ name: 'Grid' }).exists()).toBe(true)
   })
 })
+
+// テストの空白を埋める（#107）
+describe('GenericArticleList の縮退', () => {
+  const settings = {
+    domainToUse: '',
+    isEnabledPickUp: false,
+    postConfig,
+  }
+
+  const mountList = (
+    articles: Article[],
+    overrides: Record<string, unknown> = {}
+  ) =>
+    mount(GenericArticleList, {
+      props: {
+        articles,
+        theme: 'standard' as const,
+        categories: [],
+        columnNumber: 3,
+        settings,
+        ...overrides,
+      },
+    })
+
+  it('articles が空でも ul だけ描いて落ちない', () => {
+    const wrapper = mountList([])
+
+    expect(wrapper.find('ul').exists()).toBe(true)
+    expect(wrapper.findAll('li')).toHaveLength(0)
+  })
+
+  it('未知の theme は Standard カードにフォールバックする', () => {
+    const wrapper = mountList([baseArticle as Article], {
+      theme: 'unknown' as unknown as 'standard',
+    })
+
+    expect(wrapper.findComponent({ name: 'Standard' }).exists()).toBe(true)
+    expect(wrapper.findAll('li')).toHaveLength(1)
+  })
+
+  // categories を渡し忘れた（引き当てられない）状態でも一覧ごと落とさない
+  it('引き当てられない categories でも記事は描く', () => {
+    const article = { ...baseArticle, categories: [7, 8] } as Article
+    const wrapper = mountList([article])
+
+    expect(wrapper.findAll('li')).toHaveLength(1)
+    expect(wrapper.text()).toContain('記事タイトル')
+  })
+
+  it('columnNumber が 1 でもタブレット用の列数が 0 にならない', () => {
+    const wrapper = mountList([baseArticle as Article], { columnNumber: 1 })
+
+    const style = wrapper.find('ul').attributes('style')
+
+    expect(style).toContain('--column-number: 1')
+    expect(style).toContain('--tablet-column-number: 1')
+  })
+})
+
+describe('MetadataList', () => {
+  it('metadata が空なら要素ごと描かない', () => {
+    const wrapper = mount(MetadataList, { props: { metadata: [] } })
+
+    expect(wrapper.find('ul').exists()).toBe(false)
+    expect(wrapper.text()).toBe('')
+  })
+
+  it('icon.name が未指定ならアイコンを描かない', () => {
+    const wrapper = mount(MetadataList, {
+      props: { metadata: ['デザイン'] },
+    })
+
+    expect(wrapper.find('svg').exists()).toBe(false)
+    expect(wrapper.findAll('li')).toHaveLength(1)
+  })
+
+  it('icon.size で svg のサイズ変数が切り替わる', () => {
+    const small = mount(MetadataList, {
+      props: {
+        metadata: ['デザイン'],
+        icon: { name: 'TagIcon', size: 'small' },
+      },
+    })
+    const medium = mount(MetadataList, {
+      props: {
+        metadata: ['デザイン'],
+        icon: { name: 'TagIcon', size: 'medium' },
+      },
+    })
+
+    // 具体的なトークン名ではなく、size で値が変わることだけを固定する
+    expect(small.find('svg').attributes('style')).not.toBe(
+      medium.find('svg').attributes('style')
+    )
+  })
+
+  it('全ての項目を li として並べる', () => {
+    const wrapper = mount(MetadataList, {
+      props: { metadata: ['デザイン', '開発', '運用'] },
+    })
+
+    expect(wrapper.findAll('li').map((li) => li.text())).toEqual([
+      'デザイン',
+      '開発',
+      '運用',
+    ])
+  })
+})

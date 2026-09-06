@@ -11,9 +11,12 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 status=0
+checked=0
 
 for dir in packages/*/dist; do
   [ -d "$dir" ] || continue
+
+  checked=$((checked + 1))
 
   if hits=$(grep -rn --include='*.d.ts' "core/src" "$dir" 2>/dev/null); then
     echo "❌ $dir の型定義がパッケージ外の core/src を参照しています:"
@@ -22,8 +25,15 @@ for dir in packages/*/dist; do
   fi
 done
 
+# dist が 1 つも無ければ「検査対象ゼロで成功」になる。build が落ちた直後でも
+# ✅ が出るため、検査が効いていないことに気付けない
+if [ "$checked" -eq 0 ]; then
+  echo "❌ packages/*/dist が 1 つもありません（先に yarn build を実行してください）"
+  exit 1
+fi
+
 if [ "$status" -eq 0 ]; then
-  echo "✅ dist の型定義に core/src への参照はありません"
+  echo "✅ dist の型定義に core/src への参照はありません（$checked パッケージ）"
 fi
 
 exit "$status"
