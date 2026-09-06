@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   inline-size: 100%;
-  max-inline-size: var(--desktop-lower-width);
+  max-inline-size: var(--desktop-lower-width, 992px);
   max-block-size: 100%;
   background-color: var(--white);
   border-radius: var(--radius-small);
@@ -194,7 +194,7 @@ onBeforeUnmount(() => {
   position: relative;
 
   &.small {
-    max-inline-size: var(--mobile-lower-width);
+    max-inline-size: var(--mobile-lower-width, 430px);
   }
 
   &.large {

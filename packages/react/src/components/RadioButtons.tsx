@@ -9,6 +9,7 @@ import type {
 import { useEffect, useId, useRef, useState } from 'react'
 import { isEmptyValue, MESSAGES } from '@geckou/ui-core'
 import { ErrorMessage } from './ErrorMessage'
+import { RadioPopKeyframes } from './keyframes'
 import { COLOR } from '../constants'
 
 type Props = {
@@ -96,11 +97,7 @@ export function RadioButtons({
       aria-describedby={errorMessages ? errorId : undefined}
       className="relative flex flex-wrap items-center gap-4"
     >
-      <style>
-        {
-          '@keyframes uiRadioPop{0%{scale:1}10%{scale:.8}50%{scale:1.2}100%{scale:1}}'
-        }
-      </style>
+      <RadioPopKeyframes />
       {options.map((option) => {
         const isChecked = option.value === selectedValue
 

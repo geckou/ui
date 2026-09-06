@@ -60,8 +60,8 @@ const items = computed(() => props.metadata.filter((item) => item !== ''))
         '--icon-color': icon.color,
         '--icon-size':
           icon.size === 'small'
-            ? 'var(--small-icon-size, 0.9375rem)'
-            : 'var(--medium-icon-size, 1.125rem)',
+            ? 'var(--icon-small, 0.9375rem)'
+            : 'var(--icon-medium, 1.125rem)',
       }"
     />
     <ul :class="$style.list">

@@ -17,6 +17,7 @@ type Props = {
   isDisabled?: boolean
   isRequired?: boolean
   rows?: number
+  /** 入力可能な文字数の上限。既定は無制限（`maxlength` 属性を付けない） */
   maxLength?: number
   autocomplete?: string
   validates?: Validates
@@ -50,7 +51,7 @@ export function TextArea({
   isDisabled,
   isRequired,
   rows,
-  maxLength = 100,
+  maxLength,
   autocomplete = 'off',
   validates = [],
   autoAdjustHeight,

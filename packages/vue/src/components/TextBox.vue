@@ -24,6 +24,7 @@ const props = withDefaults(
     placeholder?: string
     isDisabled?: boolean
     isRequired?: boolean
+    /** 入力可能な文字数の上限。既定は無制限（maxlength 属性を付けない） */
     maxLength?: number
     autocomplete?: string
     validates?: Validates
@@ -33,7 +34,7 @@ const props = withDefaults(
     cssStyle: undefined,
     inputType: 'text',
     placeholder: '入力してください',
-    maxLength: 30,
+    maxLength: undefined,
     autocomplete: 'off',
     validates: () => [],
   }

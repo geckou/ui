@@ -2,6 +2,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import type { CheckBoxStyleForEachStatus } from '../types'
+import { CheckPopKeyframes } from './keyframes'
 import { CheckIcon } from './icons/CheckIcon'
 import { COLOR } from '../constants'
 
@@ -64,11 +65,7 @@ export function CheckBox({
 
   return (
     <>
-      <style>
-        {
-          '@keyframes uiCheckPop{0%{scale:1}10%{scale:.8}50%{scale:1.1}100%{scale:1}}'
-        }
-      </style>
+      <CheckPopKeyframes />
       <button
         type="button"
         style={style}
