@@ -28,19 +28,31 @@ export function TabUI({
   tabSlots,
   panelSlots,
 }: Props) {
-  const [activeTab, setActiveTab] = useState(
+  const [selectedKey, setSelectedKey] = useState(
     () => tabs[initialIndex]?.key ?? tabs[0]?.key ?? ''
   )
+
+  // tabs が後から差し替わって選択中の key が消えると、どのパネルも出なくなる。
+  // state をそのまま使わず、描画のたびに実在する key へ寄せる
+  const activeTab = tabs.some((tab) => tab.key === selectedKey)
+    ? selectedKey
+    : (tabs[0]?.key ?? '')
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
   // 複数インスタンス設置時の DOM id 重複を避ける
   const uid = useId()
   const tabId = (key: string) => `${uid}-tab-${key}`
   const panelId = (key: string) => `${uid}-panel-${key}`
 
-  const changeTabs = (key: string) => setActiveTab(key)
+  const changeTabs = (key: string) => setSelectedKey(key)
 
   const activateTab = (index: number) => {
-    setActiveTab(tabs[index].key)
+    const tab = tabs[index]
+
+    if (!tab) {
+      return
+    }
+
+    setSelectedKey(tab.key)
     tabRefs.current[index]?.focus()
   }
 
@@ -48,6 +60,20 @@ export function TabUI({
   // 無関係にタブが切り替わり複数設置時に競合した。タブリストにフォーカスが
   // あるときだけ矢印キーで移動する（WAI-ARIA Tabs パターン）
   const handleKeydown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const lastIndex = tabs.length - 1
+
+    if (lastIndex < 0) {
+      return
+    }
+
+    // APG の Tabs パターンは Home / End で端のタブへ飛べることを求める
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault()
+      activateTab(event.key === 'Home' ? 0 : lastIndex)
+
+      return
+    }
+
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
       return
     }
@@ -58,7 +84,6 @@ export function TabUI({
     }
 
     event.preventDefault()
-    const lastIndex = tabs.length - 1
 
     if (event.key === 'ArrowLeft') {
       activateTab(currentIndex > 0 ? currentIndex - 1 : lastIndex)
@@ -107,6 +132,9 @@ export function TabUI({
           role="tabpanel"
           aria-labelledby={tabId(tab.key)}
           hidden={activeTab !== tab.key}
+          // パネルにフォーカス可能な要素が無いと、キーボードで内容へ到達できない
+          // （APG の Tabs パターン）。tabIndex を付けてパネル自体を停止点にする
+          tabIndex={0}
         >
           {panelSlots?.[`${tab.key}Contents`]}
         </div>

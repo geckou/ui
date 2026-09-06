@@ -311,6 +311,13 @@ const articles = ref<any[]>([])
 - `DropdownUi` / `SlideDownUi` の中身の高さを `ResizeObserver` で測るようにした。
   `onUpdated` だけでは、スロットの中の子コンポーネントが自前の状態で伸縮したときに
   高さがずれていた
+- `TabUI` が `update:activeKey` を emit するようになり、`v-model:activeKey` で
+  親が選択状態を持てる（`activeKey` を渡さなければ従来どおり内部の状態だけで動く）
+- `TabUI` のパネルが `tabindex="0"` になり、パネルにフォーカス可能な要素が
+  無くてもキーボードで内容へ到達できる（APG の Tabs パターン）
+- `TabUI` が Home / End で端のタブへ飛べるようになった
+- `TabUI` は `tabs` が差し替わって選択中の key が消えたとき、先頭のタブへ寄せて
+  `update:activeKey` を emit する（これまではどのパネルも出なくなっていた）
 - アイコンサイズのトークンを `--icon-small` / `--icon-medium` に統一した。
   `mixin.scss` と `MetadataList` だけが `--small-icon-size` / `--medium-icon-size` を
   見ており、利用側で 2 系統を定義する必要があった。**`--small-icon-size` /
