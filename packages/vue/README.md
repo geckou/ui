@@ -318,6 +318,12 @@ const articles = ref<any[]>([])
 - `TabUI` が Home / End で端のタブへ飛べるようになった
 - `TabUI` は `tabs` が差し替わって選択中の key が消えたとき、先頭のタブへ寄せて
   `update:activeKey` を emit する（これまではどのパネルも出なくなっていた）
+- `Icon/*` の svg 全般（`SelectBox` / `DateSelector` の矢印、`DropdownUi` /
+  `SlideDownUi` のシェブロン、`ModalBox` の閉じるアイコン、`MetadataList` の
+  フォルダ / タグ）に `aria-hidden="true"` と `focusable="false"` が付き、
+  スクリーンリーダーの読み上げ対象から外れる
+- `NoImage` は要素ごと `aria-hidden="true"` になった（「No Image」の文字も
+  読み上げない。画像が無いこと自体は伝える情報ではないため）
 - アイコンサイズのトークンを `--icon-small` / `--icon-medium` に統一した。
   `mixin.scss` と `MetadataList` だけが `--small-icon-size` / `--medium-icon-size` を
   見ており、利用側で 2 系統を定義する必要があった。**`--small-icon-size` /

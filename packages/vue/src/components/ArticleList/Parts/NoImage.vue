@@ -3,7 +3,9 @@ import ImageIcon from '@/components/Icon/Image.vue'
 </script>
 
 <template>
-  <div :class="$style.no_image">
+  <!-- サムネイルが無いことを見た目で埋めるだけの表示。
+       画像が存在しないという情報は読み上げても意味が無いので読み上げ対象にしない -->
+  <div :class="$style.no_image" aria-hidden="true">
     <ImageIcon />
     <span>No Image</span>
   </div>
