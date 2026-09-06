@@ -1813,7 +1813,8 @@ describe('DateSelector の emit 値', () => {
     await select.setValue(value)
   }
 
-  // 年の選択肢は「今年 - 100 〜 今年 - 14」なので、固定の年を使う
+  // 年の選択肢は「今年 - 100 〜 今年 - 14」。固定年だと将来この範囲から
+  // 外れて落ちるので、今年からの相対で選ぶ
   const selectableYear = String(new Date().getFullYear() - 20)
 
   it('年月日が揃った時点で YYYY-MM-DD を emit する', async () => {
