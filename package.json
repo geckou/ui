@@ -17,7 +17,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "yarn workspaces run build",
+    "build": "yarn workspace @geckou/ui-core build && yarn workspace @geckou/ui-react build && yarn workspace @geckou/ui-vue build",
     "build:demo": "vite build",
     "check:dist-types": "bash scripts/check-dist-types.sh",
     "dev": "vite",

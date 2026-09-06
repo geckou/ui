@@ -303,6 +303,13 @@ const articles = ref<any[]>([])
 
 ## 0.14.0 の変更
 
+- `DropdownUi` が Escape で閉じ、トリガーへフォーカスを戻す。処理したときは
+  `preventDefault()` するので、`ModalBox` の中に置いてもダイアログまで閉じない
+- `DropdownUi` / `SlideDownUi` のトリガーに `aria-controls` が付き、
+  `DropdownUi` には `aria-haspopup="true"` も付く
+- `DropdownUi` / `SlideDownUi` の中身の高さを `ResizeObserver` で測るようにした。
+  `onUpdated` だけでは、スロットの中の子コンポーネントが自前の状態で伸縮したときに
+  高さがずれていた
 - `DatePicker` の年月日欄に `inputmode="numeric"` が付く（モバイルで数字キーボードが出る）
 - `TextBox` / `TextArea` の `maxLength` の既定値（30 / 100）を廃止し、**未指定なら無制限**にした。
   指定していない利用側で入力が黙って切られていたため。従来の上限が必要な場所には

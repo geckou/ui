@@ -444,6 +444,137 @@ describe('SelectBox', () => {
   })
 })
 
+describe('DropdownUi / SlideDownUi の a11y', () => {
+  // 回帰: 閉じる手段が外側クリックか内容クリックだけで、Escape が効かず
+  // トリガーへフォーカスも戻らなかった
+  it('DropdownUi: Escape で閉じ、トリガーへフォーカスが戻る', async () => {
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: '<button>項目</button>' },
+      attachTo: document.body,
+    })
+
+    try {
+      const trigger = wrapper.find('button')
+      await trigger.trigger('click')
+      expect(wrapper.vm.isContentsOpened).toBe(true)
+
+      // ModalBox の中でダイアログまで閉じないよう preventDefault する。
+      // trigger() の合成イベントでは defaultPrevented を見られないので自前で投げる
+      const event = new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true,
+        cancelable: true,
+      })
+      wrapper.findAll('button')[1]!.element.dispatchEvent(event)
+      await nextTick()
+
+      expect(wrapper.vm.isContentsOpened).toBe(false)
+      expect(document.activeElement).toBe(trigger.element)
+      expect(event.defaultPrevented).toBe(true)
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
+  it('DropdownUi: 閉じているときの Escape は握らない', async () => {
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: 'contents' },
+      attachTo: document.body,
+    })
+
+    try {
+      const event = new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true,
+        cancelable: true,
+      })
+      wrapper.find('button').element.dispatchEvent(event)
+      await nextTick()
+
+      expect(event.defaultPrevented).toBe(false)
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
+  it('DropdownUi / SlideDownUi: トリガーが aria-controls でパネルを指す', () => {
+    const dropdown = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: 'contents' },
+      attachTo: document.body,
+    })
+    const slideDown = mount(SlideDownUi, {
+      slots: { trigger: 'trigger', default: '本文' },
+      attachTo: document.body,
+    })
+
+    for (const wrapper of [dropdown, slideDown]) {
+      const controls = wrapper.find('button').attributes('aria-controls')
+
+      expect(controls).toBeDefined()
+      expect(wrapper.element.querySelector(`[id="${controls}"]`)).not.toBeNull()
+    }
+
+    // ポップアップを開くトリガーであることを伝える（SlideDownUi は
+    // ディスクロージャなので付けない）
+    expect(dropdown.find('button').attributes('aria-haspopup')).toBe('true')
+    expect(slideDown.find('button').attributes('aria-haspopup')).toBeUndefined()
+
+    dropdown.unmount()
+    slideDown.unmount()
+  })
+
+  it('DropdownUi: contents が無ければ aria-haspopup も付けない', () => {
+    const wrapper = mount(DropdownUi, { slots: { trigger: 'trigger' } })
+    const trigger = wrapper.find('button')
+
+    expect(trigger.attributes('aria-controls')).toBeUndefined()
+    expect(trigger.attributes('aria-haspopup')).toBeUndefined()
+  })
+
+  // 回帰: 高さを onUpdated でしか測っていなかったため、スロットの中の
+  // 子コンポーネントが自前の状態で伸縮すると高さがずれていた
+  it('DropdownUi: 中身の伸縮を ResizeObserver で拾う', async () => {
+    const callbacks: Array<() => void> = []
+    const original = globalThis.ResizeObserver
+
+    globalThis.ResizeObserver = class {
+      constructor(callback: () => void) {
+        callbacks.push(callback)
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver
+
+    const wrapper = mount(DropdownUi, {
+      slots: { trigger: 'trigger', contents: 'contents' },
+      attachTo: document.body,
+    })
+
+    // 途中で expect が落ちてもグローバルを戻す（後続テストへ影響させない）
+    try {
+      expect(callbacks).toHaveLength(1)
+
+      await wrapper.find('button').trigger('click')
+
+      const panel = wrapper.find('[id$="_panel"]')
+      const inner = panel.element.firstElementChild as HTMLElement
+
+      Object.defineProperty(inner, 'clientHeight', {
+        configurable: true,
+        value: 120,
+      })
+      callbacks[0]!()
+      await nextTick()
+
+      expect(panel.attributes('style')).toContain('120px')
+    } finally {
+      wrapper.unmount()
+      globalThis.ResizeObserver = original
+    }
+  })
+})
+
 describe('DropdownUi / SlideDownUi の外側クリック', () => {
   // 修正前は v-click-outside ディレクティブに頼っていたが app.directive() の登録が
   // どこにも無く、「Failed to resolve directive: click-outside」で無効化されていた
@@ -1647,5 +1778,356 @@ describe('ModalBox / PopupBox の初期状態', () => {
     expect(wrapper.emitted('close')).toBeUndefined()
 
     wrapper.unmount()
+  })
+})
+
+// テストの空白を埋める（#107）。
+// 既存の describe が触れていなかった振る舞いだけを対象にする
+describe('TextArea', () => {
+  it('必須で空なら blur でエラーを出す', async () => {
+    const wrapper = mount(TextArea, {
+      props: { name: 'note', modelValue: '', isRequired: true },
+    })
+
+    expect(wrapper.text()).not.toContain('必須')
+
+    await wrapper.find('textarea').trigger('blur')
+
+    expect(wrapper.text()).toContain('必須')
+  })
+
+  it('validates の正規表現に合わなければエラーを出す', async () => {
+    const wrapper = mount(TextArea, {
+      props: {
+        name: 'note',
+        modelValue: 'あいう',
+        validates: [{ regex: /^[a-z]+$/, message: '半角英小文字で入力' }],
+      },
+    })
+
+    await wrapper.find('textarea').trigger('blur')
+
+    expect(wrapper.text()).toContain('半角英小文字で入力')
+  })
+
+  it('autoAdjustHeight が無ければ高さを触らない', async () => {
+    const wrapper = mount(TextArea, {
+      props: { name: 'note', modelValue: '' },
+    })
+    const textarea = wrapper.find('textarea').element
+
+    await wrapper.setProps({ modelValue: '本文' })
+    await nextTick()
+
+    expect(textarea.style.height).toBe('')
+  })
+
+  // 回帰: 補正が padding 決め打ちの 2rem だったため、border-box の
+  // リセット CSS を当てた環境で高さが 2rem 足りずスクロールになっていた
+  it('autoAdjustHeight は box-sizing を見て高さを補正する', async () => {
+    const adjustedHeight = async (boxSizing: 'border-box' | 'content-box') => {
+      const wrapper = mount(TextArea, {
+        props: { name: 'note', modelValue: '', autoAdjustHeight: true },
+      })
+      const textarea = wrapper.find('textarea').element
+
+      textarea.style.boxSizing = boxSizing
+      textarea.style.paddingTop = '10px'
+      textarea.style.paddingBottom = '10px'
+      textarea.style.borderTopWidth = '5px'
+      textarea.style.borderBottomWidth = '5px'
+      Object.defineProperty(textarea, 'scrollHeight', {
+        configurable: true,
+        value: 100,
+      })
+
+      await wrapper.setProps({ modelValue: '本文' })
+      await nextTick()
+      await nextTick()
+
+      const height = textarea.style.height
+      wrapper.unmount()
+
+      return height
+    }
+
+    // border-box は border を足す（100 + 5 + 5）
+    expect(await adjustedHeight('border-box')).toBe('110px')
+    // content-box は padding を引く（100 - 10 - 10）
+    expect(await adjustedHeight('content-box')).toBe('80px')
+  })
+})
+
+describe('BasicButton の disabled', () => {
+  it('isDisabled では disabled と aria-disabled が付く', () => {
+    const wrapper = mount(BasicButton, {
+      props: { isDisabled: true },
+      slots: { default: '送信' },
+    })
+
+    const button = wrapper.find('button')
+
+    expect(button.attributes('disabled')).toBeDefined()
+    expect(button.attributes('aria-disabled')).toBe('true')
+    // 押せないだけで、ローディングではない
+    expect(button.attributes('aria-busy')).toBeUndefined()
+  })
+
+  it('ローディング中のクリックは親のリスナーまで届かない', async () => {
+    const onClick = vi.fn()
+    const wrapper = mount(BasicButton, {
+      props: { isLoading: true },
+      attrs: { onClick },
+      slots: { default: '送信' },
+    })
+
+    await wrapper.find('button').trigger('click')
+
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('buttonType を渡さなければ type="button"（意図しない送信を防ぐ）', () => {
+    const wrapper = mount(BasicButton, { slots: { default: '送信' } })
+
+    expect(wrapper.find('button').attributes('type')).toBe('button')
+  })
+})
+
+describe('ToggleButton のキーボード操作', () => {
+  // Enter / Space での起動はネイティブの button に任せている（jsdom は
+  // keydown を click に変換しないので、ここで検証できるのは
+  // 「button のままであること」まで）。div + role="switch" にすると
+  // 自前でキー処理が要るため、要素と role を固定する
+  it('role="switch" のネイティブ button で、click で切り替わる', async () => {
+    const wrapper = mount(ToggleButton, {
+      props: { name: 'notification', modelValue: false },
+    })
+
+    const button = wrapper.find('button')
+
+    expect(button.element.tagName).toBe('BUTTON')
+    expect(button.attributes('type')).toBe('button')
+    expect(button.attributes('role')).toBe('switch')
+
+    await button.trigger('click')
+
+    expect(wrapper.emitted('update:modelValue')).toEqual([[true]])
+  })
+
+  it('isDisabled ならクリックしても切り替わらない', async () => {
+    const wrapper = mount(ToggleButton, {
+      props: { name: 'notification', modelValue: false, isDisabled: true },
+    })
+
+    await wrapper.find('button').trigger('click')
+
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    expect(wrapper.find('button').attributes('disabled')).toBeDefined()
+  })
+
+  it('アクセシブル名は ariaLabel、無ければ name にフォールバックする', () => {
+    const withName = mount(ToggleButton, {
+      props: { name: 'notification', modelValue: false },
+    })
+    const withLabel = mount(ToggleButton, {
+      props: { name: 'notification', modelValue: false, ariaLabel: '通知' },
+    })
+
+    expect(withName.find('button').attributes('aria-label')).toBe(
+      'notification'
+    )
+    expect(withLabel.find('button').attributes('aria-label')).toBe('通知')
+  })
+})
+
+describe('CheckBoxes の必須検証と emit', () => {
+  const options = [
+    { label: '個人', value: 'personal' },
+    { label: '法人', value: 'corporate' },
+  ]
+
+  it('選択を切り替えると値の配列を emit する', async () => {
+    const wrapper = mount(CheckBoxes, {
+      props: { name: 'kind', options },
+    })
+
+    await wrapper.findAll('button[role="checkbox"]')[1]!.trigger('click')
+
+    expect(wrapper.emitted('update:modelValue')).toEqual([[['corporate']]])
+  })
+
+  it('必須で全部外すとエラーを出し、選び直すと消える', async () => {
+    const wrapper = mount(CheckBoxes, {
+      props: {
+        name: 'kind',
+        options,
+        modelValue: ['personal'],
+        isRequired: true,
+      },
+    })
+
+    const first = () => wrapper.findAll('button[role="checkbox"]')[0]!
+
+    await first().trigger('click')
+    expect(wrapper.text()).toContain('必須')
+
+    await first().trigger('click')
+    expect(wrapper.text()).not.toContain('必須')
+  })
+
+  it('required でなければ空でもエラーにしない', async () => {
+    const wrapper = mount(CheckBoxes, {
+      props: { name: 'kind', options, modelValue: ['personal'] },
+    })
+
+    await wrapper.findAll('button[role="checkbox"]')[0]!.trigger('click')
+
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([[]])
+    expect(wrapper.text()).not.toContain('必須')
+  })
+})
+
+describe('DateSelector の emit 値', () => {
+  const selectUnit = async (
+    wrapper: ReturnType<typeof mount>,
+    label: string,
+    value: string
+  ) => {
+    const select = wrapper.find(`select[aria-label="${label}"]`)
+
+    await select.setValue(value)
+  }
+
+  // 年の選択肢は「今年 - 100 〜 今年 - 14」。固定年だと将来この範囲から
+  // 外れて落ちるので、今年からの相対で選ぶ
+  const selectableYear = String(new Date().getFullYear() - 20)
+
+  it('年月日が揃った時点で YYYY-MM-DD を emit する', async () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'birthday', modelValue: '' },
+    })
+
+    await selectUnit(wrapper, 'birthdayの年', selectableYear)
+    await selectUnit(wrapper, 'birthdayの月', '05')
+
+    // 揃うまでは emit しない（中途半端な値を親へ渡さない）
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+
+    await selectUnit(wrapper, 'birthdayの日', '03')
+
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([
+      `${selectableYear}-05-03`,
+    ])
+  })
+
+  it('type="month" なら YYYY-MM を emit する', async () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'birthday', modelValue: '', type: 'month' },
+    })
+
+    await selectUnit(wrapper, 'birthdayの年', selectableYear)
+    await selectUnit(wrapper, 'birthdayの月', '05')
+
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([
+      `${selectableYear}-05`,
+    ])
+  })
+
+  it('削除ボタンで空文字を emit する', async () => {
+    const wrapper = mount(DateSelector, {
+      props: { name: 'birthday', modelValue: '2024-05-03' },
+    })
+
+    await wrapper.find('button').trigger('click')
+
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([''])
+  })
+})
+
+describe('FormValidationManager', () => {
+  it('登録が無ければ有効', () => {
+    const manager = new FormValidationManager()
+
+    expect(manager.isAllValid.value).toBe(true)
+    expect(manager.invalidNames.value).toEqual([])
+  })
+
+  it('無効な入力があれば isAllValid が false になり、name が並ぶ', () => {
+    const manager = new FormValidationManager()
+
+    manager.setValid('startedOn', false)
+    manager.setValid('endedOn', true)
+
+    expect(manager.isAllValid.value).toBe(false)
+    expect(manager.invalidNames.value).toEqual(['startedOn'])
+    expect(manager.isValid('startedOn')).toBe(false)
+    expect(manager.isValid('endedOn')).toBe(true)
+    // 未登録は有効として扱う
+    expect(manager.isValid('unknown')).toBe(true)
+  })
+
+  it('remove すると判定から外れる（アンマウントした入力を残さない）', () => {
+    const manager = new FormValidationManager()
+
+    manager.setValid('startedOn', false)
+    expect(manager.isAllValid.value).toBe(false)
+
+    manager.remove('startedOn')
+
+    expect(manager.isAllValid.value).toBe(true)
+    expect(manager.invalidNames.value).toEqual([])
+  })
+
+  it('reset で全部消える', () => {
+    const manager = new FormValidationManager()
+
+    manager.setValid('a', false)
+    manager.setValid('b', false)
+    manager.reset()
+
+    expect(manager.isAllValid.value).toBe(true)
+  })
+
+  it('同じ name を上書きできる', () => {
+    const manager = new FormValidationManager()
+
+    manager.setValid('startedOn', false)
+    manager.setValid('startedOn', true)
+
+    expect(manager.isAllValid.value).toBe(true)
+    expect(manager.invalidNames.value).toEqual([])
+  })
+})
+
+describe('TabUI の initialIndex', () => {
+  const tabs = [
+    { key: 'tabA', label: 'A' },
+    { key: 'tabB', label: 'B' },
+  ]
+
+  const selectedKey = (wrapper: ReturnType<typeof mount>) =>
+    wrapper
+      .findAll('[role="tab"]')
+      .find((tab) => tab.attributes('aria-selected') === 'true')
+      ?.attributes('id')
+      ?.replace(/^.*_tab_/, '')
+
+  it('範囲外なら先頭のタブを選ぶ', () => {
+    expect(
+      selectedKey(mount(TabUI, { props: { tabs, initialIndex: 5 } }))
+    ).toBe('tabA')
+    expect(
+      selectedKey(mount(TabUI, { props: { tabs, initialIndex: -1 } }))
+    ).toBe('tabA')
+  })
+
+  it('tabs が空でも描画でき、矢印キーで落ちない', async () => {
+    const wrapper = mount(TabUI, { props: { tabs: [] } })
+
+    expect(wrapper.findAll('[role="tab"]')).toHaveLength(0)
+
+    await expect(
+      wrapper.find('[role="tablist"]').trigger('keydown', { key: 'ArrowRight' })
+    ).resolves.not.toThrow()
   })
 })

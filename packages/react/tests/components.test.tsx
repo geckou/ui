@@ -994,6 +994,102 @@ describe('キーボードアクセシビリティ', () => {
     expect(container.querySelector('[inert]')).toBeNull()
   })
 
+  // 回帰: 閉じる手段が外側クリックか内容クリックだけで、Escape が効かず
+  // トリガーへフォーカスも戻らなかった
+  it('DropdownUi: Escape で閉じ、トリガーへフォーカスが戻る', () => {
+    act(() => {
+      root.render(
+        <DropdownUi
+          trigger={<span>メニュー</span>}
+          contents={<button type="button">項目</button>}
+        />
+      )
+    })
+
+    const trigger = container.querySelector('button')!
+
+    act(() => trigger.click())
+    expect(trigger.getAttribute('aria-expanded')).toBe('true')
+
+    const item = container.querySelectorAll('button')[1]!
+    item.focus()
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      bubbles: true,
+      cancelable: true,
+    })
+    act(() => {
+      item.dispatchEvent(event)
+    })
+
+    expect(trigger.getAttribute('aria-expanded')).toBe('false')
+    expect(document.activeElement).toBe(trigger)
+    // ModalBox の中に置いたとき、ダイアログまで閉じないよう印を残す
+    expect(event.defaultPrevented).toBe(true)
+  })
+
+  it('DropdownUi: 閉じているときの Escape は握らない', () => {
+    act(() => {
+      root.render(
+        <DropdownUi trigger={<span>メニュー</span>} contents={<p>項目</p>} />
+      )
+    })
+
+    const trigger = container.querySelector('button')!
+    const event = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      bubbles: true,
+      cancelable: true,
+    })
+
+    act(() => {
+      trigger.dispatchEvent(event)
+    })
+
+    expect(event.defaultPrevented).toBe(false)
+  })
+
+  it('DropdownUi / SlideDownUi: トリガーが aria-controls でパネルを指す', () => {
+    act(() => {
+      root.render(
+        <>
+          <DropdownUi trigger={<span>メニュー</span>} contents={<p>項目</p>} />
+          <SlideDownUi trigger={<span>開く</span>}>
+            <p>本文</p>
+          </SlideDownUi>
+        </>
+      )
+    })
+
+    const triggers = [...container.querySelectorAll('button')]
+
+    expect(triggers).toHaveLength(2)
+
+    for (const trigger of triggers) {
+      const controls = trigger.getAttribute('aria-controls')
+
+      expect(controls).not.toBeNull()
+      expect(document.getElementById(controls!)).not.toBeNull()
+    }
+
+    // ポップアップを開くトリガーであることを伝える（SlideDownUi は
+    // ディスクロージャなので付けない）
+    expect(triggers[0]!.getAttribute('aria-haspopup')).toBe('true')
+    expect(triggers[1]!.hasAttribute('aria-haspopup')).toBe(false)
+  })
+
+  it('DropdownUi: contents が無ければ aria-haspopup も付けない', () => {
+    act(() => {
+      root.render(<DropdownUi trigger={<span>メニュー</span>} />)
+    })
+
+    const trigger = container.querySelector('button')!
+
+    expect(trigger.hasAttribute('aria-controls')).toBe(false)
+    expect(trigger.hasAttribute('aria-haspopup')).toBe(false)
+  })
+
   it('FileInput: ファイル選択 input が sr-only、削除ボタンにアクセシブル名がある', () => {
     const file = new File(['data'], 'photo.png', { type: 'image/png' })
     act(() => {
