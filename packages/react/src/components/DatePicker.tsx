@@ -196,6 +196,7 @@ export function DatePicker({
         {...fieldLabelProps('年')}
         maxLength={4}
         type="text"
+        inputMode="numeric"
         disabled={isDisabled}
         onChange={(event) => handleObjectChange('year', event.target.value)}
         onBlur={handleObjectBlur}
@@ -208,6 +209,7 @@ export function DatePicker({
         {...fieldLabelProps('月')}
         maxLength={2}
         type="text"
+        inputMode="numeric"
         disabled={isDisabled}
         onChange={(event) => handleObjectChange('month', event.target.value)}
         onBlur={handleObjectBlur}
@@ -221,6 +223,7 @@ export function DatePicker({
           {...fieldLabelProps('日')}
           maxLength={2}
           type="text"
+          inputMode="numeric"
           disabled={isDisabled}
           onChange={(event) => handleObjectChange('day', event.target.value)}
           onBlur={handleObjectBlur}

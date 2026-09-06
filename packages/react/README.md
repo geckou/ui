@@ -122,6 +122,11 @@ yarn workspace @geckou/ui-react test
 - 装飾のアイコン（`SelectBox` / `DateSelector` の矢印、`DropdownUi` / `SlideDownUi` の
   シェブロン、`ModalBox` の閉じるアイコン）に `aria-hidden="true"` と
   `focusable="false"` が付き、スクリーンリーダーの読み上げ対象から外れる
+- `DatePicker` の年月日欄に `inputMode="numeric"` が付く（モバイルで数字キーボードが出る）
+- `TextBox` / `TextArea` の `maxLength` の既定値（30 / 100）を廃止し、**未指定なら無制限**にした。
+  指定していない利用側で入力が黙って切られていた（`SearchableSelectBox` の検索語も
+  30 文字で止まっていた）。従来の上限が必要な場所には `maxLength={30}` /
+  `maxLength={100}` を明示すること
 
 ## 0.8.0 の変更
 

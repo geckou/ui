@@ -414,6 +414,32 @@ describe('装飾 SVG の aria-hidden', () => {
   })
 })
 
+// 回帰: 既定で maxLength が 30 / 100 だったため、指定していない
+// 利用側で入力が黙って切られていた
+describe('TextBox / TextArea の maxLength', () => {
+  it('未指定なら maxlength 属性を付けない', () => {
+    const textBox = mount(TextBox, { props: { name: 'text', modelValue: '' } })
+    const textArea = mount(TextArea, {
+      props: { name: 'area', modelValue: '' },
+    })
+
+    expect(textBox.find('input').attributes('maxlength')).toBeUndefined()
+    expect(textArea.find('textarea').attributes('maxlength')).toBeUndefined()
+  })
+
+  it('指定すれば maxlength 属性を付ける', () => {
+    const textBox = mount(TextBox, {
+      props: { name: 'text', modelValue: '', maxLength: 10 },
+    })
+    const textArea = mount(TextArea, {
+      props: { name: 'area', modelValue: '', maxLength: 20 },
+    })
+
+    expect(textBox.find('input').attributes('maxlength')).toBe('10')
+    expect(textArea.find('textarea').attributes('maxlength')).toBe('20')
+  })
+})
+
 describe('TextBox のバリデーション', () => {
   // v-model 相当。emit を受けて modelValue を戻さないと内部の値が更新されない
   const mountTextBox = (props: { name: string } & Record<string, unknown>) => {
@@ -1332,6 +1358,34 @@ describe('DatePicker', () => {
 
     expect(native.attributes('min')).toBe('2024-01-01')
     expect(native.attributes('max')).toBe('2024-12-31')
+  })
+
+  // 回帰: 年月日は type="text" なので、inputmode が無いとモバイルで
+  // 数字キーボードが出ない
+  it('年月日の入力欄に inputmode="numeric" が付く', () => {
+    const wrapper = mount(DatePicker, {
+      props: { name: 'startedOn', modelValue: '2024-01-01' },
+    })
+
+    const units = wrapper.findAll('input[type="text"]')
+
+    expect(units).toHaveLength(3)
+    expect(
+      units.every((input) => input.attributes('inputmode') === 'numeric')
+    ).toBe(true)
+  })
+
+  it('type="month" では年月の 2 つに inputmode="numeric" が付く', () => {
+    const wrapper = mount(DatePicker, {
+      props: { name: 'startedOn', modelValue: '2024-01', type: 'month' },
+    })
+
+    const units = wrapper.findAll('input[type="text"]')
+
+    expect(units).toHaveLength(2)
+    expect(
+      units.every((input) => input.attributes('inputmode') === 'numeric')
+    ).toBe(true)
   })
 })
 

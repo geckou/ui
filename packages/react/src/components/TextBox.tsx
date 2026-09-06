@@ -22,6 +22,7 @@ type Props = {
   placeholder?: string
   isDisabled?: boolean
   isRequired?: boolean
+  /** 入力可能な文字数の上限。既定は無制限（`maxlength` 属性を付けない） */
   maxLength?: number
   autocomplete?: string
   validates?: Validates
@@ -53,7 +54,7 @@ export function TextBox({
   placeholder = '入力してください',
   isDisabled,
   isRequired,
-  maxLength = 30,
+  maxLength,
   autocomplete = 'off',
   validates = [],
   before,

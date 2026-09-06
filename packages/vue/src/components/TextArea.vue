@@ -20,6 +20,7 @@ const props = withDefaults(
     isDisabled?: boolean
     isRequired?: boolean
     rows?: number
+    /** 入力可能な文字数の上限。既定は無制限（maxlength 属性を付けない） */
     maxLength?: number
     autocomplete?: string
     validates?: Validates
@@ -31,7 +32,7 @@ const props = withDefaults(
     isRequired: false,
     placeholder: '入力してください',
     rows: undefined,
-    maxLength: 100,
+    maxLength: undefined,
     isDisabled: false,
     autocomplete: 'off',
     validates: () => [],
