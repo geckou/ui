@@ -108,6 +108,15 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
+## 0.9.0 の変更
+
+- `ModalBox` は**表示している間だけ** children を描画し、`document.body` へ
+  Portal する（`PopupBox` と同じ形）。閉じている間も children の effect
+  （データ取得等）が走っていたのと、`transform` / `filter` を持つ祖先の中で
+  `position: fixed` の基準がずれてオーバーレイが崩れるのを直す。
+  **`ModalBox` の DOM を親から辿っているテストやスタイルは追従が要る**
+  （閉じている間は要素そのものが無く、開いている間は `document.body` 直下にある）
+
 ## 0.8.0 の変更
 
 - `BasicButton` はローディング中に `disabled` にしない（押した瞬間にフォーカスが

@@ -1,7 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   createModalLayer,
   createScrollLock,
@@ -49,6 +50,28 @@ export function ModalBox({
   const headerId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
 
+  // createPortal は document を要るので、SSR の初回描画では何も出さない
+  // （PopupBox と同じ形）
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => setIsMounted(true), [])
+
+  // 表示している間だけ描くと、mount した瞬間に opacity: 1 になり
+  // フェードインが効かない。1 フレーム置いてから不透明にする
+  const [isFadedIn, setIsFadedIn] = useState(false)
+
+  useEffect(() => {
+    if (!isShown) {
+      setIsFadedIn(false)
+
+      return
+    }
+
+    const frame = requestAnimationFrame(() => setIsFadedIn(true))
+
+    return () => cancelAnimationFrame(frame)
+  }, [isShown])
+
   // body.style.overflow を直接触ると、モーダルを重ねて内側を閉じたときに
   // 外側が開いたままスクロールが戻り、アプリ側のインライン overflow も消える。
   // ロック数を数える実装は @geckou/ui-core に置いて Vue 版と共有している
@@ -72,7 +95,9 @@ export function ModalBox({
     layer.toggle(isShown, dialogRef.current)
 
     return () => layer.release()
-  }, [isShown])
+    // isMounted も見る。Portal の都合で最初の描画は null になるため、
+    // isShown だけを見ると dialogRef が空のまま登録される
+  }, [isShown, isMounted])
 
   // 開く前にフォーカスしていた要素。閉じたらここへ戻す
   // （戻さないとフォーカスが body に落ち、キーボード操作の位置を見失う）
@@ -82,7 +107,7 @@ export function ModalBox({
   const pressedOnBackdrop = useRef(false)
 
   useEffect(() => {
-    if (!isShown) {
+    if (!isShown || !isMounted) {
       return
     }
 
@@ -98,7 +123,7 @@ export function ModalBox({
       lastFocused.current?.focus()
       lastFocused.current = null
     }
-  }, [isShown])
+  }, [isShown, isMounted])
 
   // Escape で閉じ、Tab / Shift+Tab はダイアログ内で循環させる
   // （role="dialog" は自前で実装する必要がある。背景は inert にしていないので、
@@ -139,15 +164,19 @@ export function ModalBox({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isShown, onClose])
 
-  return (
+  // 閉じている間は描かない。常時マウントしていると children の effect
+  // （データ取得等）が閉じたままでも走る。
+  // あわせて document.body へ Portal する。transform / filter を持つ祖先の中では
+  // position: fixed の基準がその祖先になり、全画面のオーバーレイが崩れる
+  if (!isShown || !isMounted) {
+    return null
+  }
+
+  return createPortal(
     <div
       className={`fixed top-0 left-0 z-50 flex h-dvh w-dvw cursor-pointer items-center justify-center overflow-hidden bg-[#33333380] p-[var(--sp-larger,3rem)] backdrop-blur-sm transition-opacity duration-100 max-md:px-[var(--sp-large,1.5rem)] ${
-        isShown
-          ? 'pointer-events-auto opacity-100'
-          : 'pointer-events-none opacity-0'
+        isFadedIn ? 'opacity-100' : 'opacity-0'
       }`}
-      aria-hidden={!isShown}
-      inert={!isShown}
       // click は mousedown / mouseup の共通祖先で発火する。ダイアログ内で
       // テキスト選択を始めて背景で指を離すと、target === currentTarget が真になり
       // 入力途中のフォームごと閉じていた。押し始めも背景だったときだけ閉じる
@@ -197,6 +226,7 @@ export function ModalBox({
           <CloseIcon />
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
