@@ -489,6 +489,57 @@ function blur(element: HTMLElement) {
   })
 }
 
+// 回帰: 装飾のアイコンに aria-hidden が無く、スクリーンリーダーが
+// 読み上げ対象にしていた（SelectBox / DateSelector の矢印、
+// Dropdown / SlideDown のシェブロン、ModalBox の閉じるアイコン）
+describe('装飾 SVG の aria-hidden', () => {
+  it('SelectBox / DateSelector / SlideDownUi の svg は読み上げ対象にならない', () => {
+    act(() => {
+      root.render(
+        <>
+          <SelectBox name="s" options={[{ label: 'a', value: 'a' }]} />
+          <DateSelector name="d" value="" />
+          <SlideDownUi trigger="t">
+            <p>本文</p>
+          </SlideDownUi>
+        </>
+      )
+    })
+
+    const svgs = Array.from(container.querySelectorAll('svg'))
+
+    expect(svgs.length).toBeGreaterThan(0)
+    expect(
+      svgs.every(
+        (svg) =>
+          svg.getAttribute('aria-hidden') === 'true' &&
+          svg.getAttribute('focusable') === 'false'
+      )
+    ).toBe(true)
+  })
+
+  it('ModalBox の閉じるアイコンも読み上げ対象にならない', () => {
+    act(() => {
+      root.render(
+        <ModalBox isShown onClose={() => {}}>
+          <p>本文</p>
+        </ModalBox>
+      )
+    })
+
+    const svgs = Array.from(container.querySelectorAll('svg'))
+
+    expect(svgs.length).toBeGreaterThan(0)
+    expect(
+      svgs.every(
+        (svg) =>
+          svg.getAttribute('aria-hidden') === 'true' &&
+          svg.getAttribute('focusable') === 'false'
+      )
+    ).toBe(true)
+  })
+})
+
 // 回帰: 既定で maxLength が 30 / 100 だったため、指定していない
 // 利用側で入力が黙って切られていた（SearchableSelectBox の検索語も 30 文字で止まる）
 describe('TextBox / TextArea の maxLength', () => {

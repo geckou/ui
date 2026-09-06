@@ -1,5 +1,10 @@
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+    focusable="false"
+    viewBox="0 0 24 24"
+  >
     <circle cx="7.499" cy="9.5" r="1.5" />
     <path d="m10.499 14-1.5-2-3 4h12l-4.5-6z" />
     <path
