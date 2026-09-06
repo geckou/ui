@@ -108,6 +108,14 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
+## 0.9.0 の変更
+
+- `DatePicker` の年月日欄に `inputMode="numeric"` が付く（モバイルで数字キーボードが出る）
+- `TextBox` / `TextArea` の `maxLength` の既定値（30 / 100）を廃止し、**未指定なら無制限**にした。
+  指定していない利用側で入力が黙って切られていた（`SearchableSelectBox` の検索語も
+  30 文字で止まっていた）。従来の上限が必要な場所には `maxLength={30}` /
+  `maxLength={100}` を明示すること
+
 ## 0.8.0 の変更
 
 - `BasicButton` はローディング中に `disabled` にしない（押した瞬間にフォーカスが

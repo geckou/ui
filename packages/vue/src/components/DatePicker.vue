@@ -200,11 +200,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
 <template>
   <InputBox
     :isDisabled="isDisabled"
-    :class="[
-      $style.date_picker,
-      $style[size],
-      { [$style.is_disabled]: isDisabled },
-    ]"
+    :class="[$style.date_picker, $style[size]]"
     :isErrored="!!errorMessage"
   >
     <div :class="$style.date_input">
@@ -230,6 +226,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       :aria-labelledby="fieldLabelledBy('年')"
       maxlength="4"
       type="text"
+      inputmode="numeric"
       :disabled="isDisabled"
       :class="$style.year"
       @input="handleObjectInput('year', $event)"
@@ -242,6 +239,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       :aria-labelledby="fieldLabelledBy('月')"
       maxlength="2"
       type="text"
+      inputmode="numeric"
       :disabled="isDisabled"
       @input="handleObjectInput('month', $event)"
       @blur="handleObjectBlur"
@@ -255,6 +253,7 @@ onBeforeUnmount(() => props.formValidationManager?.remove(props.name))
       :aria-labelledby="fieldLabelledBy('日')"
       maxlength="2"
       type="text"
+      inputmode="numeric"
       :disabled="isDisabled"
       @input="handleObjectInput('day', $event)"
       @blur="handleObjectBlur"

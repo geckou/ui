@@ -415,6 +415,45 @@ function blur(element: HTMLElement) {
   })
 }
 
+// 回帰: 既定で maxLength が 30 / 100 だったため、指定していない
+// 利用側で入力が黙って切られていた（SearchableSelectBox の検索語も 30 文字で止まる）
+describe('TextBox / TextArea の maxLength', () => {
+  it('未指定なら maxlength 属性を付けない', () => {
+    act(() => {
+      root.render(
+        <>
+          <TextBox name="text" value="" />
+          <TextArea name="area" value="" />
+        </>
+      )
+    })
+
+    const input = container.querySelector('input[name="text"]')
+    const textarea = container.querySelector('textarea')
+
+    expect(input?.hasAttribute('maxlength')).toBe(false)
+    expect(textarea?.hasAttribute('maxlength')).toBe(false)
+  })
+
+  it('指定すれば maxlength 属性を付ける', () => {
+    act(() => {
+      root.render(
+        <>
+          <TextBox name="text" value="" maxLength={10} />
+          <TextArea name="area" value="" maxLength={20} />
+        </>
+      )
+    })
+
+    expect(
+      container.querySelector('input[name="text"]')?.getAttribute('maxlength')
+    ).toBe('10')
+    expect(container.querySelector('textarea')?.getAttribute('maxlength')).toBe(
+      '20'
+    )
+  })
+})
+
 describe('TextBox のバリデーション', () => {
   it('数値 0 は必須エラーにならない', () => {
     act(() => {
@@ -1008,6 +1047,34 @@ describe('DatePicker', () => {
       'input[type="month"]'
     ) as HTMLInputElement
     expect(monthInput.value).toBe('2026-08')
+  })
+
+  // 回帰: 年月日は type="text" なので、inputMode が無いとモバイルで
+  // 数字キーボードが出ない
+  it('年月日の入力欄に inputMode="numeric" が付く', () => {
+    act(() => {
+      root.render(<DatePicker name="date" value="2026-01-01" />)
+    })
+
+    const units = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[type="text"]')
+    )
+
+    expect(units).toHaveLength(3)
+    expect(units.every((input) => input.inputMode === 'numeric')).toBe(true)
+  })
+
+  it('type="month" では年月の 2 つに inputMode="numeric" が付く', () => {
+    act(() => {
+      root.render(<DatePicker name="month" type="month" value="2026-08" />)
+    })
+
+    const units = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[type="text"]')
+    )
+
+    expect(units).toHaveLength(2)
+    expect(units.every((input) => input.inputMode === 'numeric')).toBe(true)
   })
 })
 

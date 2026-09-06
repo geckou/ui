@@ -273,7 +273,7 @@ const articles = ref<any[]>([])
 | `inputType`        | `string`                    | ❌       | `text`             | `input` の `type` 属性                         |
 | `isDisabled`       | `boolean`                   | ❌       | `false`            | テキストボックスの活性/非活性                  |
 | `isRequired`       | `boolean`                   | ❌       | `false`            | 必須項目かどうか                               |
-| `maxLength`        | `number`                    | ❌       | `30`               | 最大入力文字数                                 |
+| `maxLength`        | `number`                    | ❌       | -                  | 最大入力文字数（未指定なら無制限）             |
 | `autocomplete`     | `string`                    | ❌       | `off`              | `autocomplete`属性                             |
 | `validates`        | `Validates[]`               | ❌       | `[]`               | バリデーションの設定                           |
 
@@ -300,6 +300,14 @@ const articles = ref<any[]>([])
 | `--medium-icon-size` | `1.125rem` | アイコン全般（`mixin.scss` の既定） |
 
 定義例はデモの `demo/styles/base.scss` を参照。
+
+## 0.14.0 の変更
+
+- `DatePicker` の年月日欄に `inputmode="numeric"` が付く（モバイルで数字キーボードが出る）
+- `TextBox` / `TextArea` の `maxLength` の既定値（30 / 100）を廃止し、**未指定なら無制限**にした。
+  指定していない利用側で入力が黙って切られていたため。従来の上限が必要な場所には
+  `:maxLength="30"` / `:maxLength="100"` を明示すること
+- `DatePicker` のルートから、スタイル定義の無い `is_disabled` クラスを外した
 
 ## 0.13.0 の変更
 
