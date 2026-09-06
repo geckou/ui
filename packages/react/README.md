@@ -110,6 +110,10 @@ yarn workspace @geckou/ui-react test
 
 ## 0.9.0 の変更
 
+- `DropdownUi` が Escape で閉じ、トリガーへフォーカスを戻す。処理したときは
+  `preventDefault()` するので、`ModalBox` の中に置いてもダイアログまで閉じない
+- `DropdownUi` / `SlideDownUi` のトリガーに `aria-controls` が付き、
+  `DropdownUi` には `aria-haspopup="true"` も付く
 - `TabUI` のパネルが `tabIndex={0}` になり、パネルにフォーカス可能な要素が
   無くてもキーボードで内容へ到達できる（APG の Tabs パターン）
 - `TabUI` が Home / End で端のタブへ飛べるようになった
