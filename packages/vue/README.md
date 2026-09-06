@@ -295,7 +295,7 @@ const articles = ref<any[]>([])
 | `--z-index-nav` | `70` | ModalBox の閉じるボタン（+1 で重ねる） |
 | `--contents-max-width` | `1440px` | ModalBox の最大幅、PopupBox の左右位置 |
 | `--global-header-height` | `0px` | PopupBox の上端 |
-| `--mobile-lower-width` | `430px` | ModalBox（`size="small"`）と PopupBox の最大幅 |
+| `--mobile-lower-width` | `430px` | ModalBox（`size="small"`）の最大幅。PopupBox の最大幅にも効くが、そちらは**この値の 1/2** |
 | `--desktop-lower-width` | `992px` | ModalBox（既定）の最大幅 |
 | `--icon-small` | `0.9375rem` | MetadataList のアイコン |
 | `--icon-medium` | `1.125rem` | アイコン全般（`mixin.scss` の既定） |

@@ -108,7 +108,7 @@ Geckou が自社の制作案件で使うために開発しているコンポー�
   --animation-duration: .3s;
 
   /* 幅（ModalBox / PopupBox の最大幅） */
-  --mobile-lower-width : 430px;
+  --mobile-lower-width : 320px;
   --desktop-lower-width: 992px;
   --contents-max-width : 1440px;
 }
@@ -125,7 +125,7 @@ Geckou が自社の制作案件で使うために開発しているコンポー�
 | `--bv` と `--sp-*` | 余白の基準値と段階 |
 | `--fs-small` / `--fs-large` | 小さめ・大きめの文字サイズ |
 | `--icon-small` / `--icon-medium` | アイコンのサイズ |
-| `--mobile-lower-width` / `--desktop-lower-width` / `--contents-max-width` | `ModalBox` の最大幅（`size` prop で切り替え）、`PopupBox` の左右位置 |
+| `--mobile-lower-width` / `--desktop-lower-width` / `--contents-max-width` | `ModalBox` の最大幅（`size` prop で切り替え）。`--contents-max-width` は `PopupBox` の左右位置、`--mobile-lower-width` は `PopupBox` の最大幅（**この値の 1/2**）にも効く |
 
 記事一覧コンポーネントはコンテナクエリでレイアウトを切り替えるため、
 親要素に `container-type: inline-size` を指定してください。
