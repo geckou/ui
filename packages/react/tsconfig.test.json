@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "types": ["vitest/globals"]
-  },
+  // vitest.config.ts は globals を有効にしていない（テストは describe / it を
+  // 明示 import する）。types に vitest/globals を入れると、グローバルに
+  // 生えていない API が型の上だけ通ってしまう
   "include": ["src", "tests"]
 }

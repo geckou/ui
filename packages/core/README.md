@@ -171,6 +171,11 @@ import type { Validates, Option, StateVariation, DateObject } from '@geckou/ui-c
 
 型の一覧は [Vue パッケージの README](../vue/README.md#types) を参照してください。
 
+## 0.8.1 の変更
+
+- `sideEffects: false` を宣言した。副作用のある import は無いので、
+  利用側のバンドラが未使用の export を落とせる
+
 ## 0.8.0 の変更
 
 - `RadioButtonStyle` に `textColor` を追加（選択中のラベル色。実装は両フレームワークとも
