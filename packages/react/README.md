@@ -122,6 +122,12 @@ yarn workspace @geckou/ui-react test
 - 装飾のアイコン（`SelectBox` / `DateSelector` の矢印、`DropdownUi` / `SlideDownUi` の
   シェブロン、`ModalBox` の閉じるアイコン）に `aria-hidden="true"` と
   `focusable="false"` が付き、スクリーンリーダーの読み上げ対象から外れる
+- `ModalBox` は**表示している間だけ** children を描画し、`document.body` へ
+  Portal する（`PopupBox` と同じ形）。閉じている間も children の effect
+  （データ取得等）が走っていたのと、`transform` / `filter` を持つ祖先の中で
+  `position: fixed` の基準がずれてオーバーレイが崩れるのを直す。
+  **`ModalBox` の DOM を親から辿っているテストやスタイルは追従が要る**
+  （閉じている間は要素そのものが無く、開いている間は `document.body` 直下にある）
 - `DatePicker` の年月日欄に `inputMode="numeric"` が付く（モバイルで数字キーボードが出る）
 - `TextBox` / `TextArea` の `maxLength` の既定値（30 / 100）を廃止し、**未指定なら無制限**にした。
   指定していない利用側で入力が黙って切られていた（`SearchableSelectBox` の検索語も

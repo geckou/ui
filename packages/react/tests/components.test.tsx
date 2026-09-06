@@ -1,5 +1,5 @@
 // @geckou/ui の移植時に修正したバグのリグレッションテスト
-import { StrictMode, act, createRef, useState } from 'react'
+import { StrictMode, act, createRef, useEffect, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -54,6 +54,15 @@ afterEach(() => {
   act(() => root.unmount())
   container.remove()
 })
+
+// ModalBox は document.body へ Portal するため、container からは辿れない
+function modalDialog() {
+  return document.body.querySelector('[role="dialog"]') as HTMLElement | null
+}
+
+function modalOverlay() {
+  return modalDialog()?.parentElement as HTMLElement | null
+}
 
 function setSelectValue(select: HTMLSelectElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(
@@ -527,7 +536,8 @@ describe('装飾 SVG の aria-hidden', () => {
       )
     })
 
-    const svgs = Array.from(container.querySelectorAll('svg'))
+    // ModalBox は document.body へ Portal するので container からは辿れない
+    const svgs = Array.from(modalOverlay()!.querySelectorAll('svg'))
 
     expect(svgs.length).toBeGreaterThan(0)
     expect(
@@ -1026,7 +1036,9 @@ describe('キーボードアクセシビリティ', () => {
     expect(event.defaultPrevented).toBe(true)
   })
 
-  it('ModalBox: 非表示時は inert、閉じるボタンにアクセシブル名がある', () => {
+  // 回帰: 閉じていても常時マウントしていたため、children の effect
+  // （データ取得等）が閉じたままでも走っていた
+  it('ModalBox: 非表示時は何も描かず、表示時は閉じるボタンと初期フォーカスがある', () => {
     function renderModal(isShown: boolean) {
       act(() => {
         root.render(
@@ -1038,17 +1050,22 @@ describe('キーボードアクセシビリティ', () => {
     }
 
     renderModal(false)
-    const overlay = () => container.firstElementChild as HTMLElement
-    expect(overlay().hasAttribute('inert')).toBe(true)
+    expect(modalDialog()).toBeNull()
+    expect(document.body.textContent).not.toContain('本文')
 
     renderModal(true)
-    expect(overlay().hasAttribute('inert')).toBe(false)
+    const dialog = modalDialog()
+    expect(dialog).not.toBeNull()
 
-    const closeButton = container.querySelector('button[aria-label="閉じる"]')
-    expect(closeButton).not.toBeNull()
+    // Portal 先は document.body。container の中には描かれない
+    expect(container.contains(dialog)).toBe(false)
+    expect(dialog!.closest('body')).toBe(document.body)
+
+    expect(
+      modalOverlay()!.querySelector('button[aria-label="閉じる"]')
+    ).not.toBeNull()
 
     // 表示時はダイアログへ初期フォーカスが移る
-    const dialog = container.querySelector('[role="dialog"]')
     expect(document.activeElement).toBe(dialog)
 
     // header が無い場合もダイアログにアクセシブル名がある
@@ -1064,7 +1081,7 @@ describe('キーボードアクセシビリティ', () => {
       )
     })
 
-    const dialog = () => container.querySelector('[role="dialog"]')!
+    const dialog = () => modalDialog()!
     const labelledBy = dialog().getAttribute('aria-labelledby')
     expect(labelledBy).not.toBeNull()
     expect(document.getElementById(labelledBy!)?.textContent).toBe('設定')
@@ -1775,7 +1792,7 @@ describe('ModalBox のフォーカストラップ', () => {
   }
 
   const focusable = () =>
-    [...container.querySelectorAll('a, button')] as HTMLElement[]
+    [...(modalOverlay()?.querySelectorAll('a, button') ?? [])] as HTMLElement[]
 
   it('最後の要素で Tab したら最初の要素へ戻る', () => {
     const outside = document.createElement('button')
@@ -1973,6 +1990,40 @@ describe('ModalBox の閉じ方', () => {
     trigger.remove()
   })
 
+  // 回帰: 閉じていても children を常時マウントしていたため、
+  // データ取得などの effect が閉じたままでも走っていた
+  it('閉じている間は children の effect が走らない', () => {
+    const effect = vi.fn()
+
+    function Child() {
+      useEffect(() => {
+        effect()
+      }, [])
+
+      return <p>本文</p>
+    }
+
+    function renderModal(isShown: boolean) {
+      act(() => {
+        root.render(
+          <ModalBox isShown={isShown} onClose={() => {}}>
+            <Child />
+          </ModalBox>
+        )
+      })
+    }
+
+    renderModal(false)
+    expect(effect).not.toHaveBeenCalled()
+
+    renderModal(true)
+    expect(effect).toHaveBeenCalledTimes(1)
+
+    renderModal(false)
+    renderModal(true)
+    expect(effect).toHaveBeenCalledTimes(2)
+  })
+
   it('ダイアログ内で押し始めて背景で離しても閉じない', () => {
     const onClose = vi.fn()
 
@@ -1984,8 +2035,8 @@ describe('ModalBox の閉じ方', () => {
       )
     })
 
-    const overlay = container.firstElementChild as HTMLElement
-    const paragraph = container.querySelector('p') as HTMLElement
+    const overlay = modalOverlay()!
+    const paragraph = overlay.querySelector('p') as HTMLElement
 
     act(() => {
       paragraph.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
