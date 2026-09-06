@@ -125,7 +125,7 @@ Geckou が自社の制作案件で使うために開発しているコンポー�
 | `--bv` と `--sp-*` | 余白の基準値と段階 |
 | `--fs-small` / `--fs-large` | 小さめ・大きめの文字サイズ |
 | `--icon-small` / `--icon-medium` | アイコンのサイズ |
-| `--mobile-lower-width` / `--desktop-lower-width` / `--contents-max-width` | `ModalBox` の最大幅（`size` prop で切り替え）。`--contents-max-width` は `PopupBox` の左右位置、`--mobile-lower-width` は `PopupBox` の最大幅（**この値の 1/2**）にも効く |
+| `--mobile-lower-width` / `--desktop-lower-width` / `--contents-max-width` | `ModalBox` の最大幅（`size` prop で切り替え）。**Vue 版に限り** `--contents-max-width` が `PopupBox` の左右位置、`--mobile-lower-width` が `PopupBox` の最大幅（**この値の 1/2**）にも効く（React 版の `PopupBox` は固定値） |
 
 記事一覧コンポーネントはコンテナクエリでレイアウトを切り替えるため、
 親要素に `container-type: inline-size` を指定してください。
