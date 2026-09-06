@@ -108,6 +108,12 @@ props は Vue 版（`@geckou/ui-vue`）と揃えている。`v-model` にあた�
 yarn workspace @geckou/ui-react test
 ```
 
+## 0.9.0 の変更
+
+- 装飾のアイコン（`SelectBox` / `DateSelector` の矢印、`DropdownUi` / `SlideDownUi` の
+  シェブロン、`ModalBox` の閉じるアイコン）に `aria-hidden="true"` と
+  `focusable="false"` が付き、スクリーンリーダーの読み上げ対象から外れる
+
 ## 0.8.0 の変更
 
 - `BasicButton` はローディング中に `disabled` にしない（押した瞬間にフォーカスが

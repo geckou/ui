@@ -301,6 +301,15 @@ const articles = ref<any[]>([])
 
 定義例はデモの `demo/styles/base.scss` を参照。
 
+## 0.14.0 の変更
+
+- `Icon/*` の svg 全般（`SelectBox` / `DateSelector` の矢印、`DropdownUi` /
+  `SlideDownUi` のシェブロン、`ModalBox` の閉じるアイコン、`MetadataList` の
+  フォルダ / タグ）に `aria-hidden="true"` と `focusable="false"` が付き、
+  スクリーンリーダーの読み上げ対象から外れる
+- `NoImage` は要素ごと `aria-hidden="true"` になった（「No Image」の文字も
+  読み上げない。画像が無いこと自体は伝える情報ではないため）
+
 ## 0.13.0 の変更
 
 - `BasicButton` はローディング中に `disabled` にしない（押した瞬間にフォーカスが
