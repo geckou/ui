@@ -119,6 +119,9 @@ yarn workspace @geckou/ui-react test
 - `TabUI` が Home / End で端のタブへ飛べるようになった
 - `TabUI` は `tabs` が差し替わって選択中の key が消えたとき、先頭のタブへ寄せる
   （これまではどのパネルも出なくなっていた）
+- 装飾のアイコン（`SelectBox` / `DateSelector` の矢印、`DropdownUi` / `SlideDownUi` の
+  シェブロン、`ModalBox` の閉じるアイコン）に `aria-hidden="true"` と
+  `focusable="false"` が付き、スクリーンリーダーの読み上げ対象から外れる
 
 ## 0.8.0 の変更
 
