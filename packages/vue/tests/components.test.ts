@@ -1709,10 +1709,11 @@ describe('BasicButton の disabled', () => {
 })
 
 describe('ToggleButton のキーボード操作', () => {
-  // ネイティブの button なので Space / Enter は click に変換される。
-  // div + role="switch" にすると自前でキー処理が要るため、
-  // button のままであることを固定する
-  it('role="switch" のネイティブ button で、Enter / Space が click になる', async () => {
+  // Enter / Space での起動はネイティブの button に任せている（jsdom は
+  // keydown を click に変換しないので、ここで検証できるのは
+  // 「button のままであること」まで）。div + role="switch" にすると
+  // 自前でキー処理が要るため、要素と role を固定する
+  it('role="switch" のネイティブ button で、click で切り替わる', async () => {
     const wrapper = mount(ToggleButton, {
       props: { name: 'notification', modelValue: false },
     })
