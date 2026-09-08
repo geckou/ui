@@ -51,10 +51,29 @@ export function SearchableSelectBox({
   // 親からの value 更新に追従（正本の watch(modelValue, immediate) 相当）
   const lastValueProp = useRef(value)
 
+  /**
+   * 直前に自分が onChange で出した値。controlled な親がそれをそのまま返してきた
+   * ときは同期しない。
+   *
+   * 打鍵のたびに onChange(入力文字) を出しているので、親がエコーすると下の同期が
+   * 「外から value を入れ直された」と解釈して label に変換していた。入力文字が
+   * 選択肢の value と一致した瞬間に入力欄が label へ置き換わり、
+   * searchTarget="value" では変換後の label で value を検索して候補が消える
+   */
+  const lastEmitted = useRef<string | null>(null)
+
   useEffect(() => {
     if (lastValueProp.current === value) {
       return
     }
+
+    // エコーは 1 回だけ読み飛ばす。次に同じ値が来たら親からの本物の変更として扱う
+    if (value === lastEmitted.current) {
+      lastValueProp.current = value
+      lastEmitted.current = null
+      return
+    }
+
     lastValueProp.current = value
     setSearchWord(toDisplayValue(value))
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 外部からの値変更時のみ同期する
@@ -92,6 +111,7 @@ export function SearchableSelectBox({
     setIsOpened(Boolean(word))
     // 候補が絞り込まれたら、前の位置は意味を失う
     setActiveIndex(-1)
+    lastEmitted.current = word
     onChange?.(word)
   }
 
@@ -105,6 +125,8 @@ export function SearchableSelectBox({
     setSearchWord(option.label)
     setIsOpened(false)
     setActiveIndex(-1)
+    // ここでは既に label を入れてあるので、エコーで同じ変換をやり直さない
+    lastEmitted.current = newValue
     onChange?.(newValue)
     onSelect?.(newValue)
   }
