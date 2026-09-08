@@ -452,6 +452,111 @@ describe('SearchableSelectBox', () => {
 
     expect(event.defaultPrevented).toBe(false)
   })
+
+  // 回帰: 打鍵ごとに onChange(入力文字) を出しているのに、親からのエコーを
+  // 「外から選択された value」と同じ扱いで label に変換していた。
+  // searchTarget="value" では変換後の label で value を検索するので候補が消える
+  describe('controlled（親が onChange をエコーする）', () => {
+    function ControlledBox({
+      searchTarget,
+    }: {
+      searchTarget: 'label' | 'value'
+    }) {
+      const [value, setValue] = useState('')
+
+      return (
+        <SearchableSelectBox
+          name="fruit"
+          options={options}
+          value={value}
+          onChange={setValue}
+          searchTarget={searchTarget}
+        />
+      )
+    }
+
+    const input = () =>
+      container.querySelector('input[name="fruit"]') as HTMLInputElement
+
+    const optionLabels = () =>
+      [...container.querySelectorAll('[role="option"]')].map(
+        (node) => node.textContent
+      )
+
+    it('searchTarget="value" で value と同じ文字を打っても候補が残る', () => {
+      act(() => {
+        root.render(<ControlledBox searchTarget="value" />)
+      })
+
+      act(() => setInputValue(input(), 'appl'))
+      expect(optionLabels()).toEqual(['りんご'])
+
+      act(() => setInputValue(input(), 'apple'))
+      expect(input().value).toBe('apple')
+      expect(optionLabels()).toEqual(['りんご'])
+      expect(input().getAttribute('aria-expanded')).toBe('true')
+    })
+
+    it('searchTarget="label" でも入力文字が label に置き換わらない', () => {
+      act(() => {
+        root.render(<ControlledBox searchTarget="label" />)
+      })
+
+      act(() => setInputValue(input(), 'apple'))
+
+      expect(input().value).toBe('apple')
+    })
+
+    it('候補を選んだときは入力欄が label になる', () => {
+      act(() => {
+        root.render(<ControlledBox searchTarget="value" />)
+      })
+
+      act(() => setInputValue(input(), 'appl'))
+      act(() => {
+        container
+          .querySelector('[role="option"]')!
+          .dispatchEvent(
+            new MouseEvent('pointerdown', { bubbles: true, cancelable: true })
+          )
+      })
+
+      expect(input().value).toBe('りんご')
+    })
+
+    it('親が外から value を入れ直したときは label に変換する', () => {
+      function ExternallySetBox() {
+        const [value, setValue] = useState('')
+
+        return (
+          <>
+            <SearchableSelectBox
+              name="fruit"
+              options={options}
+              value={value}
+              onChange={setValue}
+              searchTarget="value"
+            />
+            <button type="button" onClick={() => setValue('orange')}>
+              みかんにする
+            </button>
+          </>
+        )
+      }
+
+      act(() => {
+        root.render(<ExternallySetBox />)
+      })
+
+      // 一度エコーを起こしてから外部設定を掛ける（読み飛ばしが残らないこと）
+      act(() => setInputValue(input(), 'apple'))
+      act(() => {
+        container.querySelector('button')!.click()
+      })
+
+      expect(input().value).toBe('みかん')
+    })
+  })
 })
 
 describe('FileInput', () => {
