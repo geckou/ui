@@ -70,10 +70,28 @@ export function DatePicker({
   // prop が実際に変わったときだけ同期する（内部編集を上書きしないため）
   const lastValueProp = useRef(value)
 
+  /**
+   * 直前に自分が onChange で出した値。controlled な親がそれをそのまま返してきた
+   * ときは同期しない。
+   *
+   * 入力途中は日付として不正なので applyObject が onChange('') を出す。親が
+   * value='' で再描画すると、下の同期が「親が空にした」と解釈して入力中の
+   * 年月日欄まで消していた（1 打鍵で 3 欄とも空になる）
+   */
+  const lastEmitted = useRef<string | null>(null)
+
   useEffect(() => {
     if (lastValueProp.current === value) {
       return
     }
+
+    // エコーは 1 回だけ読み飛ばす。次に同じ値が来たら親からの本物の変更として扱う
+    if (value === lastEmitted.current) {
+      lastValueProp.current = value
+      lastEmitted.current = null
+      return
+    }
+
     lastValueProp.current = value
 
     const normalized = value ? formatDateValue(value, type) : ''
@@ -100,6 +118,7 @@ export function DatePicker({
     setErrorMessage(message)
     // カレンダー入力は不正な日付を作れないので、年月日欄の判定は解除する
     setIsObjectValid(true)
+    lastEmitted.current = newValue
     onChange?.(newValue)
   }
 
@@ -120,6 +139,7 @@ export function DatePicker({
 
     if (joined !== dateValue) {
       setDateValue(joined)
+      lastEmitted.current = joined
       onChange?.(joined)
     }
   }

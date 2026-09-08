@@ -1314,6 +1314,127 @@ describe('DatePicker', () => {
     expect(units).toHaveLength(2)
     expect(units.every((input) => input.inputMode === 'numeric')).toBe(true)
   })
+
+  // 回帰: 入力途中は日付として不正なので onChange('') が飛ぶ。親がそれを
+  // value='' でエコーすると、prop 同期が「親が空にした」と解釈して入力中の
+  // 年月日欄まで消していた（月を 1 文字消しただけで 3 欄とも空になる）。
+  // 既存のテストは onChange を親に返していないので通ってしまっていた
+  describe('controlled（親が onChange をエコーする）', () => {
+    function ControlledDatePicker({ initial }: { initial: string }) {
+      const [value, setValue] = useState(initial)
+
+      return <DatePicker name="date" value={value} onChange={setValue} />
+    }
+
+    const units = () =>
+      Array.from(
+        container.querySelectorAll<HTMLInputElement>('input[type="text"]')
+      )
+
+    it('月を編集しても年と日が残る', () => {
+      act(() => {
+        root.render(<ControlledDatePicker initial="2024-01-05" />)
+      })
+
+      const [year, month, day] = units()
+      expect([year.value, month.value, day.value]).toEqual(['2024', '01', '05'])
+
+      act(() => setInputValue(month, '0'))
+
+      const [yearAfter, monthAfter, dayAfter] = units()
+      expect([yearAfter.value, monthAfter.value, dayAfter.value]).toEqual([
+        '2024',
+        '0',
+        '05',
+      ])
+    })
+
+    it('年を編集しても月と日が残る', () => {
+      act(() => {
+        root.render(<ControlledDatePicker initial="2024-01-05" />)
+      })
+
+      act(() => setInputValue(units()[0], '202'))
+
+      const [year, month, day] = units()
+      expect([year.value, month.value, day.value]).toEqual(['202', '01', '05'])
+    })
+
+    it('打ち直した日付が親へ渡る', () => {
+      act(() => {
+        root.render(<ControlledDatePicker initial="2024-01-05" />)
+      })
+
+      act(() => setInputValue(units()[1], '0'))
+      act(() => setInputValue(units()[1], '03'))
+
+      const dateInput = container.querySelector(
+        'input[type="date"]'
+      ) as HTMLInputElement
+      expect(dateInput.value).toBe('2024-03-05')
+      expect(units().map((input) => input.value)).toEqual(['2024', '03', '05'])
+    })
+
+    it('親が本当に空にしたときは年月日欄も空になる', () => {
+      function ResettableDatePicker() {
+        const [value, setValue] = useState('2024-01-05')
+
+        return (
+          <>
+            <DatePicker name="date" value={value} onChange={setValue} />
+            <button type="button" onClick={() => setValue('')}>
+              クリア
+            </button>
+          </>
+        )
+      }
+
+      act(() => {
+        root.render(<ResettableDatePicker />)
+      })
+
+      // 一度エコーを起こしてから親のリセットを掛ける（読み飛ばしが残らないこと）
+      act(() => setInputValue(units()[1], '0'))
+      act(() => setInputValue(units()[1], '03'))
+      act(() => {
+        container.querySelector('button')!.click()
+      })
+
+      expect(units().map((input) => input.value)).toEqual(['', '', ''])
+    })
+  })
+})
+
+describe('DateRangePicker（controlled）', () => {
+  // DateRangePicker は常に controlled で DatePicker を使うので、
+  // 同じエコー問題の影響を受ける
+  it('開始日の月を編集しても年と日が残る', () => {
+    function ControlledRange() {
+      const [range, setRange] = useState<DateRange>({
+        start: '2024-01-05',
+        end: '2024-02-10',
+      })
+
+      return <DateRangePicker name="period" value={range} onChange={setRange} />
+    }
+
+    act(() => {
+      root.render(<ControlledRange />)
+    })
+
+    const units = () =>
+      Array.from(
+        container.querySelectorAll<HTMLInputElement>('input[type="text"]')
+      )
+
+    act(() => setInputValue(units()[1], '0'))
+
+    expect(
+      units()
+        .slice(0, 3)
+        .map((input) => input.value)
+    ).toEqual(['2024', '0', '05'])
+  })
 })
 
 // @geckou/ui-core への移行で修正したバグのリグレッションテスト
