@@ -1,6 +1,7 @@
 // @geckou/ui-core への移行時に修正したバグのリグレッションテスト
 import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, nextTick } from 'vue'
 import BasicButton from '@/components/BasicButton.vue'
 import CheckBox from '@/components/CheckBox.vue'
@@ -1386,6 +1387,76 @@ describe('DatePicker', () => {
     expect(
       units.every((input) => input.attributes('inputmode') === 'numeric')
     ).toBe(true)
+  })
+
+  // 回帰: 入力途中は日付として不正なので空文字を emit する。v-model の親が
+  // それをそのまま返すと applyModelValue の「親が空にした」分岐が走り、
+  // 入力中の年月日欄まで消えていた（1 打鍵で 3 欄とも空になる）。
+  // 既存のテストは emit を親に返していないので通ってしまっていた
+  describe('v-model（親が emit をエコーする）', () => {
+    // v-model と同じく、emit された値をそのまま modelValue に返す。
+    // 型注釈が無いと wrapper が自分の初期化式を参照して推論が回らない（TS7022）
+    const mountWithModel = (modelValue: string) => {
+      const wrapper: VueWrapper = mount(DatePicker, {
+        props: {
+          name: 'startedOn',
+          modelValue,
+          'onUpdate:modelValue': (newValue: string | null): void => {
+            void wrapper.setProps({ modelValue: newValue ?? '' })
+          },
+        },
+      })
+
+      return wrapper
+    }
+
+    const unitValues = (wrapper: VueWrapper) =>
+      wrapper
+        .findAll('input[type="text"]')
+        .map((input) => (input.element as HTMLInputElement).value)
+
+    it('月を編集しても年と日が残る', async () => {
+      const wrapper = mountWithModel('2024-01-05')
+      expect(unitValues(wrapper)).toEqual(['2024', '01', '05'])
+
+      await byLabel(wrapper, 'startedOnの月').setValue('0')
+
+      expect(unitValues(wrapper)).toEqual(['2024', '0', '05'])
+    })
+
+    it('年を編集しても月と日が残る', async () => {
+      const wrapper = mountWithModel('2024-01-05')
+
+      await byLabel(wrapper, 'startedOnの年').setValue('202')
+
+      expect(unitValues(wrapper)).toEqual(['202', '01', '05'])
+    })
+
+    it('打ち直した日付が親へ渡る', async () => {
+      const wrapper = mountWithModel('2024-01-05')
+
+      await byLabel(wrapper, 'startedOnの月').setValue('0')
+      await byLabel(wrapper, 'startedOnの月').setValue('03')
+
+      const emitted = wrapper.emitted('update:modelValue') as string[][]
+
+      expect(emitted.at(-1)).toEqual(['2024-03-05'])
+      expect(unitValues(wrapper)).toEqual(['2024', '03', '05'])
+      expect(
+        (wrapper.find('input[type="date"]').element as HTMLInputElement).value
+      ).toBe('2024-03-05')
+    })
+
+    it('親が本当に空にしたときは年月日欄も空になる', async () => {
+      const wrapper = mountWithModel('2024-01-05')
+
+      // 一度エコーを起こしてから親のリセットを掛ける（読み飛ばしが残らないこと）
+      await byLabel(wrapper, 'startedOnの月').setValue('0')
+      await byLabel(wrapper, 'startedOnの月').setValue('03')
+      await wrapper.setProps({ modelValue: '' })
+
+      expect(unitValues(wrapper)).toEqual(['', '', ''])
+    })
   })
 })
 

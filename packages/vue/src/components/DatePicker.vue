@@ -105,6 +105,16 @@ const setDateObject = (value: string): void => {
 const composeDateValue = (): string =>
   composeDate({ ...dateObject }, props.type)
 
+/**
+ * 直前に自分が emit した値。v-model の親がそれをそのまま返してきたときは
+ * 同期しない。
+ *
+ * 入力途中は日付として不正なので applyObject が空文字を emit する。親が
+ * modelValue='' でエコーすると applyModelValue の「親が空にした」分岐が走り、
+ * 入力中の年月日欄まで消していた（1 打鍵で 3 欄とも空になる）
+ */
+let lastEmitted: string | null = null
+
 /** カレンダー（native の date / month 入力）からの変更 */
 const handleDateValueInput = (event: Event): void => {
   const newValue = (event.target as HTMLInputElement).value
@@ -114,6 +124,7 @@ const handleDateValueInput = (event: Event): void => {
   const { isValid, message } = validateInput(newValue)
   errorMessage.value = message
   setValid(isValid)
+  lastEmitted = newValue
   emit('update:modelValue', newValue)
 }
 
@@ -140,6 +151,7 @@ const applyObject = (showError: boolean): void => {
   // dateValue の変更を watch で受けると setDateObject が入力途中の年月日欄を
   // 書き戻してしまうため、ここでは直接 emit する
   dateValue.value = composed
+  lastEmitted = composed
   emit('update:modelValue', composed)
 }
 
@@ -187,7 +199,15 @@ const applyModelValue = (value: string): void => {
 
 watch(
   () => props.modelValue,
-  (newValue) => applyModelValue(newValue)
+  (newValue) => {
+    // エコーは 1 回だけ読み飛ばす。次に同じ値が来たら親からの本物の変更として扱う
+    if (newValue === lastEmitted) {
+      lastEmitted = null
+      return
+    }
+
+    applyModelValue(newValue)
+  }
 )
 
 applyModelValue(props.modelValue)
